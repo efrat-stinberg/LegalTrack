@@ -23,6 +23,7 @@ const userSlice = createSlice({
         folders: action.payload.folders.map((folder) => ({
           ...folder,
           documents: folder.documents.map((document) => ({
+            documentId: document.documentId,
             documentName: document.documentName,
             filePath: document.filePath,
             uploadDate: document.uploadDate,

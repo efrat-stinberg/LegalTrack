@@ -129,7 +129,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ folderId, onClose, onUploadSucc
             type="file"
             onChange={handleFileChange}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            accept=".pdf,.doc,.docx,.txt"
+            accept=".pdf"
             disabled={uploading}
           />
         </div>
