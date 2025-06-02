@@ -39,7 +39,6 @@ export const registerUser = async (
     username: string,
     email: string,
     password: string,
-    groupId?: number,
     isAdmin: boolean = false
   ): Promise<any> => {
     try {

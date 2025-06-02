@@ -6,7 +6,7 @@ interface FileUploadProps {
   onClose: () => void;
 }
 
-const FileUpload: React.FC<FileUploadProps> = ({ folderName, files, onClose }) => {
+const FileUpload: React.FC<FileUploadProps> = ({ folderName, onClose }) => {
   return (
     <div>
       <h2>העלאת קבצים לתיקייה: {folderName}</h2>

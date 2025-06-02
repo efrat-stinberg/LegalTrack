@@ -20,8 +20,7 @@ import {
 } from "../api/api";
 
 import MyFolder from "../models/Folder";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+
 
 const StyledContainer = styled(Container)(({ theme }) => ({
   padding: theme.spacing(3),

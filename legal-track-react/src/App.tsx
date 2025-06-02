@@ -3,7 +3,6 @@ import { BrowserRouter, Route, Routes, useNavigate, Navigate } from "react-route
 import store from "./store/store";
 import AuthPage from "./pages/AuthPage";
 import Register from "./components/Register";
-import Login from "./components/Login";
 import FolderManagementPage from "./pages/FolderManagementPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProtectedLayout from "./components/ProtectedLayout";
