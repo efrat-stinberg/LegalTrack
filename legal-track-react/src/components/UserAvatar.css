@@ -1,0 +1,23 @@
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3f51b5, #2196f3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease;
+  }
+  
+  .avatar:hover {
+    transform: scale(1.05);
+  }
+  
+  .initial {
+    font-weight: bold;
+    color: white;
+    font-size: 18px;
+    font-family: 'Roboto', sans-serif;
+  }
+  
