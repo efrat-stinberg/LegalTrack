@@ -96,19 +96,8 @@ const AuthPage = () => {
 
               <Box sx={{ textAlign: 'center' }}>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                  Not registered in the system yet?
+                  New users can only be registered by an administrator.
                 </Typography>
-                <Link 
-                  to="/register" 
-                  style={{ 
-                    textDecoration: 'none',
-                    color: theme.palette.primary.main,
-                    fontWeight: 600,
-                    fontSize: '0.95rem'
-                  }}
-                >
-                  Create Account
-                </Link>
               </Box>
             </Paper>
           </Box>
