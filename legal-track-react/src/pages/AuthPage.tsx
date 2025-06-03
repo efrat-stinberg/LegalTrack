@@ -1,5 +1,4 @@
 // AuthPage.tsx
-import { Link } from "react-router-dom";
 import Login from "../components/Login";
 import { 
   Container, 
