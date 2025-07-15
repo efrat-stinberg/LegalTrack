@@ -10,7 +10,6 @@ import { useEffect } from 'react';
 import store from './store/store';
 import AuthPage from './pages/AuthPage';
 import Register from './components/Register';
-import FolderManagementPage from './pages/FolderManagementPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import ProtectedLayout from './components/ProtectedLayout';
 import FolderDetailsPage from './pages/FolderDetailsPage';
@@ -18,6 +17,7 @@ import ClientsPage from './pages/ClientsPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import { getUserByEmail } from './api/userApi';
 import { login } from './store/slices/userSlice';
+import FolderManagementPage from './pages/FolderManagementPage';
 
 function App() {
   return (

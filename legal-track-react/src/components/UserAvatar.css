@@ -1,23 +1,75 @@
+/* UserAvatar.css - Clean and Modern */
+
+/* Remove old conflicting styles - the new component is styled with MUI styled components */
 .avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #3f51b5, #2196f3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    transition: transform 0.2s ease;
+  /* All avatar styling is now handled by the StyledAvatar component */
+  /* This file can be removed or kept minimal for legacy support */
+}
+
+.initial {
+  /* Text styling is now handled by MUI Typography in the component */
+}
+
+/* Additional global styles that might be useful */
+.user-avatar-container {
+  position: relative;
+  z-index: 1000; /* Ensure popover appears above other elements */
+}
+
+/* Smooth animations for better UX */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
   }
-  
-  .avatar:hover {
-    transform: scale(1.05);
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
-  
-  .initial {
-    font-weight: bold;
-    color: white;
-    font-size: 18px;
-    font-family: 'Roboto', sans-serif;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-  
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Global utility classes */
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .user-popover {
+    max-width: 90vw;
+  }
+}
+
+/* Custom scrollbar for better UX */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}

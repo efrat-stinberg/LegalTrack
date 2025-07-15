@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   TextField,
@@ -100,7 +100,7 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
   const predefinedColors = [
     '#667eea', '#f093fb', '#4facfe', '#43e97b', 
     '#fa709a', '#ff9a9e', '#a8edea', '#fecfef',
-    '#667eea', '#764ba2', '#667eea', '#f5576c'
+    '#764ba2', '#f5576c', '#ff6b6b', '#4ecdc4'
   ];
 
   const predefinedTags = [
@@ -122,13 +122,21 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
     urgent: 'דחופה'
   };
 
+  // מניעת re-render אינסופי - השתמש בuseEffect עם dependency array
   useEffect(() => {
-    const client = clients.find(c => c.id === selectedClientId) || null;
-    setSelectedClient(client);
-    console.log('Selected client updated:', client);
-  }, [selectedClientId, clients]);
+    if (clients && Array.isArray(clients)) {
+      const client = clients.find(c => c.id === selectedClientId) || null;
+      
+      // עדכן רק אם השתנה
+      if (client !== selectedClient) {
+        console.log('AddFolderForm: Selected client updated:', client);
+        setSelectedClient(client);
+      }
+    }
+  }, [selectedClientId, clients]); // הסר selectedClient מה-dependencies
 
-  const validateForm = (): boolean => {
+  // פונקציות מאמורטות למניעת re-creation בכל render
+  const validateForm = useCallback((): boolean => {
     const errors: {[key: string]: string} = {};
     
     if (!formData.folderName.trim()) {
@@ -141,9 +149,9 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
     
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
-  };
+  }, [formData.folderName, selectedClientId]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
     console.log('Form submission started', {
@@ -198,9 +206,9 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [formData, selectedClientId, onAddFolder, onSelectClient, validateForm, formErrors]);
 
-  const handleClientSelect = (client: Client | null) => {
+  const handleClientSelect = useCallback((client: Client | null) => {
     const clientId = client?.id || null;
     console.log('Client selected:', { client, clientId });
     onSelectClient(clientId);
@@ -209,18 +217,18 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
     if (formErrors.client) {
       setFormErrors(prev => ({ ...prev, client: '' }));
     }
-  };
+  }, [onSelectClient, formErrors.client]);
 
-  const handleFolderNameChange = (value: string) => {
+  const handleFolderNameChange = useCallback((value: string) => {
     setFormData(prev => ({ ...prev, folderName: value }));
     
     // נקה שגיאות קודמות
     if (formErrors.folderName) {
       setFormErrors(prev => ({ ...prev, folderName: '' }));
     }
-  };
+  }, [formErrors.folderName]);
 
-  const handleAddTag = () => {
+  const handleAddTag = useCallback(() => {
     if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
       setFormData(prev => ({
         ...prev,
@@ -228,23 +236,23 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
       }));
       setNewTag('');
     }
-  };
+  }, [newTag, formData.tags]);
 
-  const handleRemoveTag = (tagToRemove: string) => {
+  const handleRemoveTag = useCallback((tagToRemove: string) => {
     setFormData(prev => ({
       ...prev,
       tags: prev.tags.filter(tag => tag !== tagToRemove)
     }));
-  };
+  }, []);
 
-  const handleTagSelect = (tag: string) => {
+  const handleTagSelect = useCallback((tag: string) => {
     if (!formData.tags.includes(tag)) {
       setFormData(prev => ({
         ...prev,
         tags: [...prev.tags, tag]
       }));
     }
-  };
+  }, [formData.tags]);
 
   return (
     <FormContainer elevation={2}>
@@ -291,7 +299,7 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
                 />
 
                 <Autocomplete
-                  options={clients}
+                  options={clients || []}
                   getOptionLabel={(client) => `${client.fullName} (${client.email})`}
                   value={selectedClient}
                   onChange={(_, client) => handleClientSelect(client)}
@@ -383,9 +391,9 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
               </SectionTitle>
               
               <Box display="flex" flexWrap="wrap" gap={1}>
-                {predefinedColors.map((color) => (
+                {predefinedColors.map((color, index) => (
                   <ColorButton
-                    key={color}
+                    key={`color-${index}-${color}`}
                     selected={formData.color === color}
                     color={color}
                     onClick={() => setFormData(prev => ({ ...prev, color }))}
@@ -507,10 +515,7 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
                 Selected Client: {selectedClient?.fullName || 'None'}
               </Typography>
               <Typography variant="caption" component="div">
-                Form Valid: {validateForm() ? 'Yes' : 'No'}
-              </Typography>
-              <Typography variant="caption" component="div">
-                Errors: {JSON.stringify(formErrors)}
+                Clients Array: {Array.isArray(clients) ? `${clients.length} clients` : 'Not an array'}
               </Typography>
             </Box>
           )}
