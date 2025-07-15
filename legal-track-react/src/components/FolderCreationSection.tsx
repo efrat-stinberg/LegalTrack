@@ -104,10 +104,6 @@ interface FolderCreationSectionProps {
   onAddFolder: (folderData: {
     folderName: string;
     clientId: number | null;
-    description?: string;
-    priority?: 'low' | 'medium' | 'high' | 'urgent';
-    color?: string;
-    tags?: string[];
   }) => Promise<void>;
   clients: Client[];
   selectedClientId: number | null;
@@ -132,16 +128,11 @@ const FolderCreationSection: React.FC<FolderCreationSectionProps> = ({
   const handleFormSubmit = async (folderData: {
     folderName: string;
     clientId: number | null;
-    description?: string;
-    priority?: 'low' | 'medium' | 'high' | 'urgent';
-    color?: string;
-    tags?: string[];
   }) => {
     try {
       await onAddFolder(folderData);
       setShowForm(false);
     } catch (error) {
-      // Error handling is done in parent component
       console.error('Error in form submission:', error);
     }
   };

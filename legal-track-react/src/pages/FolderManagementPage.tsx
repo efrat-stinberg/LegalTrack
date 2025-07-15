@@ -21,15 +21,14 @@ import FolderGridView from "../components/FolderGridView";
 
 // API & Models
 import {
-  createFolder,
   deleteFolder,
   getAllFolders,
   updateFolder,
-  CreateFolderRequest
+  createFolder as apiCreateFolder
 } from "../api/api";
 import {MyFolder} from "../models/Folder";
 import { Client } from "../models/Client";
-import { getClients } from "../api/client";
+import { getClients } from "../api/clientApi";
 
 const StyledContainer = styled(Container)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -95,6 +94,12 @@ interface NotificationState {
   severity: 'success' | 'error' | 'warning' | 'info';
 }
 
+// טיפוס הנתונים שהשרת מצפה לקבל
+export interface CreateFolderRequest {
+  folderName: string;
+  clientId: number | null;
+}
+
 const FolderManagementPage: React.FC = () => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -113,6 +118,23 @@ const FolderManagementPage: React.FC = () => {
     message: '',
     severity: 'info'
   });
+
+  // פונקציה עזר לקבלת groupId מהטוקן
+  const getUserGroupId = (): number => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const cleanToken = token.replace(/^"|"$/g, '');
+        const payload = JSON.parse(atob(cleanToken.split('.')[1]));
+        console.log('JWT payload:', payload);
+        return payload.GroupId || payload.groupId || 1;
+      }
+    } catch (error) {
+      console.error('Error parsing token for groupId:', error);
+    }
+    console.warn('Using fallback groupId = 1');
+    return 1; // fallback
+  };
 
   // Filtered folders based on search and filters
   const filteredFolders = useMemo(() => {
@@ -171,6 +193,7 @@ const FolderManagementPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('Loading initial data...');
       await Promise.all([loadFolders(), loadClients()]);
       showNotification('נתונים נטענו בהצלחה', 'success');
     } catch (err) {
@@ -185,18 +208,38 @@ const FolderManagementPage: React.FC = () => {
 
   const loadClients = async () => {
     try {
+      console.log('Fetching clients...');
       const response = await getClients();
-      setClients(response.data || []);
+      console.log('Raw clients response:', response);
+      
+      // וודא שקיבלנו array תקין
+      let clientsData = [];
+      
+      if (response && response.data && Array.isArray(response.data)) {
+        clientsData = response.data;
+      } else if (Array.isArray(response)) {
+        clientsData = response;
+      } else {
+        console.warn('Invalid clients data format, using empty array');
+        clientsData = [];
+      }
+      
+      console.log('Clients loaded:', clientsData);
+      setClients(clientsData);
     } catch (error) {
       console.error("Failed to fetch clients:", error);
+      // במקרה של שגיאה, הגדר array ריק
       setClients([]);
     }
   };
 
   const loadFolders = async () => {
     try {
+      console.log('Fetching folders...');
       const response = await getAllFolders();
-      setFolders(response || []);
+      const foldersData = response || [];
+      console.log('Folders loaded:', foldersData);
+      setFolders(foldersData);
     } catch (error) {
       console.error("Failed to fetch folders:", error);
       setFolders([]);
@@ -206,13 +249,33 @@ const FolderManagementPage: React.FC = () => {
   const handleAddFolder = async (folderData: CreateFolderRequest) => {
     setIsCreating(true);
     try {
-      const newFolder = await createFolder(folderData);
+      console.log('Creating folder with data:', folderData);
+      
+      // וידוא שיש clientId
+      if (!folderData.clientId) {
+        throw new Error('Client ID is required');
+      }
+
+      // יצירת הנתונים שהשרת מצפה להם
+      const backendData = {
+        folderName: folderData.folderName,
+        clientId: folderData.clientId,
+        groupId: getUserGroupId() // הוספת groupId
+      };
+
+      console.log('Sending to backend:', backendData);
+      
+      // קריאה ל-API עם הנתונים הנכונים
+      const newFolder = await apiCreateFolder(backendData);
+      console.log('Folder created:', newFolder);
+      
       setFolders((prev) => [...prev, newFolder]);
       showNotification(`תיקייה "${folderData.folderName}" נוצרה בהצלחה`, 'success');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating folder:", error);
-      showNotification('שגיאה ביצירת תיקייה', 'error');
-      throw error;
+      const errorMessage = error.message || 'שגיאה ביצירת תיקייה';
+      showNotification(errorMessage, 'error');
+      throw error; // מעביר את השגיאה הלאה כדי שהטופס יידע
     } finally {
       setIsCreating(false);
     }
@@ -223,10 +286,13 @@ const FolderManagementPage: React.FC = () => {
     if (!folderToUpdate) return;
     
     try {
+      console.log('Updating folder:', { folderId: folderToUpdate.folderId, newName });
+      
       await updateFolder(folderToUpdate.folderId, {
         ...folderToUpdate,
         folderName: newName,
       });
+      
       setFolders((prev) =>
         prev.map((f) =>
           f.folderId === folderToUpdate.folderId
@@ -244,6 +310,8 @@ const FolderManagementPage: React.FC = () => {
   const handleDeleteFolder = async (folderId: number) => {
     const folder = folders.find(f => f.folderId === folderId);
     try {
+      console.log('Deleting folder:', folderId);
+      
       await deleteFolder(folderId);
       setFolders((prev) => prev.filter((f) => f.folderId !== folderId));
       showNotification(`תיקייה "${folder?.folderName}" נמחקה`, 'success');
@@ -254,14 +322,17 @@ const FolderManagementPage: React.FC = () => {
   };
 
   const handleFolderClick = (folder: { id: number }) => {
+    console.log('Navigating to folder:', folder.id);
     navigate(`/folders/${folder.id}`);
   };
 
   const handleSearch = (query: string) => {
+    console.log('Search query:', query);
     setSearchQuery(query);
   };
 
   const handleFilterChange = (filters: string[]) => {
+    console.log('Filters changed:', filters);
     setActiveFilters(filters);
   };
 
@@ -322,7 +393,7 @@ const FolderManagementPage: React.FC = () => {
                   id: folder.folderId,
                   createdDate: folder.createdDate,
                   lastModified: folder.lastModified,
-                  clientName: folder.clientId 
+                  clientName: folder.clientId && Array.isArray(clients) && clients.length > 0
                     ? clients.find(c => c.id === folder.clientId)?.fullName 
                     : undefined,
                   status: folder.status || 'active',

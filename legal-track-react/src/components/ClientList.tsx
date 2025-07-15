@@ -1,6 +1,6 @@
 import { SetStateAction, useEffect, useState } from 'react';
 import { Client } from '../models/Client';
-import { getClients } from '../api/client';
+import { getClients } from '../api/clientApi';
 
 export default function ClientList() {
   const [clients, setClients] = useState<Client[]>([]);

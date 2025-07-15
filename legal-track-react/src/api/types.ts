@@ -1,32 +1,5 @@
-// api/types.ts - תואם לBackend הקיים
-
-// מה שה-Backend מצפה לקבל (לפי FolderPostModel.cs)
-export interface CreateFolderRequest {
-    folderName: string;
-    groupId: number;  // Backend דורש את זה
-    clientId: number; // Backend דורש את זה (לא nullable)
-  }
-  
-  // מה שה-Backend מחזיר (לפי FolderDTO.cs)
-  export interface FolderResponse {
-    folderId: number;
-    folderName: string;
-    createdDate: string;
-    clientId: number;
-    clientName?: string;
-    documents?: DocumentResponse[];
-  }
-  
-  export interface DocumentResponse {
-    documentId: number;
-    documentName: string;
-    filePath: string;
-    uploadDate: string;
-    folderId: number;
-  }
-  
-  // טיפוסים עזר לFrontend
-  export interface CreateFolderFormData {
+// Frontend form data types
+export interface CreateFolderFormData {
     folderName: string;
     clientId: number | null;
     description?: string;
@@ -35,7 +8,52 @@ export interface CreateFolderRequest {
     tags?: string[];
   }
   
+  // Backend request types
+  export interface BackendCreateFolderRequest {
+    folderName: string;
+    groupId: number;
+    clientId: number;
+  }
+  
+  export interface CreateFolderRequest {
+    folderName: string;
+    groupId: number;
+    clientId: number;
+  }
+  
+  // Update folder request
   export interface UpdateFolderRequest {
     folderName: string;
     clientId: number;
+  }
+  
+  // File upload types
+  export interface FileUploadRequest {
+    objectKey: string;
+    contentType: string;
+  }
+  
+  export interface S3UploadNotification {
+    folderId: number;
+    objectKey: string;
+  }
+  
+  // API Response types
+  export interface LoginResponse {
+    token: string;
+  }
+  
+  export interface RegisterRequest {
+    username: string;
+    email: string;
+    password: string;
+    groupId: number;
+    isAdmin: boolean;
+  }
+  
+  // Error response type
+  export interface ApiErrorResponse {
+    message: string;
+    details?: any;
+    statusCode?: number;
   }

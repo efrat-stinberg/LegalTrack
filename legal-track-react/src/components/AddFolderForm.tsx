@@ -95,6 +95,7 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newTag, setNewTag] = useState('');
+  const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
 
   const predefinedColors = [
     '#667eea', '#f093fb', '#4facfe', '#43e97b', 
@@ -124,18 +125,35 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
   useEffect(() => {
     const client = clients.find(c => c.id === selectedClientId) || null;
     setSelectedClient(client);
+    console.log('Selected client updated:', client);
   }, [selectedClientId, clients]);
+
+  const validateForm = (): boolean => {
+    const errors: {[key: string]: string} = {};
+    
+    if (!formData.folderName.trim()) {
+      errors.folderName = 'שם התיקייה הוא שדה חובה';
+    }
+    
+    if (selectedClientId === null) {
+      errors.client = 'בחירת לקוח הוא שדה חובה';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.folderName.trim()) {
-      alert('אנא הזן שם תיקייה');
-      return;
-    }
-    
-    if (selectedClientId === null) {
-      alert('אנא בחר לקוח');
+    console.log('Form submission started', {
+      folderName: formData.folderName,
+      selectedClientId,
+      formData
+    });
+
+    if (!validateForm()) {
+      console.log('Form validation failed', formErrors);
       return;
     }
 
@@ -148,9 +166,13 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
         clientId: selectedClientId,
       };
       
+      console.log('Sending data to backend:', backendData);
+      
       await onAddFolder(backendData);
       
-      // איפוס הטופס
+      console.log('Folder created successfully');
+      
+      // איפוס הטופס רק אחרי הצלחה
       setFormData({
         folderName: '',
         description: '',
@@ -160,8 +182,19 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
       });
       setSelectedClient(null);
       onSelectClient(null);
-    } catch (error) {
-      console.error('Error adding folder:', error);
+      setFormErrors({});
+      
+    } catch (error: any) {
+      console.error('Error in form submission:', error);
+      
+      // הצגת שגיאה למשתמש
+      if (error.message.includes('Client ID')) {
+        setFormErrors({ client: 'בעיה בבחירת הלקוח. אנא בחר לקוח מחדש.' });
+      } else if (error.message.includes('folderName')) {
+        setFormErrors({ folderName: 'בעיה בשם התיקייה. אנא בדוק את השם.' });
+      } else {
+        setFormErrors({ general: error.message || 'שגיאה ביצירת התיקייה' });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -169,7 +202,22 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
 
   const handleClientSelect = (client: Client | null) => {
     const clientId = client?.id || null;
+    console.log('Client selected:', { client, clientId });
     onSelectClient(clientId);
+    
+    // נקה שגיאות קודמות
+    if (formErrors.client) {
+      setFormErrors(prev => ({ ...prev, client: '' }));
+    }
+  };
+
+  const handleFolderNameChange = (value: string) => {
+    setFormData(prev => ({ ...prev, folderName: value }));
+    
+    // נקה שגיאות קודמות
+    if (formErrors.folderName) {
+      setFormErrors(prev => ({ ...prev, folderName: '' }));
+    }
   };
 
   const handleAddTag = () => {
@@ -203,6 +251,20 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
       <Box component="form" onSubmit={handleSubmit}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           
+          {/* הצגת שגיאה כללית */}
+          {formErrors.general && (
+            <Box sx={{ 
+              p: 2, 
+              borderRadius: 2, 
+              backgroundColor: alpha(theme.palette.error.main, 0.1),
+              border: `1px solid ${alpha(theme.palette.error.main, 0.3)}`
+            }}>
+              <Typography color="error" variant="body2">
+                {formErrors.general}
+              </Typography>
+            </Box>
+          )}
+          
           {/* פרטים בסיסיים */}
           <Box>
             <SectionTitle variant="h6">
@@ -220,9 +282,12 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
                   fullWidth
                   label="שם תיקייה"
                   value={formData.folderName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, folderName: e.target.value }))}
+                  onChange={(e) => handleFolderNameChange(e.target.value)}
                   required
                   variant="outlined"
+                  error={!!formErrors.folderName}
+                  helperText={formErrors.folderName}
+                  disabled={isSubmitting}
                 />
 
                 <Autocomplete
@@ -230,11 +295,14 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
                   getOptionLabel={(client) => `${client.fullName} (${client.email})`}
                   value={selectedClient}
                   onChange={(_, client) => handleClientSelect(client)}
+                  disabled={isSubmitting}
                   renderInput={(params) => (
                     <TextField
                       {...params}
                       label="בחר לקוח"
                       required
+                      error={!!formErrors.client}
+                      helperText={formErrors.client}
                     />
                   )}
                   renderOption={(props, client) => (
@@ -261,6 +329,7 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
                 rows={4}
                 variant="outlined"
                 helperText="שדה זה לא נשמר כרגע אבל יהיה זמין בעתיד"
+                disabled={isSubmitting}
               />
             </Box>
           </Box>
@@ -415,6 +484,36 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
               {isSubmitting ? 'יוצר תיקייה...' : 'יצירת תיקייה'}
             </Button>
           </Box>
+
+          {/* הודעת debug במצב פיתוח */}
+          {process.env.NODE_ENV === 'development' && (
+            <Box sx={{ 
+              mt: 2, 
+              p: 2, 
+              backgroundColor: alpha(theme.palette.info.main, 0.1),
+              borderRadius: 2,
+              border: `1px solid ${alpha(theme.palette.info.main, 0.3)}`
+            }}>
+              <Typography variant="caption" component="div">
+                <strong>Debug Info:</strong>
+              </Typography>
+              <Typography variant="caption" component="div">
+                Folder Name: {formData.folderName || 'Empty'}
+              </Typography>
+              <Typography variant="caption" component="div">
+                Selected Client ID: {selectedClientId || 'None'}
+              </Typography>
+              <Typography variant="caption" component="div">
+                Selected Client: {selectedClient?.fullName || 'None'}
+              </Typography>
+              <Typography variant="caption" component="div">
+                Form Valid: {validateForm() ? 'Yes' : 'No'}
+              </Typography>
+              <Typography variant="caption" component="div">
+                Errors: {JSON.stringify(formErrors)}
+              </Typography>
+            </Box>
+          )}
         </Box>
       </Box>
     </FormContainer>
