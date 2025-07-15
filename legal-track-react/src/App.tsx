@@ -6,16 +6,14 @@ import {
   useNavigate,
   Navigate,
 } from 'react-router-dom';
+import { useEffect } from 'react';
 import store from './store/store';
 import AuthPage from './pages/AuthPage';
 import Register from './components/Register';
 import FolderManagementPage from './pages/FolderManagementPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import ProtectedLayout from './components/ProtectedLayout';
-import { useEffect } from 'react';
 import FolderDetailsPage from './pages/FolderDetailsPage';
-import ClientList from './components/ClientList';
-import ClientForm from './components/ClientForm';
 import ClientsPage from './pages/ClientsPage';
 
 function App() {
@@ -23,26 +21,25 @@ function App() {
     <Provider store={store}>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Main />} />
+          {/* Public routes */}
           <Route path="/login" element={<AuthPage />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/clients" element={<ClientList />} />
-          <Route path="/clients/new" element={<ClientsPage />} />
-          <Route path="/clients/:clientId/edit" element={<ClientForm />} />
-          <Route path="/clients/:clientId" element={<ClientList />} />
-
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <ProtectedLayout />
-              </ProtectedRoute>
-            }
-          >
+          
+          {/* Protected routes */}
+          <Route path="/" element={
+            <ProtectedRoute>
+              <ProtectedLayout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<Navigate to="/folders" replace />} />
             <Route path="folders" element={<FolderManagementPage />} />
-            <Route path="/folders/:folderId" element={<FolderDetailsPage />} />
+            <Route path="folders/:folderId" element={<FolderDetailsPage />} />
+            <Route path="clients" element={<ClientsPage />} />
             <Route path="*" element={<Navigate to="/folders" replace />} />
           </Route>
+
+          {/* Main route handler */}
+          <Route path="/" element={<Main />} />
         </Routes>
       </BrowserRouter>
     </Provider>
@@ -59,14 +56,12 @@ function Main() {
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/folders', { replace: true });
+    } else {
+      navigate('/login', { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
-  return (
-    <div className="background">
-      <AuthPage />
-    </div>
-  );
+  return null; // או spinner
 }
 
 export default App;

@@ -11,7 +11,7 @@ import {
   Paper,
   Divider,
 } from "@mui/material";
-import MyFolder from "../models/Folder";
+import {MyFolder} from "../models/Folder";
 import Chat from "../components/Chat";
 
 const FolderDetailsPage: React.FC = () => {

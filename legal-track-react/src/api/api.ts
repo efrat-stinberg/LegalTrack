@@ -1,72 +1,153 @@
 import axios from "axios";
 import User from "../models/User";
-import Folder from "../models/Folder";
-import MyFolder from "../models/Folder";
+import {MyFolder} from "../models/Folder";
 import DocumentPostModel from "../models/DocumentPostModel";
 import DocumentDTO from "../models/DocumentDTO";
 
-const API_URL = "https://localhost:7042/api";
+// Configuration
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://localhost:7042/api";
 
-const getAuthToken = () => {
-  let token = localStorage.getItem("token");
-  if (token) {
-    token = token.replace(/^"|"$/g, '');
-  } else {
-    throw new Error("Authentication token is missing.");
-  } 
-  return token;
+// Create axios instance
+export const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Utility functions
+export const getAuthToken = (): string | null => {
+  try {
+    let token = localStorage.getItem("token");
+    if (token) {
+      return token.replace(/^"|"$/g, '');
+    }
+    return null;
+  } catch {
+    return null;
+  }
 };
 
+// Request interceptor
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = getAuthToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-export const loginUser = async (
-  email: string,
-  password: string
-): Promise<any> => {
-    try {
-        const response = await axios.post(`${API_URL}/login`, {
-          email,
-          password,
-        });
-        return response.data.token;
-      } catch (error : any ) {
-        console.error("Login failed:", error.response ? error.response.data : error.message);
-        throw error;
-      }   
+// Response interceptor
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
+
+// API Error class
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status?: number,
+    public data?: any
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+// Generic API call wrapper
+export const apiCall = async <T>(
+  request: () => Promise<{ data: T }>
+): Promise<T> => {
+  try {
+    const response = await request();
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new ApiError(
+        error.response?.data?.message || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
+    throw error;
+  }
 };
 
+// Frontend form data type
+export interface CreateFolderFormData {
+  folderName: string;
+  clientId: number | null;
+  description?: string;
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  color?: string;
+  tags?: string[];
+}
+
+// Backend request type (what we actually send)
+interface BackendCreateFolderRequest {
+  folderName: string;
+  groupId: number;
+  clientId: number;
+}
+
+// ===== USER API =====
+export const loginUser = async (email: string, password: string): Promise<string> => {
+  try {
+    const response = await apiClient.post('/login', { email, password });
+    return response.data.token;
+  } catch (error: any) {
+    console.error("Login failed:", error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
 
 export const registerUser = async (
-    username: string,
-    email: string,
-    password: string,
-    isAdmin: boolean = false
-  ): Promise<any> => {
-    try {
-      const response = await axios.post(`${API_URL}/Auth/register`, {
-        username,
-        email,
-        password,
-        groupId: 0,
-        isAdmin 
-      });
-        return response.data;
-    } catch (error) {
-        if (axios.isAxiosError(error)) {
-            if (error.response?.status === 409) {
-                alert("User with this email already exists.");
-                throw new Error("Registration failed: User with this email already exists.");
-            }
-            throw new Error(`Registration failed: ${error.response?.data?.message || "Unknown error"}`);
-        } else {
-            throw new Error("Registration failed: Unknown error");
-        }
+  username: string,
+  email: string,
+  password: string,
+  isAdmin: boolean = false
+): Promise<any> => {
+  try {
+    const response = await apiClient.post('/Auth/register', {
+      username,
+      email,
+      password,
+      groupId: 0,
+      isAdmin
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 409) {
+        throw new Error("Registration failed: User with this email already exists.");
+      }
+      throw new Error(`Registration failed: ${error.response?.data?.message || "Unknown error"}`);
+    } else {
+      throw new Error("Registration failed: Unknown error");
     }
+  }
+};
+
+export const getUserByEmail = async (email: string) => {
+  const response = await apiClient.get(`/users/${email}`);
+  return response.data;
 };
 
 export const updateUser = async (updatedUser: User) => {
   try {
     const id = updatedUser.userId;
-    const response = await axios.put(`${API_URL}/users/${id}`, updatedUser);
+    const response = await apiClient.put(`/users/${id}`, updatedUser);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -77,209 +158,155 @@ export const updateUser = async (updatedUser: User) => {
   }
 };
 
-export const getUserByEmail = async (email: string) => {
-  const response = await axios.get(`${API_URL}/users/${email}`);
-  console.log(response.data);
-  return response.data;
-};
-
-export const getAllFolders = async (): Promise<Folder[]> => {
-  console.log("i entered to get all folders");
-
-  let token = getAuthToken();
-
+// ===== FOLDER API =====
+export const getAllFolders = async (): Promise<MyFolder[]> => {
   try {
-      const response = await axios.get(`${API_URL}/folders`, {
-          headers: {
-              Authorization: `Bearer ${token}`,
-          },
-      });
-      return response.data;
+    const response = await apiClient.get('/folders');
+    return response.data;
   } catch (error) {
-      console.error("Error fetching folders:", error);
-      throw error;
+    console.error("Error fetching folders:", error);
+    throw error;
   }
 };
 
-export const getFolderByIdWithDocuments = async (id: number): Promise<Folder> => {
-  const token = getAuthToken();
+export const getFolderByIdWithDocuments = async (id: number): Promise<MyFolder> => {
   try {
-      const response = await axios.get(`${API_URL}/Folder/${id}`, {
-          headers: {
-              Authorization: `Bearer ${token}`,
-          },
-      });
-      console.log("Folder fetched by ID:", response.data);
-      return response.data;
+    const response = await apiClient.get(`/folders/${id}`);
+    return response.data;
   } catch (error) {
-      console.error(`Error fetching folder with ID ${id}:`, error);
-      throw error;
+    console.error(`Error fetching folder with ID ${id}:`, error);
+    throw error;
   }
 };
 
-
-export const getFolderById = async (): Promise<Folder> => {
-  const token = getAuthToken();
-  try {
-      const response = await axios.get(`${API_URL}/folder`, {
-          headers: {
-              Authorization: `Bearer ${token}`,
-          },
-      });      
-      return response.data;
-  } catch (error) {
-      console.error("Error fetching folder by ID:", error);
-      throw error;
+// המרה מנתוני טופס לבקשת Backend
+const convertFormDataToBackendRequest = (
+  formData: CreateFolderFormData, 
+  userGroupId: number
+): BackendCreateFolderRequest => {
+  if (formData.clientId === null) {
+    throw new Error("Client ID is required");
   }
-};
-
-
-// export const createFolder = async (folderName: string): Promise<Folder> => {
-//   const token = getAuthToken();
-//   try {
-//     const response = await axios.post(`${API_URL}/Folder`, { FolderName: folderName }, {
-//       headers: {
-//           Authorization: `Bearer ${token}`,
-//           "Content-Type": 'application/json'
-//       },
-//   });  
-//   console.log("create folder: ",response);
   
-//       return response.data;
-//   } catch (error) {
-//       console.error("Error creating folder:", error);
-//       throw error;
-//   }
-// };
+  return {
+    folderName: formData.folderName,
+    groupId: userGroupId,
+    clientId: formData.clientId
+  };
+};
 
-
-export const updateFolder = async (id: number, folderData: MyFolder): Promise<void> => {
-  const token = getAuthToken();
+export const createFolder = async (formData: CreateFolderFormData): Promise<MyFolder> => {
   try {
-      await axios.put(`${API_URL}/folder/${id}`, folderData, {
-          headers: {
-              Authorization: `Bearer ${token}`,
-          },
-      });
+    // כאן אנחנו צריכים לקבל את ה-groupId של המשתמש הנוכחי
+    // זה יכול להיות מה-Redux state או מ-JWT token
+    const userGroupId = getUserGroupId(); // פונקציה שנצטרך להוסיף
+    
+    const backendRequest = convertFormDataToBackendRequest(formData, userGroupId);
+    const response = await apiClient.post('/folders', backendRequest);
+    
+    return response.data;
   } catch (error) {
-      console.error("Error updating folder:", error);
-      throw error;
+    console.error("Error creating folder:", error);
+    throw error;
+  }
+};
+
+// פונקציה עזר לקבלת groupId מהמשתמש הנוכחי
+const getUserGroupId = (): number => {
+  // כאן תצטרך להוסיף לוגיקה לקבלת ה-groupId
+  // לדוגמה מ-Redux state או מפענוח JWT token
+  
+  // זהו placeholder - תצטרך להחליף עם הלוגיקה האמיתית
+  const token = getAuthToken();
+  if (token) {
+    try {
+      // פענח את ה-JWT token כדי לקבל את ה-groupId
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.GroupId || 1; // fallback ל-1 אם אין GroupId
+    } catch {
+      return 1; // fallback
+    }
+  }
+  return 1; // fallback
+};
+
+export const updateFolder = async (id: number, folderData: Partial<MyFolder>): Promise<void> => {
+  try {
+    // הכנת נתונים לפי מה שה-Backend מצפה
+    const backendData = {
+      folderName: folderData.folderName,
+      clientId: folderData.clientId
+    };
+    
+    await apiClient.put(`/folders/${id}`, backendData);
+  } catch (error) {
+    console.error("Error updating folder:", error);
+    throw error;
   }
 };
 
 export const deleteFolder = async (id: number): Promise<void> => {
-  const token = getAuthToken();
-  console.log("i entered to delete folder", id);
   try {
-      await axios.delete(`${API_URL}/folder/${id}`, {
-          headers: {
-              Authorization: `Bearer ${token}`,
-          },
-      });
+    await apiClient.delete(`/folders/${id}`);
   } catch (error) {
-      console.error("Error deleting folder:", error);
-      throw error;
+    console.error("Error deleting folder:", error);
+    throw error;
   }
 };
 
-
+// ===== DOCUMENT API =====
 export const getAllDocuments = async (): Promise<DocumentDTO[]> => {
-  const token = getAuthToken();
   try {
-      const response = await axios.get(`${API_URL}/Document`, {
-          headers: {
-              Authorization: `Bearer ${token}`,
-          },
-      });
-      return response.data;
+    const response = await apiClient.get('/Document');
+    return response.data;
   } catch (error) {
-      console.error("Error fetching documents:", error);
-      throw error;
+    console.error("Error fetching documents:", error);
+    throw error;
   }
 };
-
 
 export const getDocumentById = async (id: number): Promise<DocumentDTO> => {
-  const token = getAuthToken();
   try {
-      const response = await axios.get(`${API_URL}/Document/${id}`, {
-          headers: {
-              Authorization: `Bearer ${token}`,
-          },
-      });
-      return response.data;
+    const response = await apiClient.get(`/Document/${id}`);
+    return response.data;
   } catch (error) {
-      console.error("Error fetching document by ID:", error);
-      throw error;
+    console.error("Error fetching document by ID:", error);
+    throw error;
   }
 };
 
-
 export const createDocument = async (document: DocumentPostModel): Promise<void> => {
-  const token = getAuthToken();
   try {
-      await axios.post(`${API_URL}/Document`, document, {
-          headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": 'application/json'
-          },
-      });
-      console.log();
+    await apiClient.post('/Document', document);
   } catch (error) {
-      console.error("Error creating document:", error);
-      throw error;
+    console.error("Error creating document:", error);
+    throw error;
   }
 };
 
 export const updateDocument = async (id: number, document: DocumentPostModel): Promise<void> => {
-  const token = getAuthToken();
   try {
-      await axios.put(`${API_URL}/Document/${id}`, document, {
-          headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": 'application/json'
-          },
-      });
+    await apiClient.put(`/Document/${id}`, document);
   } catch (error) {
-      console.error("Error updating document:", error);
-      throw error;
+    console.error("Error updating document:", error);
+    throw error;
   }
 };
 
 export const deleteDocument = async (fileKey: string) => {
-  console.log("Received encoded fileKey:", fileKey);
-
-  // קודם מפענחים כדי להסיר את הקידוד הקיים
   const decodedFileKey = decodeURIComponent(fileKey);
-
-  console.log("Decoded fileKey:", decodedFileKey);
-
-  // עכשיו מקודדים מחדש פעם אחת בלבד
-  const url = `https://localhost:7042/api/s3/delete?fileKey=${encodeURIComponent(decodedFileKey)}`;
-  console.log("Sending DELETE request to:", url);
-
+  const url = `${API_BASE_URL}/s3/delete?fileKey=${encodeURIComponent(decodedFileKey)}`;
+  
   const response = await fetch(url, { method: 'DELETE' });
-  console.log("Response status:", response.status);
-
   if (!response.ok) throw new Error("Failed to delete file");
 };
 
-
-
+// ===== S3 FILE API =====
 export const getFileUrl = async (objectKey: string, contentType: string): Promise<string> => {
-  const token = getAuthToken();
-
   try {
-    const response = await axios.get(`${API_URL}/s3/presigned-upload-url`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-      params: {
-        objectKey,
-        contentType,
-      },
+    const response = await apiClient.get('/s3/presigned-upload-url', {
+      params: { objectKey, contentType }
     });
-
     return response.data;
   } catch (error) {
     console.error("Error getting presigned file URL:", error);
@@ -288,18 +315,12 @@ export const getFileUrl = async (objectKey: string, contentType: string): Promis
 };
 
 export const getDownloadUrl = async (objectKey: string): Promise<string> => {
-  const token = getAuthToken();
-
-  const response = await axios.get(`${API_URL}/s3/presigned-download-url`, {
-    headers: { Authorization: `Bearer ${token}` },
-    params: { objectKey },
+  const response = await apiClient.get('/s3/presigned-download-url', {
+    params: { objectKey }
   });
-
-  return response.data.url; 
+  return response.data.url;
 };
 
-
-// שלב 2: העלאה ישירה ל-S3
 export const uploadFileToS3 = async (file: File, uploadUrl: string): Promise<void> => {
   await axios.put(uploadUrl, file, {
     headers: {
@@ -308,96 +329,26 @@ export const uploadFileToS3 = async (file: File, uploadUrl: string): Promise<voi
   });
 };
 
-
-
-export const getPresignedUploadUrl = async (
-  fileName: string,
-  contentType: string
-): Promise<{ uploadUrl: string; objectKey: string }> => {
-  const token = getAuthToken();
-
-  const response = await axios.get(`${API_URL}/s3/presigned-upload-url`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    params: {
-      fileName,
-      contentType,
-    },
-  });
-
-  return response.data;
-};
-
-
-
 export const uploadFileToServer = async (file: File, folderId: number) => {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("folderId", folderId.toString());
 
-  const token = getAuthToken();
-
-  const response = await axios.post(`${API_URL}/s3/upload`, formData, {
+  const response = await apiClient.post('/s3/upload', formData, {
     headers: {
-      Authorization: `Bearer ${token}`,
       "Content-Type": "multipart/form-data",
     },
   });
 
   return response.data;
 };
-
 
 export const notifyServerAboutUpload = async (
   folderId: number,
   objectKey: string
 ): Promise<void> => {
-  const token = getAuthToken();
-
-  await axios.post(
-    `${API_URL}/s3/notify-upload`,
-    {
-      folderId,
-      objectKey,
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-};
-
-export const uploadFile = async (file: File, folderId: number) => {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("folderId", folderId.toString());
-
-  const response = await axios.post("/api/s3/upload", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
+  await apiClient.post('/s3/notify-upload', {
+    folderId,
+    objectKey,
   });
-
-  return response.data;
-};
-
-interface CreateFolderPayload {
-  folderName: string;
-  clientId: number | null;
-}
-
-export const createFolder = async (payload: CreateFolderPayload): Promise<Folder> => {
-  const token = getAuthToken();
-
-  const response = await axios.post("/api/folders", payload, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json"
-    }
-  });
-
-  return response.data;
 };

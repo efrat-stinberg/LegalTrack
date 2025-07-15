@@ -1,14 +1,79 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  TextField,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Chip,
+  Paper,
+  Typography,
+  Autocomplete,
+  Divider,
+  useTheme,
+  alpha
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
+import { FolderPlus, User, Tag, Palette, AlertTriangle } from 'lucide-react';
 import { Client } from '../models/Client';
-import ClientAutocomplete from './ClientAutocomplete';
-import AddClientForm from './AddClientForm';
+
+// טיפוס נתוני הטופס (כולל שדות נוספים לעתיד)
+interface FormData {
+  folderName: string;
+  description: string;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  color: string;
+  tags: string[];
+}
+
+// טיפוס הנתונים שנשלחים לBackend (פשוט יותר)
+interface BackendFolderData {
+  folderName: string;
+  clientId: number | null;
+}
 
 interface AddFolderFormProps {
-  onAddFolder: (folderName: string, clientId: number | null) => Promise<void>;
+  onAddFolder: (folderData: BackendFolderData) => Promise<void>;
   clients: Client[];
   selectedClientId: number | null;
   onSelectClient: (clientId: number | null) => void;
 }
+
+const FormContainer = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(4),
+  borderRadius: 16,
+  background: `linear-gradient(145deg, ${theme.palette.background.paper}, ${alpha(theme.palette.primary.main, 0.02)})`,
+  border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+}));
+
+const SectionTitle = styled(Typography)(({ theme }) => ({
+  fontWeight: 600,
+  marginBottom: theme.spacing(2),
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(1),
+  color: theme.palette.text.primary,
+}));
+
+const ColorButton = styled(Box)<{ selected: boolean; color: string }>(({ theme, selected, color }) => ({
+  width: 40,
+  height: 40,
+  borderRadius: '50%',
+  background: color,
+  cursor: 'pointer',
+  border: selected ? `3px solid ${theme.palette.primary.main}` : `2px solid ${alpha(theme.palette.common.black, 0.1)}`,
+  transition: 'all 0.2s ease',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  
+  '&:hover': {
+    transform: 'scale(1.1)',
+    boxShadow: `0 4px 12px ${alpha(color, 0.4)}`,
+  }
+}));
 
 const AddFolderForm: React.FC<AddFolderFormProps> = ({
   onAddFolder,
@@ -16,22 +81,55 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
   selectedClientId,
   onSelectClient,
 }) => {
-  const [folderName, setFolderName] = useState('');
+  const theme = useTheme();
+  
+  // נתוני הטופס (כולל שדות שלא נשלחים לBackend)
+  const [formData, setFormData] = useState<FormData>({
+    folderName: '',
+    description: '',
+    priority: 'medium',
+    color: '#667eea',
+    tags: [],
+  });
+  
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [showAddClientForm, setShowAddClientForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newTag, setNewTag] = useState('');
 
-  // Sync selectedClient object with selectedClientId prop
+  const predefinedColors = [
+    '#667eea', '#f093fb', '#4facfe', '#43e97b', 
+    '#fa709a', '#ff9a9e', '#a8edea', '#fecfef',
+    '#667eea', '#764ba2', '#667eea', '#f5576c'
+  ];
+
+  const predefinedTags = [
+    'דחוף', 'פלילי', 'אזרחי', 'עבודה', 'נדל"ן', 
+    'חוזים', 'משפחה', 'נזיקין', 'מיסים', 'חברות'
+  ];
+
+  const priorityColors = {
+    low: '#10b981',
+    medium: '#f59e0b', 
+    high: '#ef4444',
+    urgent: '#dc2626'
+  };
+
+  const priorityLabels = {
+    low: 'נמוכה',
+    medium: 'בינונית',
+    high: 'גבוהה', 
+    urgent: 'דחופה'
+  };
+
   useEffect(() => {
     const client = clients.find(c => c.id === selectedClientId) || null;
     setSelectedClient(client);
-    console.log('Selected client updated:', client, 'ID:', selectedClientId);
   }, [selectedClientId, clients]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!folderName.trim()) {
+    if (!formData.folderName.trim()) {
       alert('אנא הזן שם תיקייה');
       return;
     }
@@ -44,134 +142,282 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
     setIsSubmitting(true);
     
     try {
-      await onAddFolder(folderName.trim(), selectedClientId);
-      setFolderName('');
+      // נשלח רק את הנתונים שה-Backend מצפה לקבל
+      const backendData: BackendFolderData = {
+        folderName: formData.folderName.trim(),
+        clientId: selectedClientId,
+      };
+      
+      await onAddFolder(backendData);
+      
+      // איפוס הטופס
+      setFormData({
+        folderName: '',
+        description: '',
+        priority: 'medium',
+        color: '#667eea',
+        tags: [],
+      });
       setSelectedClient(null);
       onSelectClient(null);
     } catch (error) {
       console.error('Error adding folder:', error);
-      alert('שגיאה ביצירת תיקייה');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleClientAdded = (newClient: Client) => {
-    setShowAddClientForm(false);
-    const clientId = newClient.id || null;
-    console.log('New client added:', newClient, 'ID:', clientId);
+  const handleClientSelect = (client: Client | null) => {
+    const clientId = client?.id || null;
     onSelectClient(clientId);
   };
 
-  const handleClientSelect = (client: Client | null) => {
-    console.log('Client selected in autocomplete:', client);
-    const clientId = client?.id || null;
-    console.log('Client ID to set:', clientId);
-    onSelectClient(clientId);
+  const handleAddTag = () => {
+    if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, newTag.trim()]
+      }));
+      setNewTag('');
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(tag => tag !== tagToRemove)
+    }));
+  };
+
+  const handleTagSelect = (tag: string) => {
+    if (!formData.tags.includes(tag)) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, tag]
+      }));
+    }
   };
 
   return (
-    <div style={{ marginBottom: '2rem' }}>
-      <form onSubmit={handleSubmit} style={{ 
-        display: 'flex', 
-        flexDirection: 'column',
-        gap: '1rem',
-        padding: '1rem',
-        border: '1px solid #ddd',
-        borderRadius: '8px',
-        backgroundColor: '#f9f9f9'
-      }}>
-        <div>
-          <label htmlFor="folderName" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-            שם תיקייה:
-          </label>
-          <input
-            id="folderName"
-            type="text"
-            placeholder="הזן שם תיקייה"
-            value={folderName}
-            onChange={(e) => setFolderName(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '0.5rem',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              fontSize: '1rem'
-            }}
-            required
-          />
-        </div>
+    <FormContainer elevation={2}>
+      <Box component="form" onSubmit={handleSubmit}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          
+          {/* פרטים בסיסיים */}
+          <Box>
+            <SectionTitle variant="h6">
+              <FolderPlus size={20} />
+              פרטים בסיסיים
+            </SectionTitle>
+            
+            <Box sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, 
+              gap: 3 
+            }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <TextField
+                  fullWidth
+                  label="שם תיקייה"
+                  value={formData.folderName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, folderName: e.target.value }))}
+                  required
+                  variant="outlined"
+                />
 
-        <div>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-            לקוח:
-          </label>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-            <div style={{ flex: 1 }}>
-              <ClientAutocomplete
-                clients={clients}
-                value={selectedClient}
-                onChange={handleClientSelect}
+                <Autocomplete
+                  options={clients}
+                  getOptionLabel={(client) => `${client.fullName} (${client.email})`}
+                  value={selectedClient}
+                  onChange={(_, client) => handleClientSelect(client)}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="בחר לקוח"
+                      required
+                    />
+                  )}
+                  renderOption={(props, client) => (
+                    <Box component="li" {...props}>
+                      <Box>
+                        <Typography variant="body1" fontWeight={600}>
+                          {client.fullName}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {client.email} • {client.phone}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  )}
+                />
+              </Box>
+
+              <TextField
+                fullWidth
+                label="תיאור (אופציונלי)"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                multiline
+                rows={4}
+                variant="outlined"
+                helperText="שדה זה לא נשמר כרגע אבל יהיה זמין בעתיד"
               />
-            </div>
-            <button 
-              type="button" 
-              onClick={() => setShowAddClientForm(s => !s)}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '0.9rem',
-                whiteSpace: 'nowrap'
+            </Box>
+          </Box>
+
+          <Divider />
+
+          {/* עדיפות וצבע (לעתיד) */}
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, 
+            gap: 3 
+          }}>
+            <Box>
+              <SectionTitle variant="h6">
+                <AlertTriangle size={20} />
+                עדיפות (לעתיד)
+              </SectionTitle>
+              
+              <FormControl fullWidth>
+                <InputLabel>עדיפות</InputLabel>
+                <Select
+                  value={formData.priority}
+                  onChange={(e) => setFormData(prev => ({ 
+                    ...prev, 
+                    priority: e.target.value as 'low' | 'medium' | 'high' | 'urgent'
+                  }))}
+                  label="עדיפות"
+                  disabled
+                >
+                  {Object.entries(priorityLabels).map(([value, label]) => (
+                    <MenuItem key={value} value={value}>
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <Box
+                          width={12}
+                          height={12}
+                          borderRadius="50%"
+                          bgcolor={priorityColors[value as keyof typeof priorityColors]}
+                        />
+                        {label}
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box>
+              <SectionTitle variant="h6">
+                <Palette size={20} />
+                צבע תיקייה (לעתיד)
+              </SectionTitle>
+              
+              <Box display="flex" flexWrap="wrap" gap={1}>
+                {predefinedColors.map((color) => (
+                  <ColorButton
+                    key={color}
+                    selected={formData.color === color}
+                    color={color}
+                    onClick={() => setFormData(prev => ({ ...prev, color }))}
+                    sx={{ opacity: 0.5, pointerEvents: 'none' }}
+                  />
+                ))}
+              </Box>
+              <Typography variant="caption" color="text.secondary">
+                תכונה זו תהיה זמינה בעתיד
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* תגיות (לעתיד) */}
+          <Box>
+            <SectionTitle variant="h6">
+              <Tag size={20} />
+              תגיות (לעתיד)
+            </SectionTitle>
+            
+            <Box mb={2}>
+              <Box display="flex" gap={1} mb={2}>
+                <TextField
+                  size="small"
+                  label="הוסף תגית"
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                  disabled
+                />
+                <Button 
+                  variant="outlined" 
+                  onClick={handleAddTag}
+                  disabled
+                >
+                  הוסף
+                </Button>
+              </Box>
+              
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                תגיות מוצעות (לא פעילות):
+              </Typography>
+              <Box display="flex" flexWrap="wrap" gap={1} mb={2}>
+                {predefinedTags.map((tag) => (
+                  <Chip
+                    key={tag}
+                    label={tag}
+                    size="small"
+                    variant="outlined"
+                    sx={{ opacity: 0.5 }}
+                  />
+                ))}
+              </Box>
+            </Box>
+
+            {formData.tags.length > 0 && (
+              <Box>
+                <Typography variant="body2" gutterBottom>
+                  תגיות נבחרות:
+                </Typography>
+                <Box display="flex" flexWrap="wrap" gap={1}>
+                  {formData.tags.map((tag) => (
+                    <Chip
+                      key={tag}
+                      label={tag}
+                      onDelete={() => handleRemoveTag(tag)}
+                      color="primary"
+                    />
+                  ))}
+                </Box>
+              </Box>
+            )}
+            
+            <Typography variant="caption" color="text.secondary">
+              תכונה זו תהיה זמינה בעתיד
+            </Typography>
+          </Box>
+
+          {/* כפתור שליחה */}
+          <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
+            <Button 
+              type="submit" 
+              variant="contained"
+              size="large"
+              disabled={isSubmitting || !formData.folderName.trim() || selectedClientId === null}
+              sx={{ 
+                borderRadius: 3,
+                px: 4,
+                py: 1.5,
+                background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                '&:hover': {
+                  background: `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`,
+                }
               }}
             >
-              {showAddClientForm ? 'ביטול' : '+ לקוח חדש'}
-            </button>
-          </div>
-        </div>
-
-        {/* Debug info */}
-        <div style={{ fontSize: '0.8rem', color: '#666', padding: '0.5rem', backgroundColor: '#f0f0f0', borderRadius: '4px' }}>
-          <div>Selected Client ID: {selectedClientId}</div>
-          <div>Selected Client: {selectedClient ? `${selectedClient.fullName} (${selectedClient.email})` : 'None'}</div>
-          <div>Folder Name: {folderName}</div>
-          <div>Can Submit: {!isSubmitting && folderName.trim() && selectedClientId !== null ? 'Yes' : 'No'}</div>
-        </div>
-
-        <button 
-          type="submit" 
-          disabled={isSubmitting || !folderName.trim() || selectedClientId === null}
-          style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: isSubmitting || !folderName.trim() || selectedClientId === null ? '#ccc' : '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: isSubmitting || !folderName.trim() || selectedClientId === null ? 'not-allowed' : 'pointer',
-            fontSize: '1rem',
-            fontWeight: 'bold'
-          }}
-        >
-          {isSubmitting ? 'יוצר תיקייה...' : 'יצירת תיקייה'}
-        </button>
-      </form>
-
-      {showAddClientForm && (
-        <div style={{ 
-          marginTop: '1rem', 
-          padding: '1rem',
-          border: '1px solid #ddd',
-          borderRadius: '8px',
-          backgroundColor: '#f0f8ff'
-        }}>
-          <h3 style={{ marginTop: 0, marginBottom: '1rem' }}>הוספת לקוח חדש</h3>
-          <AddClientForm onClientAdded={handleClientAdded} />
-        </div>
-      )}
-    </div>
+              {isSubmitting ? 'יוצר תיקייה...' : 'יצירת תיקייה'}
+            </Button>
+          </Box>
+        </Box>
+      </Box>
+    </FormContainer>
   );
 };
 

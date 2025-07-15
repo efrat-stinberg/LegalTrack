@@ -1,141 +1,191 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { 
   Container, 
-  Typography, 
-  Box, 
-  Paper,
-  Fade 
+  Box,
+  Alert,
+  Skeleton,
+  Snackbar,
+  useTheme,
+  alpha,
+  Fade,
+  Typography
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import FolderList from "../components/FolderList";
-import AddFolderForm from "../components/AddFolderForm";
 import { useNavigate } from "react-router-dom";
-import { FolderOpen } from "lucide-react";
 
+// Components
+import PageHeader from "../components/PageHeader";
+import StatsSection from "../components/StatsSection";
+import FolderCreationSection from "../components/FolderCreationSection";
+import FolderGridView from "../components/FolderGridView";
+
+// API & Models
 import {
   createFolder,
   deleteFolder,
   getAllFolders,
   updateFolder,
+  CreateFolderRequest
 } from "../api/api";
-
-import MyFolder from "../models/Folder";
+import {MyFolder} from "../models/Folder";
 import { Client } from "../models/Client";
 import { getClients } from "../api/client";
 
 const StyledContainer = styled(Container)(({ theme }) => ({
   padding: theme.spacing(3),
   minHeight: "100vh",
-  backgroundColor: "#fafafa",
+  backgroundColor: "#f8fafc",
+  
   [theme.breakpoints.down('md')]: {
     padding: theme.spacing(2),
   },
+  
   [theme.breakpoints.down('sm')]: {
     padding: theme.spacing(1),
   },
 }));
 
-const ContentWrapper = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(4),
-  borderRadius: 8,
-  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-  backgroundColor: "#ffffff",
-  border: "1px solid #e0e0e0",
-  [theme.breakpoints.down('md')]: {
-    padding: theme.spacing(3),
-  },
-  [theme.breakpoints.down('sm')]: {
-    padding: theme.spacing(2),
-    borderRadius: 4,
-  },
+const LoadingContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(3),
 }));
 
-const HeaderSection = styled(Box)(({ theme }) => ({
-  textAlign: "center",
-  marginBottom: theme.spacing(4),
-  paddingBottom: theme.spacing(3),
-  borderBottom: "1px solid #e0e0e0",
-  [theme.breakpoints.down('sm')]: {
-    marginBottom: theme.spacing(3),
-    paddingBottom: theme.spacing(2),
-  },
-}));
+const LoadingSkeleton = () => (
+  <LoadingContainer>
+    {/* Header Skeleton */}
+    <Skeleton 
+      variant="rounded" 
+      height={200} 
+      sx={{ borderRadius: 4 }}
+      animation="wave"
+    />
+    
+    {/* Stats Skeleton */}
+    <Box display="flex" gap={2}>
+      {[...Array(6)].map((_, index) => (
+        <Skeleton 
+          key={index}
+          variant="rounded" 
+          height={140} 
+          sx={{ flex: 1, borderRadius: 3 }}
+          animation="wave"
+        />
+      ))}
+    </Box>
+    
+    {/* Folders Skeleton */}
+    <Box display="grid" gridTemplateColumns="repeat(auto-fill, minmax(280px, 1fr))" gap={3}>
+      {[...Array(8)].map((_, index) => (
+        <Skeleton 
+          key={index}
+          variant="rounded" 
+          height={200} 
+          sx={{ borderRadius: 4 }}
+          animation="wave"
+        />
+      ))}
+    </Box>
+  </LoadingContainer>
+);
 
-const StyledTitle = styled(Typography)(({ theme }) => ({
-  fontWeight: 600,
-  color: "#1a1a1a",
-  marginBottom: theme.spacing(1),
-  fontSize: "2.25rem",
-  letterSpacing: "-0.02em",
-  [theme.breakpoints.down('md')]: {
-    fontSize: "2rem",
-  },
-  [theme.breakpoints.down('sm')]: {
-    fontSize: "1.75rem",
-  },
-}));
-
-const SubTitle = styled(Typography)(({ theme }) => ({
-  color: "#666666",
-  fontSize: "1rem",
-  fontWeight: 400,
-  [theme.breakpoints.down('sm')]: {
-    fontSize: "0.9rem",
-  },
-}));
-
-const IconWrapper = styled(Box)(({ theme }) => ({
-  display: "flex",
-  justifyContent: "center",
-  marginBottom: theme.spacing(2),
-  "& svg": {
-    fontSize: "2.5rem",
-    color: "#2c5aa0",
-    [theme.breakpoints.down('sm')]: {
-      fontSize: "2rem",
-    },
-  },
-}));
-
-const SectionWrapper = styled(Box)(({ theme }) => ({
-  marginBottom: theme.spacing(4),
-  [theme.breakpoints.down('sm')]: {
-    marginBottom: theme.spacing(3),
-  },
-}));
+interface NotificationState {
+  open: boolean;
+  message: string;
+  severity: 'success' | 'error' | 'warning' | 'info';
+}
 
 const FolderManagementPage: React.FC = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  
+  // State Management
   const [folders, setFolders] = useState<MyFolder[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [isCreating, setIsCreating] = useState(false);
+  const [notification, setNotification] = useState<NotificationState>({
+    open: false,
+    message: '',
+    severity: 'info'
+  });
 
+  // Filtered folders based on search and filters
+  const filteredFolders = useMemo(() => {
+    let filtered = folders;
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(folder =>
+        folder.folderName.toLowerCase().includes(query) ||
+        folder.documents?.some((doc: { documentName: string; }) => 
+          doc.documentName.toLowerCase().includes(query)
+        )
+      );
+    }
+
+    // Additional filters
+    activeFilters.forEach(filter => {
+      switch (filter) {
+        case 'תיקיות פעילות':
+          filtered = filtered.filter(folder => folder.documents && folder.documents.length > 0);
+          break;
+        case 'תיקיות ריקות':
+          filtered = filtered.filter(folder => !folder.documents || folder.documents.length === 0);
+          break;
+        case 'נוצר השבוע':
+          const weekAgo = new Date();
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          filtered = filtered.filter(folder => new Date(folder.createdDate) > weekAgo);
+          break;
+        case 'נוצר החודש':
+          const monthAgo = new Date();
+          monthAgo.setMonth(monthAgo.getMonth() - 1);
+          filtered = filtered.filter(folder => new Date(folder.createdDate) > monthAgo);
+          break;
+      }
+    });
+
+    return filtered;
+  }, [folders, searchQuery, activeFilters]);
+
+  // Load initial data
   useEffect(() => {
     loadInitialData();
   }, []);
 
+  const showNotification = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'info') => {
+    setNotification({ open: true, message, severity });
+  };
+
+  const hideNotification = () => {
+    setNotification(prev => ({ ...prev, open: false }));
+  };
+
   const loadInitialData = async () => {
     try {
       setLoading(true);
+      setError(null);
       await Promise.all([loadFolders(), loadClients()]);
+      showNotification('נתונים נטענו בהצלחה', 'success');
     } catch (err) {
-      setError('Failed to load data');
+      const errorMessage = 'שגיאה בטעינת הנתונים. אנא נסה שוב.';
+      setError(errorMessage);
+      showNotification(errorMessage, 'error');
       console.error('Error loading initial data:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoToAddClient = () => {
-    navigate('/clients/new');
-  };
-
   const loadClients = async () => {
     try {
       const response = await getClients();
-      console.log('Loaded clients:', response.data); // להדפסת דיבאג
       setClients(response.data || []);
     } catch (error) {
       console.error("Failed to fetch clients:", error);
@@ -146,7 +196,6 @@ const FolderManagementPage: React.FC = () => {
   const loadFolders = async () => {
     try {
       const response = await getAllFolders();
-      console.log('Loaded folders:', response); // להדפסת דיבאג
       setFolders(response || []);
     } catch (error) {
       console.error("Failed to fetch folders:", error);
@@ -154,19 +203,25 @@ const FolderManagementPage: React.FC = () => {
     }
   };
 
-  const handleAddFolder = async (folderName: string, clientId: number | null) => {
+  const handleAddFolder = async (folderData: CreateFolderRequest) => {
+    setIsCreating(true);
     try {
-      const newFolder = await createFolder({ folderName, clientId });
+      const newFolder = await createFolder(folderData);
       setFolders((prev) => [...prev, newFolder]);
+      showNotification(`תיקייה "${folderData.folderName}" נוצרה בהצלחה`, 'success');
     } catch (error) {
       console.error("Error creating folder:", error);
-      alert('שגיאה ביצירת תיקייה');
+      showNotification('שגיאה ביצירת תיקייה', 'error');
+      throw error;
+    } finally {
+      setIsCreating(false);
     }
   };
 
   const handleEditFolder = async (oldName: string, newName: string) => {
     const folderToUpdate = folders.find((f) => f.folderName === oldName);
     if (!folderToUpdate) return;
+    
     try {
       await updateFolder(folderToUpdate.folderId, {
         ...folderToUpdate,
@@ -179,19 +234,22 @@ const FolderManagementPage: React.FC = () => {
             : f
         )
       );
+      showNotification(`תיקייה שונתה ל"${newName}"`, 'success');
     } catch (error) {
       console.error("Error updating folder:", error);
-      alert('שגיאה בעדכון תיקייה');
+      showNotification('שגיאה בעדכון תיקייה', 'error');
     }
   };
 
   const handleDeleteFolder = async (folderId: number) => {
+    const folder = folders.find(f => f.folderId === folderId);
     try {
       await deleteFolder(folderId);
       setFolders((prev) => prev.filter((f) => f.folderId !== folderId));
+      showNotification(`תיקייה "${folder?.folderName}" נמחקה`, 'success');
     } catch (error) {
       console.error("Error deleting folder:", error);
-      alert('שגיאה במחיקת תיקייה');
+      showNotification('שגיאה במחיקת תיקייה', 'error');
     }
   };
 
@@ -199,94 +257,130 @@ const FolderManagementPage: React.FC = () => {
     navigate(`/folders/${folder.id}`);
   };
 
-  const handleClientAdded = (newClient: Client) => {
-    setClients(prev => [...prev, newClient]);
-    setSelectedClientId(newClient.id || null);
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
   };
 
+  const handleFilterChange = (filters: string[]) => {
+    setActiveFilters(filters);
+  };
+
+  // Loading state
   if (loading) {
     return (
       <StyledContainer maxWidth="xl">
-        <ContentWrapper elevation={0}>
-          <Typography variant="h6" textAlign="center">
-            טוען נתונים...
-          </Typography>
-        </ContentWrapper>
-      </StyledContainer>
-    );
-  }
-
-  if (error) {
-    return (
-      <StyledContainer maxWidth="xl">
-        <ContentWrapper elevation={0}>
-          <Typography variant="h6" color="error" textAlign="center">
-            שגיאה בטעינת הנתונים: {error}
-          </Typography>
-        </ContentWrapper>
+        <LoadingSkeleton />
       </StyledContainer>
     );
   }
 
   return (
     <StyledContainer maxWidth="xl">
-      <button 
-        onClick={handleGoToAddClient}
-        style={{
-          marginBottom: '16px',
-          padding: '8px 16px',
-          backgroundColor: '#2c5aa0',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
-        }}
-      >
-        הוספת לקוח חדש
-      </button>
-
       <Fade in={true} timeout={600}>
-        <ContentWrapper elevation={0}>
-          <HeaderSection>
-            <IconWrapper>
-              <FolderOpen />
-            </IconWrapper>
-            <StyledTitle variant="h3" as="h1">
-              ניהול תיקים
-            </StyledTitle>
-            <SubTitle variant="body1">
-              ארגון וניהול יעיל של תיקים משפטיים
-            </SubTitle>
-          </HeaderSection>
+        <div>
+          {/* Page Header */}
+          <PageHeader
+            onSearch={handleSearch}
+            onFilterChange={handleFilterChange}
+            activeFilters={activeFilters}
+          />
 
-          <SectionWrapper>
-            <AddFolderForm 
-              onAddFolder={handleAddFolder}
-              clients={clients}
-              selectedClientId={selectedClientId}
-              onSelectClient={setSelectedClientId}
-            />
-          </SectionWrapper>
+          {/* Error Alert */}
+          {error && (
+            <Alert 
+              severity="error" 
+              onClose={() => setError(null)}
+              sx={{ 
+                mb: 3, 
+                borderRadius: 3,
+                boxShadow: `0 4px 20px ${alpha(theme.palette.error.main, 0.2)}`
+              }}
+            >
+              {error}
+            </Alert>
+          )}
 
-          <SectionWrapper>
-            {folders.length > 0 ? (
-              <FolderList
-                folders={folders.map((folder) => ({
+          {/* Statistics Section */}
+          <StatsSection folders={folders} clients={clients} />
+
+          {/* Folder Creation */}
+          <FolderCreationSection
+            onAddFolder={handleAddFolder}
+            clients={clients}
+            selectedClientId={selectedClientId}
+            onSelectClient={setSelectedClientId}
+            isLoading={isCreating}
+          />
+
+          {/* Folders Grid */}
+          {filteredFolders.length > 0 ? (
+            <Box>
+              <FolderGridView
+                folders={filteredFolders.map((folder) => ({
                   name: folder.folderName,
-                  files: folder.documents?.map((doc) => doc.documentName) || [],
+                  files: folder.documents?.map((doc: { documentName: any; }) => doc.documentName) || [],
                   id: folder.folderId,
+                  createdDate: folder.createdDate,
+                  lastModified: folder.lastModified,
+                  clientName: folder.clientId 
+                    ? clients.find(c => c.id === folder.clientId)?.fullName 
+                    : undefined,
+                  status: folder.status || 'active',
+                  priority: folder.priority || 'medium',
+                  color: folder.color,
+                  tags: folder.tags || [],
+                  documentsCount: folder.documents?.length || 0,
                 }))}
                 onFolderClick={handleFolderClick}
                 onEditFolder={handleEditFolder}
                 onDeleteFolder={handleDeleteFolder}
+                searchQuery={searchQuery}
               />
-            ) : (
-              <Typography variant="body1" textAlign="center" color="textSecondary">
-                עדיין אין תיקיות. צור תיקייה חדשה למעלה.
+            </Box>
+          ) : (
+            <Box 
+              textAlign="center" 
+              py={8}
+              sx={{
+                background: `linear-gradient(145deg, ${alpha(theme.palette.primary.main, 0.05)}, transparent)`,
+                borderRadius: 4,
+                border: `2px dashed ${alpha(theme.palette.primary.main, 0.3)}`,
+              }}
+            >
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                {searchQuery || activeFilters.length > 0 
+                  ? 'לא נמצאו תיקיות התואמות לחיפוש'
+                  : 'עדיין אין תיקיות במערכת'
+                }
               </Typography>
-            )}
-          </SectionWrapper>
-        </ContentWrapper>
+              <Typography variant="body2" color="text.secondary">
+                {searchQuery || activeFilters.length > 0
+                  ? 'נסה לשנות את מילות החיפוש או המסננים'
+                  : 'התחל על ידי יצירת תיקייה חדשה'
+                }
+              </Typography>
+            </Box>
+          )}
+
+          {/* Notification Snackbar */}
+          <Snackbar
+            open={notification.open}
+            autoHideDuration={4000}
+            onClose={hideNotification}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          >
+            <Alert 
+              onClose={hideNotification} 
+              severity={notification.severity}
+              sx={{ 
+                borderRadius: 2,
+                boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.12)}`
+              }}
+            >
+              {notification.message}
+            </Alert>
+          </Snackbar>
+        </div>
       </Fade>
     </StyledContainer>
   );
