@@ -13,6 +13,9 @@ namespace TaxManagerServer.Core.DTOs
         public int FolderId { get; set; }
         public string FolderName { get; set; }
         public DateTime CreatedDate { get; set; }
+        public int ClientId { get; set; }
+        public string ClientName { get; set; } = null!;
+
         public Collection<DocumentDTO> Documents { get; set; }
     }
 }

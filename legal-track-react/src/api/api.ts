@@ -23,7 +23,7 @@ export const loginUser = async (
   password: string
 ): Promise<any> => {
     try {
-        const response = await axios.post(`${API_URL}/Auth/login`, {
+        const response = await axios.post(`${API_URL}/login`, {
           email,
           password,
         });
@@ -89,7 +89,7 @@ export const getAllFolders = async (): Promise<Folder[]> => {
   let token = getAuthToken();
 
   try {
-      const response = await axios.get(`${API_URL}/Folder`, {
+      const response = await axios.get(`${API_URL}/folders`, {
           headers: {
               Authorization: `Bearer ${token}`,
           },
@@ -134,23 +134,23 @@ export const getFolderById = async (): Promise<Folder> => {
 };
 
 
-export const createFolder = async (folderName: string): Promise<Folder> => {
-  const token = getAuthToken();
-  try {
-    const response = await axios.post(`${API_URL}/Folder`, { FolderName: folderName }, {
-      headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": 'application/json'
-      },
-  });  
-  console.log("create folder: ",response);
+// export const createFolder = async (folderName: string): Promise<Folder> => {
+//   const token = getAuthToken();
+//   try {
+//     const response = await axios.post(`${API_URL}/Folder`, { FolderName: folderName }, {
+//       headers: {
+//           Authorization: `Bearer ${token}`,
+//           "Content-Type": 'application/json'
+//       },
+//   });  
+//   console.log("create folder: ",response);
   
-      return response.data;
-  } catch (error) {
-      console.error("Error creating folder:", error);
-      throw error;
-  }
-};
+//       return response.data;
+//   } catch (error) {
+//       console.error("Error creating folder:", error);
+//       throw error;
+//   }
+// };
 
 
 export const updateFolder = async (id: number, folderData: MyFolder): Promise<void> => {
@@ -384,3 +384,20 @@ export const uploadFile = async (file: File, folderId: number) => {
   return response.data;
 };
 
+interface CreateFolderPayload {
+  folderName: string;
+  clientId: number | null;
+}
+
+export const createFolder = async (payload: CreateFolderPayload): Promise<Folder> => {
+  const token = getAuthToken();
+
+  const response = await axios.post("/api/folders", payload, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    }
+  });
+
+  return response.data;
+};

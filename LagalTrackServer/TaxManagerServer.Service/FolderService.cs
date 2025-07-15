@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TaxManager.Core.Models;
-using TaxManager.Core.Models.TaxManager.Core.Models;
 using TaxManager.Core.Services;
+using TaxManagerServer.Core.Models;
 using TaxManagerServer.Core.Repository;
 using TaxManagerServer.Core.Services;
 
@@ -21,7 +21,8 @@ namespace TaxManager.Service
     IRepositoryManager repositoryManager,
     IS3Service s3Service,
     IPdfTextExtractor pdfTextExtractor
-)        {
+)
+        {
             _folderRepository = folderRepository;
             _repositoryManager = repositoryManager;
             _s3Service = s3Service;
@@ -49,9 +50,14 @@ namespace TaxManager.Service
             await _repositoryManager.SaveAsync();
         }
 
-        public async Task<IEnumerable<Folder>> GetAllAsync(int userId)
+        //public async Task<IEnumerable<Folder>> GetAllByGroupAsync(int groupId)
+        //{
+        //    return await _folderRepository.GetAllAsync(groupId);
+        //}
+
+         async Task<List<Folder>> IFolderService.GetAllByGroupAsync(int groupId)
         {
-            return await _folderRepository.GetAllAsync(userId);
+            return (List<Folder>)await _folderRepository.GetAllByGroupAsync(groupId);
         }
 
         public async Task<Folder?> GetByIdAsync(int folderId)
@@ -78,6 +84,11 @@ namespace TaxManager.Service
             await _folderRepository.UpdateAsync(folder); // Use UpdateAsync
             await _repositoryManager.SaveAsync();
         }
+        public async Task<List<Folder>> GetAllByClientAsync(int clientId)
+        {
+            return await _folderRepository.GetAllByClientAsync(clientId);
+        }
+
 
         public async Task AddDocumentAsync(int folderId, Document document)
         {
@@ -131,7 +142,7 @@ namespace TaxManager.Service
                 throw new KeyNotFoundException("Folder not found.");
             }
 
-            return folder.Documents.ToList(); 
+            return folder.Documents.ToList();
         }
 
         public async Task<string> GetExtractedTextFromFolderAsync(int folderId)
@@ -178,6 +189,6 @@ namespace TaxManager.Service
             return sb.ToString();
         }
 
-
+       
     }
 }

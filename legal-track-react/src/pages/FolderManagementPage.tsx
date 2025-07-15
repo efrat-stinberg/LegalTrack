@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import FolderList from "../components/FolderList";
-import AddFolderForm from "../components/AddFolder";
+import AddFolderForm from "../components/AddFolderForm";
 import { useNavigate } from "react-router-dom";
 import { FolderOpen } from "lucide-react";
 
@@ -20,7 +20,8 @@ import {
 } from "../api/api";
 
 import MyFolder from "../models/Folder";
-
+import { Client } from "../models/Client";
+import { getClients } from "../api/client";
 
 const StyledContainer = styled(Container)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -106,26 +107,60 @@ const SectionWrapper = styled(Box)(({ theme }) => ({
 const FolderManagementPage: React.FC = () => {
   const navigate = useNavigate();
   const [folders, setFolders] = useState<MyFolder[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadFolders();
+    loadInitialData();
   }, []);
+
+  const loadInitialData = async () => {
+    try {
+      setLoading(true);
+      await Promise.all([loadFolders(), loadClients()]);
+    } catch (err) {
+      setError('Failed to load data');
+      console.error('Error loading initial data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoToAddClient = () => {
+    navigate('/clients/new');
+  };
+
+  const loadClients = async () => {
+    try {
+      const response = await getClients();
+      console.log('Loaded clients:', response.data); // להדפסת דיבאג
+      setClients(response.data || []);
+    } catch (error) {
+      console.error("Failed to fetch clients:", error);
+      setClients([]);
+    }
+  };
 
   const loadFolders = async () => {
     try {
       const response = await getAllFolders();
-      setFolders(response);
+      console.log('Loaded folders:', response); // להדפסת דיבאג
+      setFolders(response || []);
     } catch (error) {
       console.error("Failed to fetch folders:", error);
+      setFolders([]);
     }
   };
 
-  const handleAddFolder = async (folderName: string) => {
+  const handleAddFolder = async (folderName: string, clientId: number | null) => {
     try {
-      const newFolder = await createFolder(folderName);
+      const newFolder = await createFolder({ folderName, clientId });
       setFolders((prev) => [...prev, newFolder]);
     } catch (error) {
       console.error("Error creating folder:", error);
+      alert('שגיאה ביצירת תיקייה');
     }
   };
 
@@ -146,6 +181,7 @@ const FolderManagementPage: React.FC = () => {
       );
     } catch (error) {
       console.error("Error updating folder:", error);
+      alert('שגיאה בעדכון תיקייה');
     }
   };
 
@@ -155,6 +191,7 @@ const FolderManagementPage: React.FC = () => {
       setFolders((prev) => prev.filter((f) => f.folderId !== folderId));
     } catch (error) {
       console.error("Error deleting folder:", error);
+      alert('שגיאה במחיקת תיקייה');
     }
   };
 
@@ -162,8 +199,52 @@ const FolderManagementPage: React.FC = () => {
     navigate(`/folders/${folder.id}`);
   };
 
+  const handleClientAdded = (newClient: Client) => {
+    setClients(prev => [...prev, newClient]);
+    setSelectedClientId(newClient.id || null);
+  };
+
+  if (loading) {
+    return (
+      <StyledContainer maxWidth="xl">
+        <ContentWrapper elevation={0}>
+          <Typography variant="h6" textAlign="center">
+            טוען נתונים...
+          </Typography>
+        </ContentWrapper>
+      </StyledContainer>
+    );
+  }
+
+  if (error) {
+    return (
+      <StyledContainer maxWidth="xl">
+        <ContentWrapper elevation={0}>
+          <Typography variant="h6" color="error" textAlign="center">
+            שגיאה בטעינת הנתונים: {error}
+          </Typography>
+        </ContentWrapper>
+      </StyledContainer>
+    );
+  }
+
   return (
     <StyledContainer maxWidth="xl">
+      <button 
+        onClick={handleGoToAddClient}
+        style={{
+          marginBottom: '16px',
+          padding: '8px 16px',
+          backgroundColor: '#2c5aa0',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+      >
+        הוספת לקוח חדש
+      </button>
+
       <Fade in={true} timeout={600}>
         <ContentWrapper elevation={0}>
           <HeaderSection>
@@ -171,27 +252,39 @@ const FolderManagementPage: React.FC = () => {
               <FolderOpen />
             </IconWrapper>
             <StyledTitle variant="h3" as="h1">
-              Case Management
+              ניהול תיקים
             </StyledTitle>
             <SubTitle variant="body1">
-              Organize and manage your legal cases efficiently
+              ארגון וניהול יעיל של תיקים משפטיים
             </SubTitle>
           </HeaderSection>
 
           <SectionWrapper>
-            <AddFolderForm onAddFolder={handleAddFolder} />
+            <AddFolderForm 
+              onAddFolder={handleAddFolder}
+              clients={clients}
+              selectedClientId={selectedClientId}
+              onSelectClient={setSelectedClientId}
+            />
           </SectionWrapper>
 
           <SectionWrapper>
-            <FolderList
-              folders={folders.map((folder) => ({
-                name: folder.folderName,
-                files: folder.documents?.map((doc) => doc.documentName) || [],
-                id: folder.folderId,
-              }))}
-              onFolderClick={handleFolderClick}
-              onEditFolder={handleEditFolder}
-              onDeleteFolder={handleDeleteFolder} />
+            {folders.length > 0 ? (
+              <FolderList
+                folders={folders.map((folder) => ({
+                  name: folder.folderName,
+                  files: folder.documents?.map((doc) => doc.documentName) || [],
+                  id: folder.folderId,
+                }))}
+                onFolderClick={handleFolderClick}
+                onEditFolder={handleEditFolder}
+                onDeleteFolder={handleDeleteFolder}
+              />
+            ) : (
+              <Typography variant="body1" textAlign="center" color="textSecondary">
+                עדיין אין תיקיות. צור תיקייה חדשה למעלה.
+              </Typography>
+            )}
           </SectionWrapper>
         </ContentWrapper>
       </Fade>

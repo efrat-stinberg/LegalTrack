@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using TaxManager.Core.Models;
-using TaxManager.Core.Models.TaxManager.Core.Models;
 using TaxManagerServer.Core.DTOs;
 using TaxManagerServer.Core.Models;
 

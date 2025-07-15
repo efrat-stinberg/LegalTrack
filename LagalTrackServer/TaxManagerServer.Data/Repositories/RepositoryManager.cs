@@ -1,7 +1,7 @@
-﻿using TaxManager.Core.Models.TaxManager.Core.Models;
-using TaxManager.Data;
+﻿using TaxManager.Data;
 using TaxManagerServer.Core.Models;
 using TaxManagerServer.Core.Repository;
+using TaxManagerServer.Data.Repositories;
 
 public class RepositoryManager : IRepositoryManager
 {
@@ -11,7 +11,11 @@ public class RepositoryManager : IRepositoryManager
     public IDocumentRepository Documents { get; }
     public IFolderRepository Folders { get; }
     public IRepository<ChatMessage> ChatMessages { get; }
-    public IGroupRepository Group { get; }
+    public IGroupRepository GroupRepository { get; }
+    public IInviteRepository Invite { get; }
+    public IClientRepository Client { get; }
+
+
 
     public RepositoryManager(
         DataContext context,
@@ -19,15 +23,20 @@ public class RepositoryManager : IRepositoryManager
         IDocumentRepository documentRepository,
         IFolderRepository folderRepository,
         IRepository<ChatMessage> chatMessageRepository,
-        IGroupRepository groupRepository) // ← חדש
+        IGroupRepository groupRepository,
+        IInviteRepository inviteReository,
+        IClientRepository client)
     {
         _context = context;
         Users = userRepository;
         Documents = documentRepository;
         Folders = folderRepository;
         ChatMessages = chatMessageRepository;
-        Group = groupRepository; // ← חדש
+        GroupRepository = groupRepository;
+        Invite = inviteReository;
+        Client = client;
     }
+
 
     public async Task SaveAsync()
     {

@@ -3,76 +3,77 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TaxManager.Core.Models;
 
-namespace TaxManager.Core.Models
+
+namespace TaxManagerServer.Core.Models
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Text.Json.Serialization;
 
-    namespace TaxManager.Core.Models
+    public class Folder
     {
+        public int FolderId { get; set; }
+        public string FolderName { get; set; }
 
-        public class Folder
+        public int ClientId { get; set; } 
+        public Client Client { get; set; }
+
+        public int GroupId { get; set; } 
+        public Group Group { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public ICollection<Document> Documents { get; set; } = new List<Document>();
+
+        public Folder()
         {
-            public int FolderId { get; set; }
-            public string FolderName { get; set; }
-            public int UserId { get; set; }
-            public DateTime CreatedDate { get; set; }
-            public ICollection<Document> Documents { get; set; } = new List<Document>();
+            //public virtual ICollection<Document> Documents { get; set; } = new List<Document>();
+        }
 
-            public Folder()
+        // Method to add a document to the folder
+        public void AddDocument(Document document)
+        {
+            if (document == null)
             {
-//public virtual ICollection<Document> Documents { get; set; } = new List<Document>();
+                throw new ArgumentNullException(nameof(document), "Document cannot be null.");
             }
 
-            // Method to add a document to the folder
-            public void AddDocument(Document document)
+            // Check if the document already exists
+            if (Documents.Any(d => d.DocumentId == document.DocumentId))
             {
-                if (document == null)
-                {
-                    throw new ArgumentNullException(nameof(document), "Document cannot be null.");
-                }
-
-                // Check if the document already exists
-                if (Documents.Any(d => d.DocumentId == document.DocumentId))
-                {
-                    throw new InvalidOperationException("Document already exists in the folder.");
-                }
-
-                Documents.Add(document);
+                throw new InvalidOperationException("Document already exists in the folder.");
             }
 
-            // Removes a document from the folder
-            public void RemoveDocument(Document document)
-            {
-                Documents.Remove(document);
-            }
+            Documents.Add(document);
+        }
 
-            // Clears all documents from the folder
-            public void ClearDocuments()
-            {
-                Documents.Clear();
-            }
+        // Removes a document from the folder
+        public void RemoveDocument(Document document)
+        {
+            Documents.Remove(document);
+        }
 
-            // Returns the count of documents in the folder
-            public int GetDocumentCount()
-            {
-                return Documents.Count;
-            }
+        // Clears all documents from the folder
+        public void ClearDocuments()
+        {
+            Documents.Clear();
+        }
 
-            // Renames the folder
-            public void RenameFolder(string newName)
-            {
-                FolderName = newName;
-            }
+        // Returns the count of documents in the folder
+        public int GetDocumentCount()
+        {
+            return Documents.Count;
+        }
 
-            // Returns information about the folder
-            public string GetFolderInfo()
-            {
-                return $"Folder ID: {FolderId}, Name: {FolderName}, Created Date: {CreatedDate}, Document Count: {GetDocumentCount()}";
-            }
+        // Renames the folder
+        public void RenameFolder(string newName)
+        {
+            FolderName = newName;
+        }
+
+        // Returns information about the folder
+        public string GetFolderInfo()
+        {
+            return $"Folder ID: {FolderId}, Name: {FolderName}, Created Date: {CreatedDate}, Document Count: {GetDocumentCount()}";
         }
     }
 }
+
+

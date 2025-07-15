@@ -15,6 +15,7 @@ using Amazon.S3;
 using Microsoft.AspNetCore.Hosting;
 using TaxManagerServer.Core.Services;
 using TaxManagerServer.Service;
+using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddUserSecrets<Program>();
@@ -82,10 +83,16 @@ builder.Services.AddCors(options =>
 });
 
 
-builder.Services.AddDbContext<DataContext>(
-    options => options.UseSqlServer(@"Server=(localdb)\MSSQLLocalDB;Database=sample_db"));
+
 
 // Add AWS S3 service
+builder.Services.AddDbContext<DataContext>(
+    options => options.UseMySql(
+        "server=localhost;user=root;password=e0583290906;database=legal_db;",
+        new MySqlServerVersion(new Version(8, 0, 25)) // Replace with your MySQL server version
+    ));
+
+
 builder.Services.AddAWSService<IAmazonS3>();
 builder.Services.AddScoped<IS3Service, S3Service>();
 
@@ -99,10 +106,16 @@ builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IFolderService, FolderService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IClientService, ClientService>();
+builder.Services.AddScoped<IClientRepository, ClientRepository>();
 builder.Services.AddScoped<IRepositoryManager, RepositoryManager>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IFolderRepository, FolderRepository>();
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
+builder.Services.AddScoped<IInviteRepository, InviteRepository>();
+builder.Services.AddScoped<IInviteService, InviteService>();
+builder.Services.AddScoped<IEmailService, SendGridEmailService>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 

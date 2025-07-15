@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TaxManager.Core.Models.TaxManager.Core.Models;
 using TaxManager.Data;
 using TaxManagerServer.Core.Repository;
 

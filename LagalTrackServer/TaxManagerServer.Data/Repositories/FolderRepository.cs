@@ -1,12 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using TaxManager.Core.Models;
-using TaxManager.Core.Models.TaxManager.Core.Models;
 using TaxManager.Data;
+using TaxManagerServer.Core.Models;
 using TaxManagerServer.Core.Repository;
 
 namespace TaxManagerServer.Data.Repositories
@@ -20,18 +18,27 @@ namespace TaxManagerServer.Data.Repositories
             _context = context;
         }
 
-        public async Task<Folder?> GetByIdAsync(int id)
+        // Override specific GetByIdAsync with Includes
+        public async new Task<Folder?> GetByIdAsync(int id)
         {
             return await _context.Folders
-             .Include(f => f.Documents)
-             .FirstOrDefaultAsync(f => f.FolderId == id);
+                .Include(f => f.Documents)
+                .FirstOrDefaultAsync(f => f.FolderId == id);
         }
 
-        public async Task<IEnumerable<Folder>> GetAllAsync(int userId)
+        public async Task<IEnumerable<Folder>> GetAllByGroupAsync(int groupId)
         {
             return await _context.Folders
-                .Where(folder => folder.UserId == userId)
-                .Include(folder => folder.Documents) 
+                .Where(folder => folder.GroupId == groupId)
+                .Include(folder => folder.Documents)
+                .ToListAsync();
+        }
+
+        public async Task<List<Folder>> GetAllByClientAsync(int clientId)
+        {
+            return await _context.Folders
+                .Where(f => f.ClientId == clientId)
+                .Include(f => f.Documents)
                 .ToListAsync();
         }
 

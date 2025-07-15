@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using TaxManager.Core.Models.TaxManager.Core.Models;
 using TaxManagerServer.Core.Models;
 
 namespace TaxManager.Core.Models

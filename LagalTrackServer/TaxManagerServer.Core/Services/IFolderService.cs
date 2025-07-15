@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TaxManager.Core.Models;
-using TaxManager.Core.Models.TaxManager.Core.Models;
+using TaxManagerServer.Core.Models;
 
 namespace TaxManager.Core.Services
 {
@@ -13,7 +13,8 @@ namespace TaxManager.Core.Services
         
         Task AddAsync(Folder folder);
         Task<Folder> GetByIdAsync(int folderId);
-        Task<IEnumerable<Folder>> GetAllAsync(int userId);
+        Task<List<Folder>> GetAllByGroupAsync(int groupId);
+        Task<List<Folder>> GetAllByClientAsync(int clientId);
         Task UpdateAsync(Folder folder);
         Task DeleteAsync(int folderId);
         Task AddDocumentAsync(int folderId, Document document); 

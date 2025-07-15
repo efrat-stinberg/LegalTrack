@@ -11,6 +11,7 @@
     <PackageReference Include="AWSSDK.S3" Version="4.0.0.5" />
     <PackageReference Include="PdfPig" Version="0.1.11-alpha-20250519-67d3d" />
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
+    <PackageReference Include="SendGrid" Version="9.29.3" />
   </ItemGroup>
 
   <ItemGroup>

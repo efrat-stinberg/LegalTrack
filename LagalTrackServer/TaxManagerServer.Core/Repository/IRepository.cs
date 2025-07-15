@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using TaxManager.Core.Models;
-using TaxManager.Core.Models.TaxManager.Core.Models;
 
 namespace TaxManagerServer.Core.Repository
 {

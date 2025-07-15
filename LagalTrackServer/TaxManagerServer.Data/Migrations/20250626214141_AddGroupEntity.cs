@@ -5,7 +5,7 @@
 namespace TaxManagerServer.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdatedGroupModel : Migration
+    public partial class AddGroupEntity : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

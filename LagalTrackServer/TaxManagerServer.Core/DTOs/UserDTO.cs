@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TaxManager.Core.Models.TaxManager.Core.Models;
-
 namespace TaxManagerServer.Core.DTOs
 {
     public class UserDTO
