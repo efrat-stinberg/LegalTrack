@@ -10,14 +10,15 @@ import { useEffect } from 'react';
 import store from './store/store';
 import AuthPage from './pages/AuthPage';
 import Register from './components/Register';
-import ProtectedRoute from './components/ProtectedRoute';
-import ProtectedLayout from './components/ProtectedLayout';
+import HomePage from './pages/HomePage'; // העמוד החדש
 import FolderDetailsPage from './pages/FolderDetailsPage';
 import ClientsPage from './pages/ClientsPage';
+import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedLayout from './components/ProtectedLayout';
 import ErrorBoundary from './components/ErrorBoundary';
 import { getUserByEmail } from './api/userApi';
 import { login } from './store/slices/userSlice';
-import FolderManagementPage from './pages/FolderManagementPage';
+import FoldersPage from './pages/FolderPage';
 
 function App() {
   return (
@@ -32,24 +33,33 @@ function App() {
             {/* Root redirect */}
             <Route path="/" element={<RootHandler />} />
             
-            {/* Protected routes */}
+            {/* Protected routes with layout */}
             <Route path="/protected" element={
               <ProtectedRoute>
                 <ProtectedLayout />
               </ProtectedRoute>
             }>
-              <Route path="folders" element={<FolderManagementPage />} />
+              <Route path="home" element={<HomePage />} />
+              <Route path="folders" element={<FoldersPage />} />
               <Route path="folders/:folderId" element={<FolderDetailsPage />} />
               <Route path="clients" element={<ClientsPage />} />
             </Route>
 
-            {/* Fallback for authenticated users */}
+            {/* Direct protected routes (fallback for old URLs) */}
+            <Route path="/home" element={
+              <ProtectedRoute>
+                <ProtectedLayout />
+              </ProtectedRoute>
+            }>
+              <Route index element={<HomePage />} />
+            </Route>
+
             <Route path="/folders" element={
               <ProtectedRoute>
                 <ProtectedLayout />
               </ProtectedRoute>
             }>
-              <Route index element={<FolderManagementPage />} />
+              <Route index element={<FoldersPage />} />
               <Route path=":folderId" element={<FolderDetailsPage />} />
             </Route>
 
@@ -61,7 +71,7 @@ function App() {
               <Route index element={<ClientsPage />} />
             </Route>
 
-            {/* Catch all */}
+            {/* Catch all - redirect to home */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
@@ -102,7 +112,8 @@ function RootHandler() {
             const user = await getUserByEmail(email);
             dispatch(login(user));
             console.log('RootHandler: User session restored successfully');
-            navigate('/folders', { replace: true });
+            // שינוי: הפניה לעמוד הבית במקום תיקיות
+            navigate('/home', { replace: true });
             return;
           }
         } catch (error) {
@@ -111,10 +122,10 @@ function RootHandler() {
         }
       }
       
-      // אם יש אימות או משתמש נוכחי, נווט לתיקיות
+      // אם יש אימות או משתמש נוכחי, נווט לעמוד הבית
       if (isAuthenticated && currentUser) {
-        console.log('RootHandler: User is authenticated, navigating to folders');
-        navigate('/folders', { replace: true });
+        console.log('RootHandler: User is authenticated, navigating to home');
+        navigate('/home', { replace: true });
       } else {
         console.log('RootHandler: User not authenticated, navigating to login');
         navigate('/login', { replace: true });

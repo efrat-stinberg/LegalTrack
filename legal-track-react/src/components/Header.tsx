@@ -170,6 +170,11 @@ const Header: React.FC = () => {
 
   const menuItems: MenuItem[] = [
     {
+      path: '/home',
+      label: 'עמוד בית',
+      icon: <Home size={20} />,
+    },
+    {
       path: '/folders',
       label: 'ניהול תיקים',
       icon: <FolderOpen size={20} />,
@@ -203,7 +208,7 @@ const Header: React.FC = () => {
   ];
 
   const handleLogoClick = () => {
-    navigate('/folders');
+    navigate('/home'); // שינוי להפניה לעמוד הבית
   };
 
   const handleDrawerToggle = () => {
@@ -306,7 +311,7 @@ const Header: React.FC = () => {
                 </Typography>
                 <Typography
                   variant="caption"
-                  sx={{ color: alpha(theme.palette.common.white, 0.8) }}
+                  sx={{ color: alpha('#ffffff', 0.8) }}
                 >
                   מערכת ניהול תיקים משפטיים
                 </Typography>

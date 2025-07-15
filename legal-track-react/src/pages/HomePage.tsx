@@ -4,7 +4,6 @@ import {
   Box,
   Typography,
   Paper,
-  Grid,
   Card,
   CardContent,
   Button,
@@ -16,7 +15,8 @@ import {
   Fade,
   Zoom,
   LinearProgress,
-  Tooltip
+  Tooltip,
+  // Remove Grid from here
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
@@ -27,15 +27,10 @@ import {
   TrendingUp,
   Plus,
   ArrowRight,
-  Calendar,
   Clock,
-  Star,
   Activity,
   BarChart3,
   Search,
-  Download,
-  Upload,
-  MessageCircle,
   Shield,
   Globe,
   Zap
@@ -79,6 +74,10 @@ const StatsGrid = styled(Box)(({ theme }) => ({
   gap: theme.spacing(3),
   gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
   marginBottom: theme.spacing(4),
+  
+  [theme.breakpoints.down('sm')]: {
+    gridTemplateColumns: '1fr',
+  }
 }));
 
 const StatsCard = styled(Card)(({ theme }) => ({
@@ -151,6 +150,27 @@ const ProgressIndicator = styled(LinearProgress)(({ theme }) => ({
   '& .MuiLinearProgress-bar': {
     borderRadius: 4,
     background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+  }
+}));
+
+// New Styled Components for Grid Layout
+const MainContentGrid = styled(Box)(({ theme }) => ({
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
+  gap: theme.spacing(4),
+  
+  [theme.breakpoints.down('md')]: {
+    gridTemplateColumns: '1fr',
+  }
+}));
+
+const QuickActionsGrid = styled(Box)(({ theme }) => ({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, 1fr)',
+  gap: theme.spacing(3),
+  
+  [theme.breakpoints.down('sm')]: {
+    gridTemplateColumns: '1fr',
   }
 }));
 
@@ -262,7 +282,12 @@ const HomePage: React.FC<HomePageProps> = () => {
     return (
       <PageContainer maxWidth="xl">
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-          <ProgressIndicator sx={{ width: 200 }} />
+          <Box textAlign="center">
+            <ProgressIndicator sx={{ width: 200, mb: 2 }} />
+            <Typography variant="body1" color="text.secondary">
+              טוען נתונים...
+            </Typography>
+          </Box>
         </Box>
       </PageContainer>
     );
@@ -287,27 +312,33 @@ const HomePage: React.FC<HomePageProps> = () => {
                     icon={<Shield size={16} />}
                     label="מערכת מאובטחת" 
                     sx={{ 
-                      background: alpha('white', 0.2), 
+                      background: alpha('#ffffff', 0.2)
+, 
                       color: 'white', 
-                      border: `1px solid ${alpha('white', 0.3)}` 
+                      border: `1px solid ${alpha('#ffffff', 0.3)
+}` 
                     }} 
                   />
                   <Chip 
                     icon={<Globe size={16} />}
                     label="זמינות 99.9%" 
                     sx={{ 
-                      background: alpha('white', 0.2), 
+                      background: alpha('#ffffff', 0.2)
+, 
                       color: 'white', 
-                      border: `1px solid ${alpha('white', 0.3)}` 
+                      border: `1px solid ${alpha('#ffffff', 0.3)
+}` 
                     }} 
                   />
                   <Chip 
                     icon={<Zap size={16} />}
                     label="עדכון אחרון: היום" 
                     sx={{ 
-                      background: alpha('white', 0.2), 
+                      background: alpha('#ffffff', 0.2)
+, 
                       color: 'white', 
-                      border: `1px solid ${alpha('white', 0.3)}` 
+                      border: `1px solid ${alpha('#ffffff', 0.3)
+}` 
                     }} 
                   />
                 </Box>
@@ -323,11 +354,14 @@ const HomePage: React.FC<HomePageProps> = () => {
                   variant="outlined"
                   startIcon={<Search size={20} />}
                   sx={{
-                    background: alpha('white', 0.2),
-                    border: `1px solid ${alpha('white', 0.3)}`,
+                    background: alpha('#ffffff', 0.2)
+,
+                    border: `1px solid ${alpha('#ffffff', 0.3)
+}`,
                     color: 'white',
                     '&:hover': {
-                      background: alpha('white', 0.3),
+                      background: alpha('#ffffff', 0.3)
+,
                     }
                   }}
                 >
@@ -355,7 +389,7 @@ const HomePage: React.FC<HomePageProps> = () => {
                       <Avatar 
                         sx={{ 
                           background: `linear-gradient(135deg, ${stat.color}, ${alpha(stat.color, 0.8)})`,
-                          color: 'white'
+                          color: '#ffffff'
                         }}
                       >
                         {stat.icon}
@@ -377,46 +411,44 @@ const HomePage: React.FC<HomePageProps> = () => {
           </StatsGrid>
 
           {/* Quick Actions & Recent Activity */}
-          <Grid container spacing={4}>
+          <MainContentGrid>
             {/* Quick Actions */}
-            <Grid container item xs={12} md={6}>
+            <Box>
               <Typography variant="h5" fontWeight={700} gutterBottom color="primary" sx={{ mb: 3 }}>
                 פעולות מהירות
               </Typography>
-              <Grid container spacing={3}>
+              <QuickActionsGrid>
                 {quickActions.map((action, index) => (
-                  <Grid item xs={12} sm={6} key={index}>
-                    <Zoom in={true} timeout={400 + index * 100}>
-                      <ActionCard onClick={action.action}>
-                        <CardContent sx={{ p: 3, textAlign: 'center' }}>
-                          <Avatar
-                            sx={{
-                              width: 56,
-                              height: 56,
-                              margin: '0 auto',
-                              mb: 2,
-                              background: `linear-gradient(135deg, ${action.color}, ${alpha(action.color, 0.8)})`,
-                              color: 'white'
-                            }}
-                          >
-                            {action.icon}
-                          </Avatar>
-                          <Typography variant="h6" fontWeight={600} gutterBottom>
-                            {action.title}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {action.description}
-                          </Typography>
-                        </CardContent>
-                      </ActionCard>
-                    </Zoom>
-                  </Grid>
+                  <Zoom in={true} timeout={400 + index * 100} key={index}>
+                    <ActionCard onClick={action.action}>
+                      <CardContent sx={{ p: 3, textAlign: 'center' }}>
+                        <Avatar
+                          sx={{
+                            width: 56,
+                            height: 56,
+                            margin: '0 auto',
+                            mb: 2,
+                            background: `linear-gradient(135deg, ${action.color}, ${alpha(action.color, 0.8)})`,
+                            color: '#ffffff'
+                          }}
+                        >
+                          {action.icon}
+                        </Avatar>
+                        <Typography variant="h6" fontWeight={600} gutterBottom>
+                          {action.title}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {action.description}
+                        </Typography>
+                      </CardContent>
+                    </ActionCard>
+                  </Zoom>
                 ))}
-              </Grid>
-            </Grid>
+              </QuickActionsGrid>
+            </Box>
 
             {/* Recent Activity */}
-            <Grid item xs={12} md={6}>
+            <Box>
               <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
                 <Typography variant="h5" fontWeight={700} color="primary">
                   פעילות אחרונה
@@ -439,7 +471,7 @@ const HomePage: React.FC<HomePageProps> = () => {
                           <Avatar
                             sx={{
                               background: `linear-gradient(135deg, #667eea, #764ba2)`,
-                              color: 'white'
+                              color: '#ffffff'
                             }}
                           >
                             <FolderOpen size={20} />
@@ -503,8 +535,8 @@ const HomePage: React.FC<HomePageProps> = () => {
                   </Button>
                 </Box>
               )}
-            </Grid>
-          </Grid>
+            </Box>
+          </MainContentGrid>
         </div>
       </Fade>
     </PageContainer>
