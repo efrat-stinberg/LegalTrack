@@ -17,15 +17,18 @@ import ClientsPage from './pages/ClientsPage';
 import FoldersPage from './pages/FolderPage';
 import FolderManagementPage from './pages/FolderManagementPage';
 import LandingPage from './pages/LoginPage';
+
 import ProtectedRoute from './components/ProtectedRoute';
 import ProtectedLayout from './components/ProtectedLayout';
 import ErrorBoundary from './components/ErrorBoundary';
 import { getUserByEmail } from './api/userApi';
 import { login } from './store/slices/userSlice';
-import MessagesPage from './pages/MessagesPage';
-import CalendarPage from './pages/CalendarPage';
-import AnalyticsPage from './pages/AnalyticsPage';
 import DocumentsPage from './pages/DocumentsPage';
+import AnalyticsPage from './pages/AnalyticsPage';
+import CalendarPage from './pages/CalendarPage';
+import MessagesPage from './pages/MessagesPage';
+import SettingsPage from './pages/SettingsPage';
+import SupportPage from './pages/SupportPage';
 
 function App() {
   return (
@@ -65,8 +68,8 @@ function App() {
               <Route path="messages" element={<MessagesPage />} />
               
               {/* הגדרות ותמיכה */}
-              {/* <Route path="settings" element={<SettingsPage />} />
-              <Route path="support" element={<SupportPage />} /> */}
+              <Route path="settings" element={<SettingsPage />} />
+              <Route path="support" element={<SupportPage />} />
             </Route>
 
             {/* Direct protected routes (fallback for old URLs) */}
@@ -127,7 +130,7 @@ function App() {
               <Route index element={<MessagesPage />} />
             </Route>
 
-            {/* <Route path="/settings" element={
+            <Route path="/settings" element={
               <ProtectedRoute>
                 <ProtectedLayout />
               </ProtectedRoute>
@@ -141,7 +144,7 @@ function App() {
               </ProtectedRoute>
             }>
               <Route index element={<SupportPage />} />
-            </Route> */}
+            </Route>
 
             {/* Catch all - redirect to home */}
             <Route path="*" element={<Navigate to="/" replace />} />

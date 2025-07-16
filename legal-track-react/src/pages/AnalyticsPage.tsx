@@ -1,4 +1,3 @@
-
 // src/pages/AnalyticsPage.tsx
 import React, { useState, useEffect } from 'react';
 import {
@@ -6,7 +5,6 @@ import {
   Box,
   Typography,
   Paper,
-  Grid,
   Card,
   CardContent,
   useTheme,
@@ -16,6 +14,7 @@ import {
   Chip
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { StatsGrid, ResponsiveGrid } from '../utils/GridHelpers';
 import {
   BarChart3,
   TrendingUp,
@@ -122,77 +121,71 @@ const AnalyticsPage: React.FC = () => {
             </Box>
           </HeaderSection>
 
-          <Grid container spacing={3} sx={{ mb: 4 }}>
+          <StatsGrid sx={{ mb: 4 }}>
             {analyticsData.map((stat, index) => (
-              <Grid item xs={12} sm={6} md={3} key={index}>
-                <StatsCard>
-                  <CardContent sx={{ p: 3 }}>
-                    <Box display="flex" alignItems="center" gap={2} mb={2}>
-                      <Box
-                        sx={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: 2,
-                          background: `linear-gradient(135deg, ${stat.color}, ${alpha(stat.color, 0.8)})`,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'white'
-                        }}
-                      >
-                        {stat.icon}
-                      </Box>
-                      <Box>
-                        <Typography variant="h4" fontWeight={700} color="primary">
-                          {stat.value}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {stat.title}
-                        </Typography>
-                      </Box>
+              <StatsCard key={index}>
+                <CardContent sx={{ p: 3 }}>
+                  <Box display="flex" alignItems="center" gap={2} mb={2}>
+                    <Box
+                      sx={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 2,
+                        background: `linear-gradient(135deg, ${stat.color}, ${alpha(stat.color, 0.8)})`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white'
+                      }}
+                    >
+                      {stat.icon}
                     </Box>
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <TrendingUp size={16} color={theme.palette.success.main} />
-                      <Typography variant="body2" color="success.main" fontWeight={600}>
-                        {stat.change}
+                    <Box>
+                      <Typography variant="h4" fontWeight={700} color="primary">
+                        {stat.value}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        השבוע
+                        {stat.title}
                       </Typography>
                     </Box>
-                  </CardContent>
-                </StatsCard>
-              </Grid>
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <TrendingUp size={16} color={theme.palette.success.main} />
+                    <Typography variant="body2" color="success.main" fontWeight={600}>
+                      {stat.change}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      השבוע
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </StatsCard>
             ))}
-          </Grid>
+          </StatsGrid>
 
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={8}>
-              <Paper sx={{ p: 3, borderRadius: 3 }}>
-                <Typography variant="h6" fontWeight={600} mb={3}>
-                  פעילות חודשית
+          <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' } }}>
+            <Paper sx={{ p: 3, borderRadius: 3 }}>
+              <Typography variant="h6" fontWeight={600} mb={3}>
+                פעילות חודשית
+              </Typography>
+              <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Typography color="text.secondary">
+                  גרף יוצג כאן (נדרש ספריית גרפים)
                 </Typography>
-                <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Typography color="text.secondary">
-                    גרף יוצג כאן (נדרש ספריית גרפים)
-                  </Typography>
-                </Box>
-              </Paper>
-            </Grid>
+              </Box>
+            </Paper>
             
-            <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 3, borderRadius: 3 }}>
-                <Typography variant="h6" fontWeight={600} mb={3}>
-                  התפלגות תיקים
+            <Paper sx={{ p: 3, borderRadius: 3 }}>
+              <Typography variant="h6" fontWeight={600} mb={3}>
+                התפלגות תיקים
+              </Typography>
+              <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Typography color="text.secondary">
+                  גרף עוגה יוצג כאן
                 </Typography>
-                <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Typography color="text.secondary">
-                    גרף עוגה יוצג כאן
-                  </Typography>
-                </Box>
-              </Paper>
-            </Grid>
-          </Grid>
+              </Box>
+            </Paper>
+          </Box>
         </div>
       </Fade>
     </PageContainer>

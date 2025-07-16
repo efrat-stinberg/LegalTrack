@@ -6,7 +6,6 @@ import {
   Typography,
   Paper,
   Button,
-  Grid,
   Card,
   CardContent,
   useTheme,
@@ -133,76 +132,76 @@ const CalendarPage: React.FC = () => {
             </Box>
           </HeaderSection>
 
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={8}>
-              <Paper sx={{ p: 3, borderRadius: 3, minHeight: 500 }}>
-                <Typography variant="h6" fontWeight={600} mb={3}>
-                  לוח שנה
+          <Box sx={{ 
+            display: 'grid', 
+            gap: 3, 
+            gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' } 
+          }}>
+            <Paper sx={{ p: 3, borderRadius: 3, minHeight: 500 }}>
+              <Typography variant="h6" fontWeight={600} mb={3}>
+                לוח שנה
+              </Typography>
+              <Box 
+                sx={{ 
+                  height: 400, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  border: `2px dashed ${alpha(theme.palette.primary.main, 0.3)}`,
+                  borderRadius: 2
+                }}
+              >
+                <Typography color="text.secondary">
+                  רכיב לוח שנה יוצג כאן
                 </Typography>
-                <Box 
-                  sx={{ 
-                    height: 400, 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center',
-                    border: `2px dashed ${alpha(theme.palette.primary.main, 0.3)}`,
-                    borderRadius: 2
-                  }}
-                >
-                  <Typography color="text.secondary">
-                    רכיב לוח שנה יוצג כאן
-                  </Typography>
-                </Box>
-              </Paper>
-            </Grid>
+              </Box>
+            </Paper>
             
-            <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 3, borderRadius: 3 }}>
-                <Typography variant="h6" fontWeight={600} mb={3}>
-                  אירועים היום
-                </Typography>
-                
-                <Box display="flex" flexDirection="column" gap={2}>
-                  {mockEvents.map((event) => (
-                    <EventCard key={event.id}>
-                      <CardContent sx={{ p: 2 }}>
-                        <Box display="flex" alignItems="center" gap={2} mb={1}>
-                          <Avatar
-                            sx={{
-                              width: 32,
-                              height: 32,
-                              background: event.color,
-                              color: 'white'
-                            }}
-                          >
-                            <Calendar size={16} />
-                          </Avatar>
-                          <Box flex={1}>
-                            <Typography variant="subtitle2" fontWeight={600}>
-                              {event.title}
+            <Paper sx={{ p: 3, borderRadius: 3 }}>
+              <Typography variant="h6" fontWeight={600} mb={3}>
+                אירועים היום
+              </Typography>
+              
+              <Box display="flex" flexDirection="column" gap={2}>
+                {mockEvents.map((event) => (
+                  <EventCard key={event.id}>
+                    <CardContent sx={{ p: 2 }}>
+                      <Box display="flex" alignItems="center" gap={2} mb={1}>
+                        <Avatar
+                          sx={{
+                            width: 32,
+                            height: 32,
+                            background: event.color,
+                            color: 'white'
+                          }}
+                        >
+                          <Calendar size={16} />
+                        </Avatar>
+                        <Box flex={1}>
+                          <Typography variant="subtitle2" fontWeight={600}>
+                            {event.title}
+                          </Typography>
+                          <Box display="flex" alignItems="center" gap={1} mt={0.5}>
+                            <Clock size={12} />
+                            <Typography variant="caption" color="text.secondary">
+                              {event.time} • {event.duration}
                             </Typography>
-                            <Box display="flex" alignItems="center" gap={1} mt={0.5}>
-                              <Clock size={12} />
-                              <Typography variant="caption" color="text.secondary">
-                                {event.time} • {event.duration}
-                              </Typography>
-                            </Box>
                           </Box>
                         </Box>
-                        
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <MapPin size={12} color={theme.palette.text.secondary} />
-                          <Typography variant="caption" color="text.secondary">
-                            {event.location}
-                          </Typography>
-                        </Box>
-                      </CardContent>
-                    </EventCard>
-                  ))}
-                </Box>
-              </Paper>
-            </Grid>
-          </Grid>
+                      </Box>
+                      
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <MapPin size={12} color={theme.palette.text.secondary} />
+                        <Typography variant="caption" color="text.secondary">
+                          {event.location}
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </EventCard>
+                ))}
+              </Box>
+            </Paper>
+          </Box>
         </div>
       </Fade>
     </PageContainer>

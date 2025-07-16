@@ -27,7 +27,7 @@ const Register = () => {
     }
 
     axios
-      .post("/api/invite/validate", { token })
+      .post("localhost:7042/api/invite/validate", { token })
       .then((res) => {
         setGroupId(res.data.groupId);
         setEmail(res.data.email);
