@@ -9,7 +9,6 @@ import {
   Button,
   TextField,
   Card,
-  CardContent,
   List,
   ListItem,
   ListItemText,
@@ -21,13 +20,11 @@ import {
   Fade,
   Tab,
   Tabs,
-  FormControlLabel,
   Chip
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { FormGrid } from '../utils/GridHelpers';
 import {
-  Settings,
   User,
   Bell,
   Shield,
@@ -99,7 +96,7 @@ const SettingsPage: React.FC = () => {
     }
   });
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 

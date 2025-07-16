@@ -10,20 +10,16 @@ import {
   useTheme,
   alpha,
   Fade,
-  LinearProgress,
   Chip
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { StatsGrid, ResponsiveGrid } from '../utils/GridHelpers';
+import { StatsGrid,  } from '../utils/GridHelpers';
 import {
-  BarChart3,
   TrendingUp,
   Users,
   FileText,
   FolderOpen,
-  Activity,
   Clock,
-  Target
 } from 'lucide-react';
 
 const PageContainer = styled(Container)(({ theme }) => ({
@@ -54,7 +50,7 @@ const StatsCard = styled(Card)(({ theme }) => ({
 
 const AnalyticsPage: React.FC = () => {
   const theme = useTheme();
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   const analyticsData = [
     {

@@ -33,8 +33,6 @@ import {
   Box,
   Paper,
   Typography,
-  LinearProgress,
-  Chip,
   useTheme,
   alpha
 } from '@mui/material';
@@ -83,7 +81,6 @@ const AdvancedStatsCard: React.FC<AdvancedStatsCardProps> = ({
   color = '#667eea',
   icon
 }) => {
-  const theme = useTheme();
   
   const formatValue = (val: number) => {
     switch (format) {
@@ -310,14 +307,14 @@ interface ToastProps {
   onClose: () => void;
 }
 
-const ToastContainer = styled(Box)(({ theme }) => ({
-  position: 'fixed',
-  top: theme.spacing(2),
-  right: theme.spacing(2),
-  zIndex: 1400,
-  minWidth: 300,
-  maxWidth: 500,
-}));
+// const ToastContainer = styled(Box)(({ theme }) => ({
+//   position: 'fixed',
+//   top: theme.spacing(2),
+//   right: theme.spacing(2),
+//   zIndex: 1400,
+//   minWidth: 300,
+//   maxWidth: 500,
+// }));
 
 const Toast: React.FC<ToastProps> = ({ message, type, duration = 4000, onClose }) => {
   const theme = useTheme();

@@ -4,9 +4,7 @@ import {
   Box, 
   Typography, 
   useTheme,
-  alpha,
   Fade,
-  useMediaQuery,
   Container
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
@@ -14,7 +12,6 @@ import {
   Scale, 
   Shield, 
   Globe,
-  Clock,
   CheckCircle,
   FileText,
   Users,
@@ -22,7 +19,7 @@ import {
   Award
 } from "lucide-react";
 
-const PageContainer = styled(Box)(({ theme }) => ({
+const PageContainer = styled(Box)(({  }) => ({
   minHeight: '100vh',
   display: 'flex',
   background: '#f1f5f9',
@@ -72,19 +69,19 @@ const RightPanel = styled(Box)(({ theme }) => ({
   },
 }));
 
-const BrandContainer = styled(Box)(({ theme }) => ({
+const BrandContainer = styled(Box)(({  }) => ({
   maxWidth: '480px',
   width: '100%',
 }));
 
-const LogoSection = styled(Box)(({ theme }) => ({
+const LogoSection = styled(Box)(({  theme }) => ({
   display: 'flex',
   alignItems: 'center',
   gap: theme.spacing(3),
   marginBottom: theme.spacing(6),
 }));
 
-const LogoIcon = styled(Box)(({ theme }) => ({
+const LogoIcon = styled(Box)(({  }) => ({
   width: 64,
   height: 64,
   borderRadius: 16,
@@ -130,7 +127,7 @@ const FeatureItem = styled(Box)(({ theme }) => ({
   }
 }));
 
-const FeatureIcon = styled(Box)(({ theme }) => ({
+const FeatureIcon = styled(Box)(({  }) => ({
   width: 48,
   height: 48,
   borderRadius: 8,
@@ -145,7 +142,7 @@ const FeatureIcon = styled(Box)(({ theme }) => ({
   }
 }));
 
-const LoginContainer = styled(Container)(({ theme }) => ({
+const LoginContainer = styled(Container)(({ }) => ({
   maxWidth: '440px',
   width: '100%',
   padding: 0,
@@ -201,8 +198,8 @@ const StatusItem = styled(Box)(({ theme }) => ({
 
 const AuthPage: React.FC = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [currentTime, setCurrentTime] = useState(new Date());
+  // const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     const timer = setInterval(() => {

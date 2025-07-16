@@ -11,7 +11,6 @@ import {
   useTheme,
   alpha,
   Fade,
-  Chip,
   Avatar
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
@@ -19,7 +18,6 @@ import {
   Calendar,
   Plus,
   Clock,
-  User,
   MapPin,
   ChevronLeft,
   ChevronRight
@@ -52,7 +50,7 @@ const EventCard = styled(Card)(({ theme }) => ({
 
 const CalendarPage: React.FC = () => {
   const theme = useTheme();
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate] = useState(new Date());
 
   const mockEvents = [
     {

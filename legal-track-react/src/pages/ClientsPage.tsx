@@ -25,7 +25,6 @@ import {
   Snackbar,
   Alert,
   Fab,
-  Badge,
   Divider
 } from '@mui/material';
 import { styled } from '@mui/material/styles';

@@ -16,7 +16,8 @@ const getToken = () => {
 export const userLogin = (email: string, password: string) => async (dispatch: AppDispatch) => {
   try {
     const userData = await loginUser(email, password);
-    localStorage.setItem('token', userData.token);
+    const parsedUserData = typeof userData === 'string' ? JSON.parse(userData) : userData;
+    localStorage.setItem('token', parsedUserData.token);
     dispatch({ type: 'LOGIN_USER', payload: userData });
   } catch (error) {
     console.error("Login failed:", error);

@@ -1,5 +1,5 @@
 // utils/GridHelpers.ts
-import { Box, BoxProps } from '@mui/material';
+import { Box,  } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
 // Grid Wrapper שעובד עם כל גרסה של MUI

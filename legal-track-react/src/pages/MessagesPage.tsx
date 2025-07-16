@@ -18,7 +18,6 @@ import {
   useTheme,
   alpha,
   Fade,
-  Divider
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import {
@@ -28,7 +27,6 @@ import {
   Circle,
   Phone,
   Video,
-  MoreHorizontal
 } from 'lucide-react';
 
 const PageContainer = styled(Container)(({ theme }) => ({
@@ -45,7 +43,7 @@ const HeaderSection = styled(Paper)(({ theme }) => ({
   color: 'white',
 }));
 
-const ChatContainer = styled(Paper)(({ theme }) => ({
+const ChatContainer = styled(Paper)(({  }) => ({
   borderRadius: 16,
   overflow: 'hidden',
   height: 600,

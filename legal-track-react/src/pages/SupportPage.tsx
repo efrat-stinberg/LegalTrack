@@ -17,27 +17,21 @@ import {
   ListItemText,
   ListItemIcon,
   Chip,
-  Avatar,
   Rating,
   useTheme,
   alpha,
   Fade
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { ResponsiveGrid } from '../utils/GridHelpers';
 import {
-  HelpCircle,
   Send,
   Phone,
   Mail,
   MessageSquare,
   Book,
-  Video,
-  Download,
   ChevronDown,
   CheckCircle,
   Clock,
-  Star,
   Users,
   Headphones
 } from 'lucide-react';
@@ -133,7 +127,7 @@ const SupportPage: React.FC = () => {
     }
   ];
 
-  const handleFaqChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+  const handleFaqChange = (panel: string) => (_event: React.SyntheticEvent, isExpanded: boolean) => {
     setExpandedFaq(isExpanded ? panel : false);
   };
 

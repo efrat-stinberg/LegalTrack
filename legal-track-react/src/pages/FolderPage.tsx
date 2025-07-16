@@ -29,7 +29,6 @@ import {
   SortDesc,
   Grid3X3,
   List,
-  MoreVertical,
   Download,
   Upload,
   Folder,
