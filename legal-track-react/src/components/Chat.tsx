@@ -8,7 +8,6 @@ import {
   Avatar,
   IconButton,
   Fade,
-  Zoom,
   CircularProgress,
   useTheme,
   alpha,
@@ -19,13 +18,10 @@ import { styled, keyframes } from "@mui/material/styles";
 import {
   Send,
   Bot,
-  User,
   Copy,
   ThumbsUp,
   ThumbsDown,
-  RotateCcw,
   Sparkles,
-  MessageCircle,
   Clock
 } from "lucide-react";
 

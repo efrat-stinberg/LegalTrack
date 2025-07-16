@@ -11,7 +11,7 @@ const Register = () => {
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
-  const [groupId, setGroupId] = useState<number | null>(null);
+  const [, setGroupId] = useState<number | null>(null);
   const [status, setStatus] = useState<"loading" | "valid" | "invalid">("loading");
   const [email, setEmail] = useState(""); // <- extracted from invite
   const [name, setName] = useState("");

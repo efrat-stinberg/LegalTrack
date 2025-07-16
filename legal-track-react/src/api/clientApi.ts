@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { apiClient } from './config';
 import { Client } from '../models/Client';
 

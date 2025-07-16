@@ -3,7 +3,6 @@ import {
   Paper, 
   Typography, 
   Box,
-  useTheme,
   alpha
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
@@ -110,7 +109,6 @@ const StatCard: React.FC<StatsCardProps> = ({
   color,
   trend 
 }) => {
-  const theme = useTheme();
   
   return (
     <StatsCard

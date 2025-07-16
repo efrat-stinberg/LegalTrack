@@ -9,7 +9,6 @@ import {
   Box,
   Typography,
   Divider,
-  IconButton,
   Paper,
   Fade,
   useTheme,
@@ -19,7 +18,7 @@ import { styled } from "@mui/material/styles";
 import { 
   Settings, 
   LogOut, 
-  User as UserIcon,
+  User as 
   Edit3,
   Mail,
   Crown

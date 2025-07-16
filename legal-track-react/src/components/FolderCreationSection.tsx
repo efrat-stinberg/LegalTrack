@@ -5,7 +5,6 @@ import {
   Box,
   Collapse,
   Fab,
-  useTheme,
   alpha,
   Zoom,
   Tooltip
@@ -118,7 +117,7 @@ const FolderCreationSection: React.FC<FolderCreationSectionProps> = ({
   onSelectClient,
   isLoading = false
 }) => {
-  const theme = useTheme();
+//   const theme = useTheme();
   const [showForm, setShowForm] = useState(false);
 
   const handleToggleForm = () => {

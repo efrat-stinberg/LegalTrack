@@ -11,7 +11,6 @@ import {
   Typography,
   Fade,
   CircularProgress,
-  useTheme,
   alpha
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
@@ -26,7 +25,7 @@ import { login } from "../store/slices/userSlice";
 import { useNavigate } from "react-router-dom";
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 
-const FormContainer = styled(Box)(({ theme }) => ({
+const FormContainer = styled(Box)(({  }) => ({
   width: '100%',
   maxWidth: 400,
   margin: '0 auto',
@@ -136,7 +135,6 @@ const SecurityBadge = styled(Box)(({ theme }) => ({
 }));
 
 const Login: React.FC = () => {
-  const theme = useTheme();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   

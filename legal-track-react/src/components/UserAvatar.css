@@ -1,14 +1,7 @@
 /* UserAvatar.css - Clean and Modern */
 
 /* Remove old conflicting styles - the new component is styled with MUI styled components */
-.avatar {
-  /* All avatar styling is now handled by the StyledAvatar component */
-  /* This file can be removed or kept minimal for legacy support */
-}
 
-.initial {
-  /* Text styling is now handled by MUI Typography in the component */
-}
 
 /* Additional global styles that might be useful */
 .user-avatar-container {

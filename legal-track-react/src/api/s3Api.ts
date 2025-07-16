@@ -1,6 +1,6 @@
 import axios from "axios";
 import { apiClient } from "./config";
-import { FileUploadRequest, S3UploadNotification } from "./types";
+import {  S3UploadNotification } from "./types";
 
 // ===== S3 FILE API =====
 

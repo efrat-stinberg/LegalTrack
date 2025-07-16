@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
@@ -23,7 +22,6 @@ import {
   Mail,
   Save,
   Camera,
-  Edit3
 } from "lucide-react";
 
 interface UserEditDialogProps {

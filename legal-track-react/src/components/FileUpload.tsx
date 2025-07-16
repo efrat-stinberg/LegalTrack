@@ -26,7 +26,6 @@ import {
   CheckCircle,
   AlertCircle,
   Trash2,
-  Download,
   Eye
 } from "lucide-react";
 import { uploadFileToServer } from "../api/api";

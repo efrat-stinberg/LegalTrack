@@ -16,7 +16,7 @@ import {
   alpha
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { FolderPlus, User, Tag, Palette, AlertTriangle } from 'lucide-react';
+import { FolderPlus, Tag, Palette, AlertTriangle } from 'lucide-react';
 import { Client } from '../models/Client';
 
 // טיפוס נתוני הטופס (כולל שדות נוספים לעתיד)
@@ -245,14 +245,14 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
     }));
   }, []);
 
-  const handleTagSelect = useCallback((tag: string) => {
-    if (!formData.tags.includes(tag)) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, tag]
-      }));
-    }
-  }, [formData.tags]);
+  // const handleTagSelect = useCallback((tag: string) => {
+  //   if (!formData.tags.includes(tag)) {
+  //     setFormData(prev => ({
+  //       ...prev,
+  //       tags: [...prev.tags, tag]
+  //     }));
+  //   }
+  // }, [formData.tags]);
 
   return (
     <FormContainer elevation={2}>
