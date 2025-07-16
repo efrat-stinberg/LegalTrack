@@ -32,6 +32,9 @@ import {
   BarChart3,
   Calendar,
   MessageSquare,
+  FolderCog, // לניהול תיקיות מתקדם
+  Shield,
+  Globe
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import UserAvatar from './UserAvatar';
@@ -152,11 +155,21 @@ const StatusChip = styled(Chip)(({ theme }) => ({
   height: 24,
 }));
 
+const SectionTitle = styled(Typography)(({ theme }) => ({
+  padding: theme.spacing(2, 2, 1, 2),
+  color: theme.palette.text.secondary,
+  fontWeight: 600,
+  fontSize: '0.75rem',
+  textTransform: 'uppercase',
+  letterSpacing: '0.5px',
+}));
+
 interface MenuItem {
   path: string;
   label: string;
   icon: React.ReactNode;
   badge?: number;
+  section?: string;
 }
 
 const Header: React.FC = () => {
@@ -169,46 +182,66 @@ const Header: React.FC = () => {
   const [notifications] = useState(3); // Mock notifications
 
   const menuItems: MenuItem[] = [
+    // עמודים ראשיים
     {
       path: '/home',
       label: 'עמוד בית',
       icon: <Home size={20} />,
+      section: 'main'
     },
+    
+    // ניהול תיקים
     {
       path: '/folders',
-      label: 'ניהול תיקים',
+      label: 'תיקיות',
       icon: <FolderOpen size={20} />,
+      section: 'management'
     },
+    {
+      path: '/folders-management',
+      label: 'ניהול תיקיות מתקדם',
+      icon: <FolderCog size={20} />,
+      section: 'management'
+    },
+    
+    // ניהול נתונים
     {
       path: '/clients',
       label: 'לקוחות',
       icon: <Users size={20} />,
+      section: 'management'
     },
     {
       path: '/documents',
       label: 'מסמכים',
       icon: <FileText size={20} />,
+      section: 'management'
     },
+    
+    // כלים וניתוח
     {
       path: '/analytics',
       label: 'דוחות וניתוחים',
       icon: <BarChart3 size={20} />,
+      section: 'tools'
     },
     {
       path: '/calendar',
       label: 'יומן',
       icon: <Calendar size={20} />,
+      section: 'tools'
     },
     {
       path: '/messages',
       label: 'הודעות',
       icon: <MessageSquare size={20} />,
       badge: 5,
+      section: 'tools'
     },
   ];
 
   const handleLogoClick = () => {
-    navigate('/home'); // שינוי להפניה לעמוד הבית
+    navigate('/home');
   };
 
   const handleDrawerToggle = () => {
@@ -224,8 +257,26 @@ const Header: React.FC = () => {
 
   const isActivePath = (path: string) => {
     return (
-      location.pathname === path || location.pathname.startsWith(path + '/')
+      location.pathname === path || 
+      location.pathname.startsWith(path + '/') ||
+      (path === '/folders' && location.pathname.startsWith('/folders'))
     );
+  };
+
+  const groupedMenuItems = menuItems.reduce((acc, item) => {
+    const section = item.section || 'other';
+    if (!acc[section]) {
+      acc[section] = [];
+    }
+    acc[section].push(item);
+    return acc;
+  }, {} as Record<string, MenuItem[]>);
+
+  const sectionTitles = {
+    main: 'ראשי',
+    management: 'ניהול',
+    tools: 'כלים',
+    other: 'אחר'
   };
 
   const drawer = (
@@ -235,49 +286,99 @@ const Header: React.FC = () => {
           <FolderOpen size={24} color="white" />
         </LogoIcon>
         <Typography variant="h6" fontWeight={700} sx={{ mt: 2, mb: 1 }}>
-          Legal Manager
+          Legal Manager Pro
         </Typography>
         <StatusChip label="מחובר" size="small" />
+        
+        <Box display="flex" gap={1} justifyContent="center" mt={2}>
+          <Chip 
+            icon={<Shield size={12} />}
+            label="מאובטח" 
+            size="small"
+            sx={{ 
+              background: alpha('#ffffff', 0.2), 
+              color: 'white', 
+              fontSize: '0.7rem',
+              height: 20
+            }} 
+          />
+          <Chip 
+            icon={<Globe size={12} />}
+            label="מקוון" 
+            size="small"
+            sx={{ 
+              background: alpha('#ffffff', 0.2), 
+              color: 'white', 
+              fontSize: '0.7rem',
+              height: 20
+            }} 
+          />
+        </Box>
       </DrawerHeader>
 
-      <Box sx={{ p: 2 }}>
-        <List>
-          {menuItems.map((item) => (
-            <MenuListItem
-              key={item.path}
-              onClick={() => handleMenuItemClick(item.path)}
-              className={isActivePath(item.path) ? 'active' : ''}
-              sx={{ cursor: 'pointer' }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                {item.badge ? (
-                  <Badge badgeContent={item.badge} color="error">
-                    {item.icon}
-                  </Badge>
-                ) : (
-                  item.icon
-                )}
-              </ListItemIcon>
-              <ListItemText primary={item.label} />
-            </MenuListItem>
-          ))}
-        </List>
+      <Box sx={{ p: 1 }}>
+        {Object.entries(groupedMenuItems).map(([section, items]) => (
+          <Box key={section}>
+            <SectionTitle variant="caption">
+              {sectionTitles[section as keyof typeof sectionTitles] || section}
+            </SectionTitle>
+            
+            <List dense>
+              {items.map((item) => (
+                <MenuListItem
+                  key={item.path}
+                  onClick={() => handleMenuItemClick(item.path)}
+                  className={isActivePath(item.path) ? 'active' : ''}
+                  sx={{ cursor: 'pointer' }}
+                >
+                  <ListItemIcon sx={{ minWidth: 40 }}>
+                    {item.badge ? (
+                      <Badge badgeContent={item.badge} color="error">
+                        {item.icon}
+                      </Badge>
+                    ) : (
+                      item.icon
+                    )}
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={item.label}
+                    primaryTypographyProps={{
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </MenuListItem>
+              ))}
+            </List>
+            
+            {section !== 'tools' && <Divider sx={{ my: 1 }} />}
+          </Box>
+        ))}
 
         <Divider sx={{ my: 2 }} />
 
-        <List>
+        <List dense>
           <MenuListItem sx={{ cursor: 'pointer' }}>
             <ListItemIcon sx={{ minWidth: 40 }}>
               <Settings size={20} />
             </ListItemIcon>
-            <ListItemText primary="הגדרות" />
+            <ListItemText 
+              primary="הגדרות"
+              primaryTypographyProps={{
+                fontSize: '0.875rem'
+              }}
+            />
           </MenuListItem>
 
           <MenuListItem sx={{ cursor: 'pointer' }}>
             <ListItemIcon sx={{ minWidth: 40 }}>
               <HelpCircle size={20} />
             </ListItemIcon>
-            <ListItemText primary="עזרה ותמיכה" />
+            <ListItemText 
+              primary="עזרה ותמיכה"
+              primaryTypographyProps={{
+                fontSize: '0.875rem'
+              }}
+            />
           </MenuListItem>
         </List>
       </Box>
@@ -307,7 +408,7 @@ const Header: React.FC = () => {
                   fontWeight={700}
                   color="white"
                 >
-                  Legal Manager
+                  Legal Manager Pro
                 </Typography>
                 <Typography
                   variant="caption"
@@ -322,7 +423,7 @@ const Header: React.FC = () => {
           {/* Center - Navigation (Desktop Only) */}
           {!isMobile && (
             <Box display="flex" alignItems="center" gap={1} sx={{ mx: 4 }}>
-              {menuItems.slice(0, 4).map((item) => (
+              {menuItems.slice(0, 5).map((item) => (
                 <Tooltip key={item.path} title={item.label} arrow>
                   <ActionButton
                     onClick={() => handleMenuItemClick(item.path)}
@@ -376,7 +477,7 @@ const Header: React.FC = () => {
         open={drawerOpen}
         onClose={handleDrawerToggle}
         ModalProps={{
-          keepMounted: true, // Better open performance on mobile.
+          keepMounted: true,
         }}
       >
         {drawer}

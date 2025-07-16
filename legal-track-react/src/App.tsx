@@ -1,3 +1,4 @@
+// src/App.tsx - גרסה סופית מעודכנת
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import {
   BrowserRouter,
@@ -10,15 +11,21 @@ import { useEffect } from 'react';
 import store from './store/store';
 import AuthPage from './pages/AuthPage';
 import Register from './components/Register';
-import HomePage from './pages/HomePage'; // העמוד החדש
+import HomePage from './pages/HomePage';
 import FolderDetailsPage from './pages/FolderDetailsPage';
 import ClientsPage from './pages/ClientsPage';
+import FoldersPage from './pages/FolderPage';
+import FolderManagementPage from './pages/FolderManagementPage';
+import LandingPage from './pages/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import ProtectedLayout from './components/ProtectedLayout';
 import ErrorBoundary from './components/ErrorBoundary';
 import { getUserByEmail } from './api/userApi';
 import { login } from './store/slices/userSlice';
-import FoldersPage from './pages/FolderPage';
+import MessagesPage from './pages/MessagesPage';
+import CalendarPage from './pages/CalendarPage';
+import AnalyticsPage from './pages/AnalyticsPage';
+import DocumentsPage from './pages/DocumentsPage';
 
 function App() {
   return (
@@ -27,6 +34,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             {/* Public routes */}
+            <Route path="/landing" element={<LandingPage />} />
             <Route path="/login" element={<AuthPage />} />
             <Route path="/register" element={<Register />} />
             
@@ -39,10 +47,26 @@ function App() {
                 <ProtectedLayout />
               </ProtectedRoute>
             }>
+              {/* עמוד הבית */}
               <Route path="home" element={<HomePage />} />
+              
+              {/* ניהול תיקיות */}
               <Route path="folders" element={<FoldersPage />} />
+              <Route path="folders-management" element={<FolderManagementPage />} />
               <Route path="folders/:folderId" element={<FolderDetailsPage />} />
+              
+              {/* ניהול נתונים */}
               <Route path="clients" element={<ClientsPage />} />
+              <Route path="documents" element={<DocumentsPage />} />
+              
+              {/* כלים וניתוח */}
+              <Route path="analytics" element={<AnalyticsPage />} />
+              <Route path="calendar" element={<CalendarPage />} />
+              <Route path="messages" element={<MessagesPage />} />
+              
+              {/* הגדרות ותמיכה */}
+              {/* <Route path="settings" element={<SettingsPage />} />
+              <Route path="support" element={<SupportPage />} /> */}
             </Route>
 
             {/* Direct protected routes (fallback for old URLs) */}
@@ -70,6 +94,54 @@ function App() {
             }>
               <Route index element={<ClientsPage />} />
             </Route>
+
+            <Route path="/documents" element={
+              <ProtectedRoute>
+                <ProtectedLayout />
+              </ProtectedRoute>
+            }>
+              <Route index element={<DocumentsPage />} />
+            </Route>
+
+            <Route path="/analytics" element={
+              <ProtectedRoute>
+                <ProtectedLayout />
+              </ProtectedRoute>
+            }>
+              <Route index element={<AnalyticsPage />} />
+            </Route>
+
+            <Route path="/calendar" element={
+              <ProtectedRoute>
+                <ProtectedLayout />
+              </ProtectedRoute>
+            }>
+              <Route index element={<CalendarPage />} />
+            </Route>
+
+            <Route path="/messages" element={
+              <ProtectedRoute>
+                <ProtectedLayout />
+              </ProtectedRoute>
+            }>
+              <Route index element={<MessagesPage />} />
+            </Route>
+
+            {/* <Route path="/settings" element={
+              <ProtectedRoute>
+                <ProtectedLayout />
+              </ProtectedRoute>
+            }>
+              <Route index element={<SettingsPage />} />
+            </Route>
+
+            <Route path="/support" element={
+              <ProtectedRoute>
+                <ProtectedLayout />
+              </ProtectedRoute>
+            }>
+              <Route index element={<SupportPage />} />
+            </Route> */}
 
             {/* Catch all - redirect to home */}
             <Route path="*" element={<Navigate to="/" replace />} />
@@ -112,7 +184,6 @@ function RootHandler() {
             const user = await getUserByEmail(email);
             dispatch(login(user));
             console.log('RootHandler: User session restored successfully');
-            // שינוי: הפניה לעמוד הבית במקום תיקיות
             navigate('/home', { replace: true });
             return;
           }
