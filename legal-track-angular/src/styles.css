@@ -1,408 +1,91 @@
-/* Global Styles for Legal Admin App */
+/* הוסף את זה לקובץ styles.css הקיים */
 
-/* Import Angular Material Theme */
-@import '~@angular/material/prebuilt-themes/indigo-pink.css';
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
-
-/* Reset and Base Styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html, body {
-  height: 100%;
-  font-family: 'Roboto', sans-serif;
-  direction: rtl;
-  text-align: right;
-}
-
-body {
-  margin: 0;
-  background-color: #fafafa;
-  color: #333;
-  line-height: 1.6;
-}
-
-/* Typography */
-h1, h2, h3, h4, h5, h6 {
-  font-weight: 500;
-  line-height: 1.2;
-  margin-bottom: 0.5rem;
-}
-
-h1 { font-size: 2rem; }
-h2 { font-size: 1.75rem; }
-h3 { font-size: 1.5rem; }
-h4 { font-size: 1.25rem; }
-h5 { font-size: 1.1rem; }
-h6 { font-size: 1rem; }
-
-/* Material Design Overrides */
-.mat-typography {
-  direction: rtl;
-}
-
-/* Form Fields */
-.mat-form-field {
-  width: 100%;
-  direction: rtl;
-}
-
-.mat-form-field-label {
-  text-align: right;
-}
-
-.mat-input-element {
-  text-align: right;
-}
-
-/* Buttons */
-.mat-raised-button,
-.mat-flat-button,
-.mat-stroked-button {
-  border-radius: 8px;
-  font-weight: 500;
-  text-transform: none;
-  letter-spacing: 0.5px;
-}
-
-/* Cards */
-.mat-card {
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.mat-card-header {
-  direction: rtl;
-  text-align: right;
-}
-
-.mat-card-title {
-  font-size: 20px;
-  font-weight: 500;
-  color: #333;
-}
-
-.mat-card-subtitle {
-  color: #666;
-}
-
-/* Tables */
-.mat-table {
-  direction: rtl;
-}
-
-.mat-header-cell {
-  color: #333;
-  font-weight: 600;
-  text-align: right;
-}
-
-.mat-cell {
-  text-align: right;
-}
-
-/* Snack Bar */
-.success-snackbar {
-  background-color: #4caf50 !important;
-  color: white !important;
-}
-
-.error-snackbar {
-  background-color: #f44336 !important;
-  color: white !important;
-}
-
-.warning-snackbar {
-  background-color: #ff9800 !important;
-  color: white !important;
-}
-
-.info-snackbar {
-  background-color: #2196f3 !important;
-  color: white !important;
-}
-
-/* Chips */
-.mat-chip {
-  border-radius: 16px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-/* Menu */
-.mat-menu-panel {
-  direction: rtl;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-.mat-menu-item {
-  text-align: right;
-  direction: rtl;
-}
-
-/* Dialog */
-.mat-dialog-container {
-  border-radius: 12px;
-  direction: rtl;
-}
-
-.mat-dialog-title {
-  text-align: right;
-  font-weight: 500;
-}
-
-.mat-dialog-content {
-  direction: rtl;
-}
-
-.mat-dialog-actions {
-  direction: rtl;
-}
-
-/* Toolbar */
-.mat-toolbar {
-  background: white;
-  color: #333;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Sidenav */
-.mat-sidenav-container {
-  direction: rtl;
-}
-
-.mat-sidenav {
-  direction: rtl;
-}
-
-/* Utility Classes */
-.full-width {
-  width: 100% !important;
-}
-
-.text-center {
-  text-align: center !important;
-}
-
-.text-right {
-  text-align: right !important;
-}
-
-.text-left {
-  text-align: left !important;
-}
-
-.margin-top-16 {
-  margin-top: 16px !important;
-}
-
-.margin-bottom-16 {
-  margin-bottom: 16px !important;
-}
-
-.padding-16 {
-  padding: 16px !important;
-}
-
-.flex {
-  display: flex !important;
-}
-
-.flex-column {
-  flex-direction: column !important;
-}
-
-.flex-center {
-  justify-content: center !important;
-  align-items: center !important;
-}
-
-.flex-between {
-  justify-content: space-between !important;
-}
-
-.flex-end {
-  justify-content: flex-end !important;
-}
-
-.gap-8 {
-  gap: 8px !important;
-}
-
-.gap-16 {
-  gap: 16px !important;
-}
-
-.gap-24 {
-  gap: 24px !important;
-}
-
-/* Loading States */
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  color: #666;
-}
-
-.loading-container mat-spinner {
-  margin-bottom: 16px;
-}
-
-/* Error States */
-.error-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  color: #f44336;
-}
-
-.error-container mat-icon {
-  font-size: 48px;
-  width: 48px;
-  height: 48px;
-  margin-bottom: 16px;
-}
-
-/* Empty States */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-  color: #999;
-}
-
-.empty-state mat-icon {
-  font-size: 64px;
-  width: 64px;
-  height: 64px;
-  margin-bottom: 16px;
-  color: #ccc;
-}
-
-.empty-state h3 {
-  margin-bottom: 8px;
-  color: #666;
-}
-
-.empty-state p {
-  margin-bottom: 24px;
-  max-width: 400px;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .mat-card {
-    margin: 8px;
-    border-radius: 8px;
+/* Dialog styling */
+.invite-dialog .mat-mdc-dialog-container {
+    --mdc-dialog-container-color: white;
+    --mdc-dialog-subhead-color: #333;
   }
   
-  .mat-form-field {
-    margin-bottom: 16px;
+  .invite-dialog .mat-mdc-dialog-title {
+    text-align: right;
+    direction: rtl;
   }
   
-  .mat-dialog-container {
-    margin: 16px;
-    max-width: calc(100vw - 32px);
-  }
-}
-
-@media (max-width: 480px) {
-  body {
-    font-size: 14px;
+  .invite-dialog .mat-mdc-dialog-content {
+    direction: rtl;
+    text-align: right;
   }
   
-  h1 { font-size: 1.5rem; }
-  h2 { font-size: 1.25rem; }
-  h3 { font-size: 1.1rem; }
-  
-  .mat-card-title {
-    font-size: 18px;
-  }
-}
-
-/* Animation Classes */
-.fade-in {
-  animation: fadeIn 0.3s ease-in;
-}
-
-.slide-in-right {
-  animation: slideInRight 0.3s ease-out;
-}
-
-.slide-in-left {
-  animation: slideInLeft 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideInRight {
-  from { 
-    transform: translateX(100%); 
-    opacity: 0; 
-  }
-  to { 
-    transform: translateX(0); 
-    opacity: 1; 
-  }
-}
-
-@keyframes slideInLeft {
-  from { 
-    transform: translateX(-100%); 
-    opacity: 0; 
-  }
-  to { 
-    transform: translateX(0); 
-    opacity: 1; 
-  }
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #a1a1a1;
-}
-
-/* Print Styles */
-@media print {
-  .mat-sidenav,
-  .mat-toolbar,
-  .no-print {
-    display: none !important;
+  .invite-dialog .mat-mdc-dialog-actions {
+    direction: rtl;
+    justify-content: flex-start;
   }
   
-  .mat-sidenav-content {
-    margin: 0 !important;
+  /* Success/Error snackbar styling */
+  .success-snackbar {
+    --mdc-snackbar-container-color: #4caf50 !important;
+    --mdc-snackbar-supporting-text-color: white !important;
   }
-}
+  
+  .error-snackbar {
+    --mdc-snackbar-container-color: #f44336 !important;
+    --mdc-snackbar-supporting-text-color: white !important;
+  }
+  
+  /* Enhanced form validation */
+  .mat-mdc-form-field.mat-form-field-invalid .mat-mdc-text-field-wrapper {
+    --mdc-outlined-text-field-error-outline-color: #f44336;
+  }
+  
+  .mat-mdc-form-field.mat-form-field-invalid .mat-mdc-floating-label {
+    --mdc-outlined-text-field-error-label-text-color: #f44336;
+  }
+  
+  /* Loading state improvements */
+  .mat-mdc-progress-spinner {
+    --mdc-circular-progress-active-indicator-color: #2196f3;
+  }
+  
+  /* Better button styling */
+  .mat-mdc-raised-button.mat-primary {
+    --mdc-protected-button-container-color: #2196f3;
+    --mdc-protected-button-label-text-color: white;
+  }
+  
+  .mat-mdc-raised-button.mat-primary:hover {
+    --mdc-protected-button-container-color: #1976d2;
+  }
+  
+  .mat-mdc-raised-button:disabled {
+    --mdc-protected-button-container-color: #e0e0e0;
+    --mdc-protected-button-label-text-color: #9e9e9e;
+  }
+  
+  /* RTL improvements */
+  .mat-mdc-dialog-actions button {
+    margin-left: 8px;
+    margin-right: 0;
+  }
+  
+  .mat-mdc-dialog-actions button:first-child {
+    margin-left: 0;
+  }
+  
+  /* Icon improvements */
+  .mat-mdc-button .mat-icon {
+    margin-right: 8px;
+    margin-left: 0;
+  }
+  
+  /* Table improvements when you add it later */
+  .mat-mdc-table {
+    direction: rtl;
+  }
+  
+  .mat-mdc-header-cell {
+    text-align: right;
+  }
+  
+  .mat-mdc-cell {
+    text-align: right;
+  }

@@ -300,18 +300,18 @@ const FileUpload: React.FC<FileUploadProps> = ({ folderId, onClose, onUploadSucc
           }
           return prev + Math.random() * 20;
         });
-      }, 200);
+      }, 300);
 
       await uploadFileToServer(file, folderId);
       
       clearInterval(progressInterval);
-      setUploadProgress(100);
+      setUploadProgress(200);
       setSuccess(true);
       
       setTimeout(() => {
         onUploadSuccess?.();
         onClose?.();
-      }, 1500);
+      }, 3000);
       
     } catch (err: any) {
       console.error("Upload failed:", err);
@@ -333,7 +333,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ folderId, onClose, onUploadSucc
   };
 
   return (
-    <Fade in={true} timeout={300}>
+    <Fade in={true} timeout={500}>
       <UploadContainer elevation={0}>
         <HeaderSection>
           <Box display="flex" alignItems="center" gap={2}>

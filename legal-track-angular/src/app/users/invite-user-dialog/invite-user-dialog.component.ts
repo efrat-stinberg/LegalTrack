@@ -1,11 +1,28 @@
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef } from '@angular/material/dialog';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { UsersService } from '../../services/users.service';
 
 @Component({
   selector: 'app-invite-user-dialog',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule
+  ],
   template: `
     <div class="dialog-container">
       <h2 mat-dialog-title>הזמנת עורך דין חדש</h2>
@@ -18,12 +35,12 @@ import { UsersService } from '../../services/users.service';
                    placeholder="lawyer@example.com"
                    [class.error]="inviteForm.get('email')?.invalid && inviteForm.get('email')?.touched">
             <mat-icon matSuffix>email</mat-icon>
-            <mat-error *ngIf="inviteForm.get('email')?.hasError('required')">
-              אימייל הוא שדה חובה
-            </mat-error>
-            <mat-error *ngIf="inviteForm.get('email')?.hasError('email')">
-              כתובת אימייל לא תקינה
-            </mat-error>
+            @if (inviteForm.get('email')?.hasError('required')) {
+              <mat-error>אימייל הוא שדה חובה</mat-error>
+            }
+            @if (inviteForm.get('email')?.hasError('email')) {
+              <mat-error>כתובת אימייל לא תקינה</mat-error>
+            }
           </mat-form-field>
 
           <div class="form-info">
@@ -34,7 +51,7 @@ import { UsersService } from '../../services/users.service';
                 <li>המערכת תשלח אימייל הזמנה לכתובת שהוזנה</li>
                 <li>עורך הדין יוכל להירשם באמצעות קישור מיוחד</li>
                 <li>לאחר ההרשמה הוא יתווסף אוטומטית לקבוצה שלך</li>
-                <li>ההזמנה תפוג תוך 15 דקות</li>
+                <li>ההזמנה תפוג תוך 24 שעות</li>
               </ul>
             </div>
           </div>
@@ -48,9 +65,12 @@ import { UsersService } from '../../services/users.service';
         <button mat-raised-button color="primary" 
                 (click)="onSendInvite()" 
                 [disabled]="inviteForm.invalid || loading">
-          <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
-          <mat-icon *ngIf="!loading">send</mat-icon>
-          <span *ngIf="!loading">שלח הזמנה</span>
+          @if (loading) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            <mat-icon>send</mat-icon>
+          }
+          <span>{{ loading ? 'שולח...' : 'שלח הזמנה' }}</span>
         </button>
       </mat-dialog-actions>
     </div>
@@ -59,6 +79,7 @@ import { UsersService } from '../../services/users.service';
     .dialog-container {
       min-width: 400px;
       max-width: 500px;
+      padding: 20px;
     }
 
     .invite-form {
@@ -112,26 +133,48 @@ import { UsersService } from '../../services/users.service';
     mat-dialog-title {
       color: #333;
       margin-bottom: 0;
+      font-size: 20px;
+      font-weight: 500;
     }
 
     mat-dialog-actions {
       padding-top: 20px;
-    }
-
-    mat-dialog-actions button {
-      margin-right: 8px;
+      gap: 8px;
     }
 
     .error {
       border-color: #f44336 !important;
     }
 
+    button[mat-raised-button] {
+      min-width: 140px;
+    }
+
     mat-spinner {
       margin-left: 8px;
     }
 
-    button[mat-raised-button] {
-      min-width: 140px;
+    mat-dialog-content {
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    /* RTL Support */
+    .dialog-container {
+      direction: rtl;
+      text-align: right;
+    }
+
+    mat-dialog-actions {
+      direction: rtl;
+    }
+
+    .form-info {
+      direction: rtl;
+    }
+
+    .info-text ul {
+      text-align: right;
     }
   `]
 })
@@ -154,7 +197,11 @@ export class InviteUserDialogComponent {
     if (this.inviteForm.valid) {
       this.loading = true;
       
-      this.usersService.inviteLawyer(this.inviteForm.value).subscribe({
+      const inviteData = {
+        email: this.inviteForm.value.email
+      };
+      
+      this.usersService.inviteLawyer(inviteData).subscribe({
         next: (response) => {
           this.loading = false;
           this.snackBar.open('ההזמנה נשלחה בהצלחה!', 'סגור', {
@@ -165,14 +212,11 @@ export class InviteUserDialogComponent {
         },
         error: (error) => {
           this.loading = false;
+          
           let errorMessage = 'שגיאה בשליחת ההזמנה';
           
-          if (error.status === 400) {
-            errorMessage = 'כתובת אימייל לא תקינה';
-          } else if (error.status === 409) {
-            errorMessage = 'משתמש עם אימייל זה כבר קיים במערכת';
-          } else if (error.error?.message) {
-            errorMessage = error.error.message;
+          if (error.message) {
+            errorMessage = error.message;
           }
           
           this.snackBar.open(errorMessage, 'סגור', {

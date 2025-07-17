@@ -1,7 +1,7 @@
 // Development Environment Configuration
 export const environment = {
   production: false,
-  apiUrl: 'https://localhost:7042/api',
+  apiUrl: 'https://localhost:7042/api', // ודא שזה התואם לשרת שלך
   appName: 'Legal Flow Admin',
   version: '1.0.0',
   

@@ -1,5 +1,5 @@
 {
-  "name": "tax-manager-angular",
+  "name": "legal-track-angular",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
@@ -39,5 +39,4 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "typescript": "~5.7.2"
   }
-  
 }

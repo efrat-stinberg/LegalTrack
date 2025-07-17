@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
-import { environment } from 'environment';
+import { environment } from 'src/environments/environment';
 
 // Interfaces
 export interface LoginRequest {
@@ -90,7 +90,7 @@ export class AuthService {
    * Login user with email and password
    */
   login(credentials: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.API_URL}/auth/login`, credentials)
+    return this.http.post<AuthResponse>(`${this.API_URL}/login`, credentials)
       .pipe(
         tap(response => {
           if (response.token) {
@@ -105,7 +105,7 @@ export class AuthService {
    * Register new admin user
    */
   registerAdmin(adminData: RegisterAdminRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.API_URL}/auth/register-admin`, adminData)
+    return this.http.post<AuthResponse>(`${this.API_URL}/register-admin`, adminData)
       .pipe(
         tap(response => {
           if (response.token) {

@@ -1,4 +1,4 @@
-// src/App.tsx - גרסה סופית מעודכנת
+// src/App.tsx - תיקון לטיפול נכון ברישום
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import {
   BrowserRouter,
@@ -10,7 +10,7 @@ import {
 import { useEffect } from 'react';
 import store from './store/store';
 import AuthPage from './pages/AuthPage';
-import Register from './components/Register';
+import Register from './components/Register'; // ודא שזה הקומפוננט הנכון
 import HomePage from './pages/HomePage';
 import FolderDetailsPage from './pages/FolderDetailsPage';
 import ClientsPage from './pages/ClientsPage';
@@ -29,6 +29,7 @@ import CalendarPage from './pages/CalendarPage';
 import MessagesPage from './pages/MessagesPage';
 import SettingsPage from './pages/SettingsPage';
 import SupportPage from './pages/SupportPage';
+
 // הוסף את זה בתחילת App.tsx כדי לבדוק routing
 import { useLocation } from 'react-router-dom';
 
@@ -51,12 +52,13 @@ function App() {
     <ErrorBoundary>
       <Provider store={store}>
         <BrowserRouter>
+          <DebugRouter />
           <Routes>
-          <DebugRouter /> 
-
             {/* Public routes */}
             <Route path="/landing" element={<LandingPage />} />
             <Route path="/login" element={<AuthPage />} />
+            
+            {/* Register route - ללא התנאי protected */}
             <Route path="/register" element={<Register />} />
             
             {/* Root redirect */}

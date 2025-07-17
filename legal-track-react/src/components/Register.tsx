@@ -1,3 +1,4 @@
+// src/components/Register.tsx - תיקון טיפול בטוקן
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { TextField, Button, Snackbar, Box, Alert, Typography, Paper, Avatar, CircularProgress } from "@mui/material";
@@ -38,7 +39,7 @@ const Register = () => {
   console.log('Token from URL:', token);
   console.log('Current URL:', window.location.href);
   
-  const [, setGroupId] = useState<number | null>(null);
+  const [groupId, setGroupId] = useState<number | null>(null);
   const [status, setStatus] = useState<"loading" | "valid" | "invalid">("loading");
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -49,6 +50,10 @@ const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    console.log('=== TOKEN VALIDATION USEEFFECT ===');
+    console.log('Token value:', token);
+    console.log('Is token present?', !!token);
+    
     const validateToken = async () => {
       if (!token) {
         console.error('No token provided in URL');
@@ -79,7 +84,18 @@ const Register = () => {
         
         if (error.response) {
           console.error('API Error Response:', error.response.data);
-          errorMsg = error.response.data?.message || error.response.data || errorMsg;
+          console.error('API Error Status:', error.response.status);
+          
+          // בדיקה של סטטוס קודים ספציפיים
+          if (error.response.status === 400) {
+            errorMsg = error.response.data?.message || "הטוקן לא תקין";
+          } else if (error.response.status === 404) {
+            errorMsg = "הטוקן לא נמצא במערכת";
+          } else if (error.response.status === 410) {
+            errorMsg = "הטוקן פג תוקף";
+          } else {
+            errorMsg = error.response.data?.message || error.response.data || errorMsg;
+          }
         } else if (error.request) {
           console.error('Network Error:', error.request);
           errorMsg = "שגיאת חיבור לשרת. אנא בדוק את החיבור לאינטרנט.";
@@ -95,6 +111,12 @@ const Register = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!name.trim()) {
+      setErrorMessage("שם הוא שדה חובה");
+      setOpenSnackbar(true);
+      return;
+    }
     
     if (password !== confirmPassword) {
       setErrorMessage("הסיסמאות אינן תואמות");
@@ -139,7 +161,16 @@ const Register = () => {
       let errorMsg = "נכשלה ההרשמה. אנא נסה שוב.";
       
       if (error.response) {
-        errorMsg = error.response.data?.message || error.response.data || errorMsg;
+        console.error('Registration API Error:', error.response.data);
+        console.error('Registration API Status:', error.response.status);
+        
+        if (error.response.status === 400) {
+          errorMsg = error.response.data?.message || "שגיאה בנתונים שנשלחו";
+        } else if (error.response.status === 409) {
+          errorMsg = "משתמש עם אימייל זה כבר קיים";
+        } else {
+          errorMsg = error.response.data?.message || error.response.data || errorMsg;
+        }
       } else if (error.request) {
         errorMsg = "שגיאת חיבור לשרת. אנא נסה שוב.";
       }
@@ -155,6 +186,16 @@ const Register = () => {
     setOpenSnackbar(false);
   };
 
+  // Debug info for development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('=== REGISTER COMPONENT STATE ===');
+    console.log('Status:', status);
+    console.log('Token:', token);
+    console.log('Email:', email);
+    console.log('GroupId:', groupId);
+    console.log('Error:', errorMessage);
+  }
+
   if (status === "loading") {
     return (
       <Box 
@@ -169,6 +210,18 @@ const Register = () => {
         <Typography variant="body1" color="text.secondary">
           בודק טוקן הזמנה...
         </Typography>
+        
+        {/* Debug info in loading state */}
+        {process.env.NODE_ENV === 'development' && (
+          <Box mt={2} p={2} bgcolor="background.paper" borderRadius={2}>
+            <Typography variant="caption" component="div">
+              Debug: Token = {token || 'NULL'}
+            </Typography>
+            <Typography variant="caption" component="div">
+              URL = {window.location.href}
+            </Typography>
+          </Box>
+        )}
       </Box>
     );
   }
@@ -196,6 +249,24 @@ const Register = () => {
           >
             חזור לעמוד הכניסה
           </Button>
+          
+          {/* Debug info for invalid token */}
+          {process.env.NODE_ENV === 'development' && (
+            <Box mt={3} p={2} bgcolor="error.light" borderRadius={2}>
+              <Typography variant="caption" component="div" color="error.dark">
+                Debug Info:
+              </Typography>
+              <Typography variant="caption" component="div" color="error.dark">
+                Token: {token || 'NULL'}
+              </Typography>
+              <Typography variant="caption" component="div" color="error.dark">
+                Error: {errorMessage}
+              </Typography>
+              <Typography variant="caption" component="div" color="error.dark">
+                Status: {status}
+              </Typography>
+            </Box>
+          )}
         </Box>
       </RegisterContainer>
     );
@@ -313,6 +384,27 @@ const Register = () => {
           {errorMessage}
         </Alert>
       </Snackbar>
+      
+      {/* Debug panel for development */}
+      {process.env.NODE_ENV === 'development' && (
+        <Box mt={3} p={2} bgcolor="info.light" borderRadius={2}>
+          <Typography variant="subtitle2" color="info.dark" gutterBottom>
+            Debug Info:
+          </Typography>
+          <Typography variant="caption" component="div" color="info.dark">
+            Token: {token}
+          </Typography>
+          <Typography variant="caption" component="div" color="info.dark">
+            Email: {email}
+          </Typography>
+          <Typography variant="caption" component="div" color="info.dark">
+            GroupId: {groupId}
+          </Typography>
+          <Typography variant="caption" component="div" color="info.dark">
+            Status: {status}
+          </Typography>
+        </Box>
+      )}
     </RegisterContainer>
   );
 };

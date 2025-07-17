@@ -1,11 +1,27 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-register-admin',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatProgressSpinnerModule
+  ],
   template: `
     <div class="register-container">
       <mat-card class="register-card">
@@ -19,61 +35,64 @@ import { AuthService } from '../../services/auth.service';
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>שם מלא</mat-label>
               <input matInput formControlName="userName" placeholder="הכנס שם מלא">
-              <mat-error *ngIf="registerForm.get('userName')?.hasError('required')">
-                שם משתמש הוא שדה חובה
-              </mat-error>
-              <mat-error *ngIf="registerForm.get('userName')?.hasError('minlength')">
-                שם משתמש חייב להכיל לפחות 2 תווים
-              </mat-error>
+              @if (registerForm.get('userName')?.hasError('required')) {
+                <mat-error>שם משתמש הוא שדה חובה</mat-error>
+              }
+              @if (registerForm.get('userName')?.hasError('minlength')) {
+                <mat-error>שם משתמש חייב להכיל לפחות 2 תווים</mat-error>
+              }
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>אימייל</mat-label>
               <input matInput type="email" formControlName="email" placeholder="admin@example.com">
-              <mat-error *ngIf="registerForm.get('email')?.hasError('required')">
-                אימייל הוא שדה חובה
-              </mat-error>
-              <mat-error *ngIf="registerForm.get('email')?.hasError('email')">
-                אימייל לא תקין
-              </mat-error>
+              @if (registerForm.get('email')?.hasError('required')) {
+                <mat-error>אימייל הוא שדה חובה</mat-error>
+              }
+              @if (registerForm.get('email')?.hasError('email')) {
+                <mat-error>אימייל לא תקין</mat-error>
+              }
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>סיסמה</mat-label>
               <input matInput type="password" formControlName="password" placeholder="••••••••">
-              <mat-error *ngIf="registerForm.get('password')?.hasError('required')">
-                סיסמה היא שדה חובה
-              </mat-error>
-              <mat-error *ngIf="registerForm.get('password')?.hasError('minlength')">
-                סיסמה חייבת להכיל לפחות 5 תווים
-              </mat-error>
-              <mat-error *ngIf="registerForm.get('password')?.hasError('pattern')">
-                סיסמה חייבת להכיל אותיות ומספרים
-              </mat-error>
+              @if (registerForm.get('password')?.hasError('required')) {
+                <mat-error>סיסמה היא שדה חובה</mat-error>
+              }
+              @if (registerForm.get('password')?.hasError('minlength')) {
+                <mat-error>סיסמה חייבת להכיל לפחות 5 תווים</mat-error>
+              }
+              @if (registerForm.get('password')?.hasError('pattern')) {
+                <mat-error>סיסמה חייבת להכיל אותיות ומספרים</mat-error>
+              }
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>אישור סיסמה</mat-label>
               <input matInput type="password" formControlName="confirmPassword" placeholder="••••••••">
-              <mat-error *ngIf="registerForm.get('confirmPassword')?.hasError('required')">
-                אישור סיסמה הוא שדה חובה
-              </mat-error>
-              <mat-error *ngIf="registerForm.hasError('passwordMismatch')">
-                הסיסמאות אינן זהות
-              </mat-error>
+              @if (registerForm.get('confirmPassword')?.hasError('required')) {
+                <mat-error>אישור סיסמה הוא שדה חובה</mat-error>
+              }
+              @if (registerForm.hasError('passwordMismatch')) {
+                <mat-error>הסיסמאות אינן זהות</mat-error>
+              }
             </mat-form-field>
 
             <div class="form-actions">
               <button mat-raised-button color="primary" type="submit" 
                       [disabled]="registerForm.invalid || loading" class="full-width">
-                <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
-                <span *ngIf="!loading">צור חשבון מנהל</span>
+                @if (loading) {
+                  <mat-spinner diameter="20"></mat-spinner>
+                } @else {
+                  <span>צור חשבון מנהל</span>
+                }
               </button>
             </div>
           </form>
         </mat-card-content>
 
-        <mat-card-actions align="center">
+        <mat-card-actions align="end">
           <button mat-button color="accent" (click)="goToLogin()">
             כבר יש לך חשבון? התחבר
           </button>
@@ -81,52 +100,7 @@ import { AuthService } from '../../services/auth.service';
       </mat-card>
     </div>
   `,
-  styles: [`
-    .register-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      padding: 20px;
-    }
-
-    .register-card {
-      width: 100%;
-      max-width: 450px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    }
-
-    .register-form {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      margin-top: 20px;
-    }
-
-    .full-width {
-      width: 100%;
-    }
-
-    .form-actions {
-      margin-top: 20px;
-    }
-
-    mat-card-header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    mat-card-title {
-      font-size: 24px;
-      font-weight: 500;
-    }
-
-    mat-card-subtitle {
-      color: #666;
-      margin-top: 8px;
-    }
-  `]
+  styles: [`/* אותם styles כמו בlogin */`]
 })
 export class RegisterAdminComponent implements OnInit {
   registerForm: FormGroup;
@@ -147,7 +121,6 @@ export class RegisterAdminComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Redirect if already logged in
     if (this.authService.isAuthenticated()) {
       this.router.navigate(['/dashboard']);
     }
@@ -170,7 +143,7 @@ export class RegisterAdminComponent implements OnInit {
       const { confirmPassword, ...adminData } = this.registerForm.value;
       
       this.authService.registerAdmin(adminData).subscribe({
-        next: (response: any) => {
+        next: (response) => {
           this.loading = false;
           this.snackBar.open('חשבון המנהל נוצר בהצלחה!', 'סגור', {
             duration: 3000,
@@ -178,7 +151,7 @@ export class RegisterAdminComponent implements OnInit {
           });
           this.router.navigate(['/dashboard']);
         },
-        error: (error:any) => {
+        error: (error) => {
           this.loading = false;
           let errorMessage = 'שגיאה ביצירת החשבון';
           

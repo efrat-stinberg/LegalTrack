@@ -1,11 +1,27 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthResponse, AuthService } from '../../services/auth.service';
+import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-login',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatProgressSpinnerModule
+  ],
   template: `
     <div class="login-container">
       <mat-card class="login-card">
@@ -48,7 +64,7 @@ import { AuthResponse, AuthService } from '../../services/auth.service';
           </form>
         </mat-card-content>
 
-        <mat-card-actions align="center">
+        <mat-card-actions align="end">
           <button mat-button color="accent" (click)="goToRegister()">
             יצירת חשבון מנהל חדש
           </button>
@@ -120,7 +136,6 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Redirect if already logged in
     if (this.authService.isAuthenticated()) {
       this.router.navigate(['/dashboard']);
     }

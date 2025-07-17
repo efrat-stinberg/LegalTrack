@@ -6,9 +6,18 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "https://localhost:7042/api
 // Create axios instance
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 2000,
   headers: {
     'Content-Type': 'application/json',
+  },
+});
+
+// Create separate axios instance for file uploads with longer timeout
+export const fileUploadClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 120000, // 2 דקות להעלאת קבצים
+  headers: {
+    'Content-Type': 'multipart/form-data',
   },
 });
 
