@@ -1,5 +1,8 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { Router, RouterModule } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { User } from '../../services/auth.service';
 
 interface NavItem {
@@ -11,6 +14,13 @@ interface NavItem {
 
 @Component({
   selector: 'app-sidenav',
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterModule,
+    MatIconModule,
+    MatTooltipModule
+  ],
   template: `
     <nav class="sidenav" [class.open]="isOpen">
       
@@ -18,53 +28,73 @@ interface NavItem {
       <div class="logo-section">
         <div class="logo">
           <mat-icon class="logo-icon">gavel</mat-icon>
-          <span class="logo-text" *ngIf="isOpen">Legal Flow</span>
+          @if (isOpen) {
+            <span class="logo-text">Legal Flow</span>
+          }
         </div>
-        <span class="admin-badge" *ngIf="isOpen">Admin Panel</span>
+        @if (isOpen) {
+          <span class="admin-badge">Admin Panel</span>
+        }
       </div>
 
       <!-- User Info Section -->
-      <div class="user-section" *ngIf="currentUser && isOpen">
-        <div class="user-avatar">
-          <mat-icon>account_circle</mat-icon>
+      @if (currentUser && isOpen) {
+        <div class="user-section">
+          <div class="user-avatar">
+            <mat-icon>account_circle</mat-icon>
+          </div>
+          <div class="user-info">
+            <p class="user-name">{{ currentUser.userName }}</p>
+            <p class="user-role">{{ currentUser.isAdmin ? 'מנהל מערכת' : 'עורך דין' }}</p>
+          </div>
         </div>
-        <div class="user-info">
-          <p class="user-name">{{ currentUser.userName }}</p>
-          <p class="user-role">{{ currentUser.isAdmin ? 'מנהל מערכת' : 'עורך דין' }}</p>
-        </div>
-      </div>
+      }
 
       <!-- Navigation Menu -->
       <div class="nav-menu">
         <div class="nav-section">
-          <h3 class="section-title" *ngIf="isOpen">ניהול כללי</h3>
+          @if (isOpen) {
+            <h3 class="section-title">ניהול כללי</h3>
+          }
           
-          <a *ngFor="let item of mainNavItems" 
-             [routerLink]="item.route"
-             routerLinkActive="active"
-             class="nav-item"
-             [matTooltip]="!isOpen ? item.label : ''"
-             [matTooltipPosition]="'left'">
-            <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
-            <span class="nav-label" *ngIf="isOpen">{{ item.label }}</span>
-            <span class="nav-badge" *ngIf="item.badge && isOpen">{{ item.badge }}</span>
-          </a>
+          @for (item of mainNavItems; track item.route) {
+            <a [routerLink]="item.route"
+               routerLinkActive="active"
+               class="nav-item"
+               [matTooltip]="!isOpen ? item.label : ''"
+               [matTooltipPosition]="'left'">
+              <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+              @if (isOpen) {
+                <span class="nav-label">{{ item.label }}</span>
+              }
+              @if (item.badge && isOpen) {
+                <span class="nav-badge">{{ item.badge }}</span>
+              }
+            </a>
+          }
         </div>
 
-        <div class="nav-section" *ngIf="futureNavItems.length > 0">
-          <h3 class="section-title" *ngIf="isOpen">ניהול תוכן</h3>
-          
-          <a *ngFor="let item of futureNavItems" 
-             [routerLink]="item.route"
-             routerLinkActive="active"
-             class="nav-item disabled"
-             [matTooltip]="!isOpen ? item.label + ' (בפיתוח)' : ''"
-             [matTooltipPosition]="'left'">
-            <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
-            <span class="nav-label" *ngIf="isOpen">{{ item.label }}</span>
-            <span class="coming-soon" *ngIf="isOpen">בקרוב</span>
-          </a>
-        </div>
+        @if (futureNavItems.length > 0) {
+          <div class="nav-section">
+            @if (isOpen) {
+              <h3 class="section-title">ניהול תוכן</h3>
+            }
+            
+            @for (item of futureNavItems; track item.route) {
+              <a [routerLink]="item.route"
+                 routerLinkActive="active"
+                 class="nav-item disabled"
+                 [matTooltip]="!isOpen ? item.label + ' (בפיתוח)' : ''"
+                 [matTooltipPosition]="'left'">
+                <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+                @if (isOpen) {
+                  <span class="nav-label">{{ item.label }}</span>
+                  <span class="coming-soon">בקרוב</span>
+                }
+              </a>
+            }
+          </div>
+        }
       </div>
 
       <!-- Bottom Actions -->
@@ -73,24 +103,29 @@ interface NavItem {
            [matTooltip]="!isOpen ? 'הגדרות (בפיתוח)' : ''"
            [matTooltipPosition]="'left'">
           <mat-icon class="nav-icon">settings</mat-icon>
-          <span class="nav-label" *ngIf="isOpen">הגדרות</span>
+          @if (isOpen) {
+            <span class="nav-label">הגדרות</span>
+          }
         </a>
 
         <button class="nav-item help-button" 
                 [matTooltip]="!isOpen ? 'עזרה' : ''"
                 [matTooltipPosition]="'left'">
           <mat-icon class="nav-icon">help</mat-icon>
-          <span class="nav-label" *ngIf="isOpen">עזרה</span>
+          @if (isOpen) {
+            <span class="nav-label">עזרה</span>
+          }
         </button>
       </div>
 
     </nav>
 
     <!-- Overlay for mobile -->
-    <div class="sidenav-overlay" 
-         *ngIf="isOpen && isMobile" 
-         (click)="closeSidenav()">
-    </div>
+    @if (isOpen && isMobile) {
+      <div class="sidenav-overlay" 
+           (click)="closeSidenav()">
+      </div>
+    }
   `,
   styles: [`
     .sidenav {

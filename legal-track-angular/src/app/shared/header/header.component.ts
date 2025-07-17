@@ -1,13 +1,27 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatBadgeModule } from '@angular/material/badge';
 import { filter, map } from 'rxjs/operators';
 import { User } from '../../services/auth.service';
-import { f } from "../../node_modules/@angular/material/icon-module.d-COXCrhrh";
-import { MatDivider } from "@angular/material/divider";
-import { MatMenu } from "@angular/material/menu";
 
 @Component({
   selector: 'app-header',
+  standalone: true,
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatIconModule,
+    MatMenuModule,
+    MatDividerModule,
+    MatTooltipModule,
+    MatBadgeModule
+  ],
   template: `
     <header class="app-header">
       
@@ -22,7 +36,9 @@ import { MatMenu } from "@angular/material/menu";
         
         <div class="page-title">
           <h1>{{ currentPageTitle }}</h1>
-          <p *ngIf="currentPageSubtitle">{{ currentPageSubtitle }}</p>
+          @if (currentPageSubtitle) {
+            <p>{{ currentPageSubtitle }}</p>
+          }
         </div>
       </div>
 
@@ -41,19 +57,20 @@ import { MatMenu } from "@angular/material/menu";
 
         <!-- User Menu -->
         <div class="user-menu">
-          <button mat-button 
-                  class="user-button"
-                  [matMenuTriggerFor]="userMenu"
-                  *ngIf="currentUser">
-            <div class="user-avatar">
-              <mat-icon>account_circle</mat-icon>
-            </div>
-            <div class="user-info">
-              <span class="user-name">{{ currentUser.userName }}</span>
-              <span class="user-role">{{ currentUser.isAdmin ? 'מנהל' : 'עורך דין' }}</span>
-            </div>
-            <mat-icon class="dropdown-icon">keyboard_arrow_down</mat-icon>
-          </button>
+          @if (currentUser) {
+            <button mat-button 
+                    class="user-button"
+                    [matMenuTriggerFor]="userMenu">
+              <div class="user-avatar">
+                <mat-icon>account_circle</mat-icon>
+              </div>
+              <div class="user-info">
+                <span class="user-name">{{ currentUser.userName }}</span>
+                <span class="user-role">{{ currentUser.isAdmin ? 'מנהל' : 'עורך דין' }}</span>
+              </div>
+              <mat-icon class="dropdown-icon">keyboard_arrow_down</mat-icon>
+            </button>
+          }
 
           <!-- User Menu Dropdown -->
           <mat-menu #userMenu="matMenu" class="user-dropdown">
@@ -292,8 +309,7 @@ import { MatMenu } from "@angular/material/menu";
         font-size: 16px;
       }
     }
-  `],
-  imports: [f, MatDivider, MatMenu]
+  `]
 })
 export class HeaderComponent {
   @Input() currentUser: User | null = null;

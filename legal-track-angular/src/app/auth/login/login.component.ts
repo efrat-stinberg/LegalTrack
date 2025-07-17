@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { AuthService } from '../../services/auth.service';
+import { AuthResponse, AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -131,7 +131,7 @@ export class LoginComponent implements OnInit {
       this.loading = true;
       
       this.authService.login(this.loginForm.value).subscribe({
-        next: (response: { token: string; user: any }) => {
+        next: (response: AuthResponse) => {
           this.loading = false;
           this.snackBar.open('התחברת בהצלחה!', 'סגור', {
             duration: 3000,

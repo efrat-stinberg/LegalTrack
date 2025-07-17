@@ -13,7 +13,6 @@ export class AuthInterceptor implements HttpInterceptor {
   ) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Add authorization header with jwt token if available
     const token = this.authService.getToken();
     if (token) {
       request = request.clone({
@@ -26,7 +25,6 @@ export class AuthInterceptor implements HttpInterceptor {
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401) {
-          // Auto logout if 401 response returned from api
           this.authService.logout();
         }
         

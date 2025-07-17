@@ -24,23 +24,27 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatDividerModule } from '@angular/material/divider';
 
 // Charts
-import { NgChartsModule } from 'ng2-charts';
+
 
 // Components
-import { AppComponent } from './app.component';
-import { AppRoutingModule } from './app-routing.module';
-import { LoginComponent } from './auth/login/login.component';
-import { RegisterAdminComponent } from './auth/register-admin/register-admin.component';
-import { DashboardComponent } from './dashboard/dashboard.component';
-import { SidenavComponent } from './shared/sidenav/sidenav.component';
-import { HeaderComponent } from './shared/header/header.component';
-import { UsersComponent } from './users/users.component';
-import { InviteUserDialogComponent } from './users/invite-user-dialog/invite-user-dialog.component';
+import { AppComponent } from './src/app/app.component';
+import { LoginComponent } from './src/app/auth/login/login.component';
+import { RegisterAdminComponent } from './src/app/auth/register-admin/register-admin.component';
+import { DashboardComponent } from './src/app/dashboard/dashboard.component';
+import { SidenavComponent } from './src/app/shared/sidenav/sidenav.component';
+import { HeaderComponent } from './src/app/shared/header/header.component';
+import { UsersComponent } from './src/app/users/users.component';
+import { InviteUserDialogComponent } from './src/app/users/invite-user-dialog/invite-user-dialog.component';
+import { AuthInterceptor } from '@app/interceptors/auth.intercptor';
+import { AppRoutingModule } from '@app/modules/app-routing-module';
 
 // Services & Interceptors
-import { AuthInterceptor } from './interceptors/auth.interceptor';
 
 @NgModule({
   declarations: [
@@ -60,7 +64,6 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
     HttpClientModule,
     ReactiveFormsModule,
     FormsModule,
-    NgChartsModule,
     
     // Angular Material
     MatToolbarModule,
@@ -81,7 +84,11 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
     MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatChipsModule,
+    MatTooltipModule,
+    MatBadgeModule,
+    MatDividerModule
   ],
   providers: [
     {

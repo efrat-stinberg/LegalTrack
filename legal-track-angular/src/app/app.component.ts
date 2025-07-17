@@ -1,45 +1,59 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { AuthService, User } from './services/auth.service';
+import { SidenavComponent } from './shared/sidenav/sidenav.component';
+import { HeaderComponent } from './shared/header/header.component';
 import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    SidenavComponent,
+    HeaderComponent
+  ],
   template: `
     <div class="app-container" [class.auth-page]="isAuthPage">
       
       <!-- Main Layout with Sidebar (for authenticated users) -->
-      <div *ngIf="!isAuthPage && isAuthenticated" class="main-layout">
-        
-        <!-- Sidebar -->
-        <app-sidenav 
-          [isOpen]="sidenavOpen" 
-          (toggleSidenav)="toggleSidenav()"
-          [currentUser]="currentUser">
-        </app-sidenav>
-        
-        <!-- Main Content Area -->
-        <div class="main-content" [class.sidebar-open]="sidenavOpen">
+      @if (!isAuthPage && isAuthenticated) {
+        <div class="main-layout">
           
-          <!-- Header -->
-          <app-header 
-            [currentUser]="currentUser"
+          <!-- Sidebar -->
+          <app-sidenav 
+            [isOpen]="sidenavOpen" 
             (toggleSidenav)="toggleSidenav()"
-            (logout)="logout()">
-          </app-header>
+            [currentUser]="currentUser">
+          </app-sidenav>
           
-          <!-- Page Content -->
-          <main class="page-content">
-            <router-outlet></router-outlet>
-          </main>
-          
+          <!-- Main Content Area -->
+          <div class="main-content" [class.sidebar-open]="sidenavOpen">
+            
+            <!-- Header -->
+            <app-header 
+              [currentUser]="currentUser"
+              (toggleSidenav)="toggleSidenav()"
+              (logout)="logout()">
+            </app-header>
+            
+            <!-- Page Content -->
+            <main class="page-content">
+              <router-outlet></router-outlet>
+            </main>
+            
+          </div>
         </div>
-      </div>
+      }
 
       <!-- Auth Pages Layout (login/register) -->
-      <div *ngIf="isAuthPage || !isAuthenticated" class="auth-layout">
-        <router-outlet></router-outlet>
-      </div>
+      @if (isAuthPage || !isAuthenticated) {
+        <div class="auth-layout">
+          <router-outlet></router-outlet>
+        </div>
+      }
 
     </div>
   `,
