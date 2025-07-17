@@ -29,6 +29,22 @@ import CalendarPage from './pages/CalendarPage';
 import MessagesPage from './pages/MessagesPage';
 import SettingsPage from './pages/SettingsPage';
 import SupportPage from './pages/SupportPage';
+// הוסף את זה בתחילת App.tsx כדי לבדוק routing
+import { useLocation } from 'react-router-dom';
+
+// הוסף קומפוננט זה ב-App.tsx
+function DebugRouter() {
+  const location = useLocation();
+  
+  console.log('=== ROUTER DEBUG ===');
+  console.log('Current pathname:', location.pathname);
+  console.log('Current search:', location.search);
+  console.log('Current hash:', location.hash);
+  console.log('Full location:', location);
+  console.log('Window URL:', window.location.href);
+  
+  return null;
+}
 
 function App() {
   return (
@@ -36,6 +52,8 @@ function App() {
       <Provider store={store}>
         <BrowserRouter>
           <Routes>
+          <DebugRouter /> 
+
             {/* Public routes */}
             <Route path="/landing" element={<LandingPage />} />
             <Route path="/login" element={<AuthPage />} />
