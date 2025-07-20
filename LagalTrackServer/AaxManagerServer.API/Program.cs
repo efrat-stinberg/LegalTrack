@@ -88,7 +88,7 @@ builder.Services.AddCors(options =>
 // Add AWS S3 service
 builder.Services.AddDbContext<DataContext>(
     options => options.UseMySql(
-        "server=localhost;user=root;password=e0583290906;database=legal_db;",
+        builder.Configuration["ConnectionStrings:DefaultConnection"],
         new MySqlServerVersion(new Version(8, 0, 25)) // Replace with your MySQL server version
     ));
 

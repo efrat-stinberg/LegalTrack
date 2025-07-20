@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -14,11 +15,18 @@ namespace TaxManagerServer.Data
 {
     public class DataContextFactory : IDesignTimeDbContextFactory<DataContext>
     {
+        private readonly IConfiguration _configuration;
+
+        public DataContextFactory(IConfiguration configuration) {
+            _configuration = configuration;
+        }
         public DataContext CreateDbContext(string[] args)
         {
+            var connectionString = _configuration.GetValue<string>("ConnectionStrings:DefaultConnection");
+
             var optionsBuilder = new DbContextOptionsBuilder<DataContext>();
             optionsBuilder.UseMySql(
-                 "server=localhost;database=legal_db;user=root;password=e0583290906",
+               connectionString,
                  new MySqlServerVersion(new Version(8, 0, 41))
             );
 
