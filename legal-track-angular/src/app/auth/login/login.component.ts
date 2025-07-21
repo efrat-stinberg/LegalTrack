@@ -51,217 +51,253 @@ import { MatDividerModule } from '@angular/material/divider';
         </div>
       </div>
       
-      <!-- Main Content -->
+      <!-- Main Horizontal Content -->
       <div class="content-wrapper">
         
-        <!-- Floating Login Card -->
-        <div class="login-card-container">
-          <div class="card-glow"></div>
-          <mat-card class="login-card">
-            
-            <!-- Premium Header with Glass Effect -->
-            <div class="card-header">
-              <div class="logo-section">
-                <div class="logo-container">
-                  <div class="logo-background"></div>
-                  <div class="logo-icon">
-                    <mat-icon>gavel</mat-icon>
-                    <div class="icon-glow"></div>
-                  </div>
-                </div>
-                
-                <div class="brand-info">
-                  <h1 class="brand-title">
-                    <span class="title-part">Legal</span>
-                    <span class="title-part accent">Flow</span>
-                  </h1>
-                  <p class="brand-subtitle">
-                    <span class="subtitle-icon">✨</span>
-                    Admin Panel Premium
-                    <span class="subtitle-badge">Pro</span>
-                  </p>
+        <!-- Left Side - Branding & Features -->
+        <div class="left-section">
+          
+          <!-- Brand Header -->
+          <div class="brand-header">
+            <div class="logo-section">
+              <div class="logo-container">
+                <div class="logo-background"></div>
+                <div class="logo-icon">
+                  <mat-icon>gavel</mat-icon>
+                  <div class="icon-glow"></div>
                 </div>
               </div>
               
-              <div class="welcome-section">
-                <h2 class="welcome-title">ברוכים הבאים!</h2>
-                <p class="welcome-text">
-                  התחברו לחוויה מתקדמת של ניהול משרד עורכי דין
+              <div class="brand-info">
+                <h1 class="brand-title">
+                  <span class="title-part">Legal</span>
+                  <span class="title-part accent">Flow</span>
+                </h1>
+                <p class="brand-subtitle">
+                  <span class="subtitle-icon">✨</span>
+                  Admin Panel Premium
+                  <span class="subtitle-badge">Pro</span>
                 </p>
-                <div class="header-decoration">
-                  <div class="decoration-line"></div>
-                  <div class="decoration-diamond"></div>
-                  <div class="decoration-line"></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Enhanced Form Section -->
-            <mat-card-content class="card-content">
-              <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="premium-form">
-                
-                <!-- Email Field with Enhanced Design -->
-                <div class="form-group">
-                  <mat-form-field appearance="outline" class="premium-field">
-                    <mat-label>כתובת אימייל</mat-label>
-                    <input matInput 
-                           type="email" 
-                           formControlName="email" 
-                           placeholder="admin@legalflow.co.il"
-                           autocomplete="email">
-                    <mat-icon matPrefix class="field-icon">alternate_email</mat-icon>
-                    <div class="field-decoration"></div>
-                    @if (loginForm.get('email')?.hasError('required')) {
-                      <mat-error>
-                        <mat-icon>error_outline</mat-icon>
-                        אימייל הוא שדה חובה
-                      </mat-error>
-                    }
-                    @if (loginForm.get('email')?.hasError('email')) {
-                      <mat-error>
-                        <mat-icon>error_outline</mat-icon>
-                        כתובת אימייל לא תקינה
-                      </mat-error>
-                    }
-                  </mat-form-field>
-                </div>
-
-                <!-- Password Field with Enhanced Design -->
-                <div class="form-group">
-                  <mat-form-field appearance="outline" class="premium-field">
-                    <mat-label>סיסמה</mat-label>
-                    <input matInput 
-                           [type]="hidePassword ? 'password' : 'text'" 
-                           formControlName="password" 
-                           placeholder="הכניסו סיסמה מאובטחת"
-                           autocomplete="current-password">
-                    <mat-icon matPrefix class="field-icon">lock</mat-icon>
-                    <button mat-icon-button 
-                            matSuffix 
-                            (click)="hidePassword = !hidePassword"
-                            type="button"
-                            class="password-toggle"
-                            [attr.aria-label]="'הצג סיסמה'"
-                            [attr.aria-pressed]="!hidePassword">
-                      <mat-icon class="toggle-icon">
-                        {{ hidePassword ? 'visibility_off' : 'visibility' }}
-                      </mat-icon>
-                    </button>
-                    <div class="field-decoration"></div>
-                    @if (loginForm.get('password')?.hasError('required')) {
-                      <mat-error>
-                        <mat-icon>error_outline</mat-icon>
-                        סיסמה היא שדה חובה
-                      </mat-error>
-                    }
-                    @if (loginForm.get('password')?.hasError('minlength')) {
-                      <mat-error>
-                        <mat-icon>error_outline</mat-icon>
-                        סיסמה חייבת להכיל לפחות 5 תווים
-                      </mat-error>
-                    }
-                  </mat-form-field>
-                </div>
-
-                <!-- Enhanced Options Section -->
-                <div class="form-options">
-                  <mat-checkbox formControlName="rememberMe" class="premium-checkbox">
-                    <span class="checkbox-text">
-                      <mat-icon class="checkbox-icon">memory</mat-icon>
-                      זכור אותי למשך 30 יום
-                    </span>
-                  </mat-checkbox>
-                  <button type="button" mat-button class="forgot-password" disabled>
-                    <mat-icon>help_outline</mat-icon>
-                    שכחתם סיסמה?
-                  </button>
-                </div>
-
-                <!-- Premium Submit Button -->
-                <button mat-raised-button 
-                        color="primary" 
-                        type="submit" 
-                        class="premium-submit-button"
-                        [disabled]="loginForm.invalid || loading">
-                  <div class="button-content">
-                    @if (loading) {
-                      <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
-                      <span class="button-text">מתחבר...</span>
-                      <div class="loading-dots">
-                        <span class="dot"></span>
-                        <span class="dot"></span>
-                        <span class="dot"></span>
-                      </div>
-                    } @else {
-                      <mat-icon class="button-icon">login</mat-icon>
-                      <span class="button-text">התחבר למערכת</span>
-                      <mat-icon class="button-arrow">arrow_back</mat-icon>
-                    }
-                    <div class="button-glow"></div>
-                  </div>
-                </button>
-
-              </form>
-            </mat-card-content>
-
-            <!-- Enhanced Footer -->
-            <mat-divider class="premium-divider"></mat-divider>
-            
-            <mat-card-actions class="card-footer">
-              <div class="footer-content">
-                <div class="footer-text">
-                  <mat-icon class="footer-icon">admin_panel_settings</mat-icon>
-                  <span>אין לכם חשבון מנהל עדיין?</span>
-                </div>
-                <button mat-raised-button 
-                        color="accent" 
-                        (click)="goToRegister()"
-                        class="premium-register-button">
-                  <div class="button-shine"></div>
-                  <mat-icon>person_add</mat-icon>
-                  <span>צרו חשבון מנהל</span>
-                  <mat-icon class="button-arrow">arrow_back</mat-icon>
-                </button>
-              </div>
-            </mat-card-actions>
-
-          </mat-card>
-        </div>
-        
-        <!-- Premium Feature Cards -->
-        <div class="features-section">
-          <div class="features-grid">
-            <div class="feature-card">
-              <div class="feature-icon security">
-                <mat-icon>security</mat-icon>
-              </div>
-              <div class="feature-content">
-                <h4>אבטחה מתקדמת</h4>
-                <p>הצפנה ברמה בנקאית</p>
               </div>
             </div>
             
-            <div class="feature-card">
-              <div class="feature-icon cloud">
-                <mat-icon>cloud_done</mat-icon>
-              </div>
-              <div class="feature-content">
-                <h4>גיבוי אוטומטי</h4>
-                <p>נתונים מאובטחים בענן</p>
-              </div>
-            </div>
-            
-            <div class="feature-card">
-              <div class="feature-icon support">
-                <mat-icon>support_agent</mat-icon>
-              </div>
-              <div class="feature-content">
-                <h4>תמיכה 24/7</h4>
-                <p>צוות מומחים זמין תמיד</p>
+            <div class="welcome-section">
+              <h2 class="welcome-title">ברוכים הבאים!</h2>
+              <p class="welcome-text">
+                התחברו לחוויה מתקדמת של ניהול משרד עורכי דין
+              </p>
+              <div class="header-decoration">
+                <div class="decoration-line"></div>
+                <div class="decoration-diamond"></div>
+                <div class="decoration-line"></div>
               </div>
             </div>
           </div>
+          
+          <!-- Features Grid - Horizontal Layout -->
+          <div class="features-section">
+            <div class="features-grid">
+              <div class="feature-card">
+                <div class="feature-icon security">
+                  <mat-icon>security</mat-icon>
+                </div>
+                <div class="feature-content">
+                  <h4>אבטחה מתקדמת</h4>
+                  <p>הצפנה ברמה בנקאית</p>
+                </div>
+              </div>
+              
+              <div class="feature-card">
+                <div class="feature-icon cloud">
+                  <mat-icon>cloud_done</mat-icon>
+                </div>
+                <div class="feature-content">
+                  <h4>גיבוי אוטומטי</h4>
+                  <p>נתונים מאובטחים בענן</p>
+                </div>
+              </div>
+              
+              <div class="feature-card">
+                <div class="feature-icon support">
+                  <mat-icon>support_agent</mat-icon>
+                </div>
+                <div class="feature-content">
+                  <h4>תמיכה 24/7</h4>
+                  <p>צוות מומחים זמין תמיד</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Additional Info Cards -->
+          <div class="info-cards">
+            <div class="info-card">
+              <mat-icon class="info-icon">trending_up</mat-icon>
+              <div class="info-text">
+                <span class="info-title">יעילות מוכחת</span>
+                <span class="info-subtitle">חיסכון של 40% בזמן העבודה</span>
+              </div>
+            </div>
+            
+            <div class="info-card">
+              <mat-icon class="info-icon">groups</mat-icon>
+              <div class="info-text">
+                <span class="info-title">מעל 1,000 לקוחות</span>
+                <span class="info-subtitle">משרדי עורכי דין מובילים</span>
+              </div>
+            </div>
+          </div>
+          
         </div>
+        
+        <!-- Right Side - Login Form -->
+        <div class="right-section">
+          
+          <!-- Floating Login Card -->
+          <div class="login-card-container">
+            <div class="card-glow"></div>
+            <mat-card class="login-card">
+              
+              <!-- Form Header -->
+              <div class="form-header">
+                <h3 class="form-title">התחברות למערכת</h3>
+                <p class="form-subtitle">הכניסו את פרטי ההתחברות שלכם</p>
+              </div>
+
+              <!-- Enhanced Form Section -->
+              <mat-card-content class="card-content">
+                <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="premium-form">
+                  
+                  <!-- Email Field with Enhanced Design -->
+                  <div class="form-group">
+                    <mat-form-field appearance="outline" class="premium-field">
+                      <mat-label>כתובת אימייל</mat-label>
+                      <input matInput 
+                             type="email" 
+                             formControlName="email" 
+                             placeholder="admin@legalflow.co.il"
+                             autocomplete="email">
+                      <mat-icon matPrefix class="field-icon">alternate_email</mat-icon>
+                      <div class="field-decoration"></div>
+                      @if (loginForm.get('email')?.hasError('required')) {
+                        <mat-error>
+                          <mat-icon>error_outline</mat-icon>
+                          אימייל הוא שדה חובה
+                        </mat-error>
+                      }
+                      @if (loginForm.get('email')?.hasError('email')) {
+                        <mat-error>
+                          <mat-icon>error_outline</mat-icon>
+                          כתובת אימייל לא תקינה
+                        </mat-error>
+                      }
+                    </mat-form-field>
+                  </div>
+
+                  <!-- Password Field with Enhanced Design -->
+                  <div class="form-group">
+                    <mat-form-field appearance="outline" class="premium-field">
+                      <mat-label>סיסמה</mat-label>
+                      <input matInput 
+                             [type]="hidePassword ? 'password' : 'text'" 
+                             formControlName="password" 
+                             placeholder="הכניסו סיסמה מאובטחת"
+                             autocomplete="current-password">
+                      <mat-icon matPrefix class="field-icon">lock</mat-icon>
+                      <button mat-icon-button 
+                              matSuffix 
+                              (click)="hidePassword = !hidePassword"
+                              type="button"
+                              class="password-toggle"
+                              [attr.aria-label]="'הצג סיסמה'"
+                              [attr.aria-pressed]="!hidePassword">
+                        <mat-icon class="toggle-icon">
+                          {{ hidePassword ? 'visibility_off' : 'visibility' }}
+                        </mat-icon>
+                      </button>
+                      <div class="field-decoration"></div>
+                      @if (loginForm.get('password')?.hasError('required')) {
+                        <mat-error>
+                          <mat-icon>error_outline</mat-icon>
+                          סיסמה היא שדה חובה
+                        </mat-error>
+                      }
+                      @if (loginForm.get('password')?.hasError('minlength')) {
+                        <mat-error>
+                          <mat-icon>error_outline</mat-icon>
+                          סיסמה חייבת להכיל לפחות 5 תווים
+                        </mat-error>
+                      }
+                    </mat-form-field>
+                  </div>
+
+                  <!-- Enhanced Options Section -->
+                  <div class="form-options">
+                    <mat-checkbox formControlName="rememberMe" class="premium-checkbox">
+                      <span class="checkbox-text">
+                        <mat-icon class="checkbox-icon">memory</mat-icon>
+                        זכור אותי למשך 30 יום
+                      </span>
+                    </mat-checkbox>
+                    <button type="button" mat-button class="forgot-password" disabled>
+                      <mat-icon>help_outline</mat-icon>
+                      שכחתם סיסמה?
+                    </button>
+                  </div>
+
+                  <!-- Premium Submit Button -->
+                  <button mat-raised-button 
+                          color="primary" 
+                          type="submit" 
+                          class="premium-submit-button"
+                          [disabled]="loginForm.invalid || loading">
+                    <div class="button-content">
+                      @if (loading) {
+                        <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+                        <span class="button-text">מתחבר...</span>
+                        <div class="loading-dots">
+                          <span class="dot"></span>
+                          <span class="dot"></span>
+                          <span class="dot"></span>
+                        </div>
+                      } @else {
+                        <mat-icon class="button-icon">login</mat-icon>
+                        <span class="button-text">התחבר למערכת</span>
+                        <mat-icon class="button-arrow">arrow_back</mat-icon>
+                      }
+                      <div class="button-glow"></div>
+                    </div>
+                  </button>
+
+                </form>
+              </mat-card-content>
+
+              <!-- Enhanced Footer -->
+              <mat-divider class="premium-divider"></mat-divider>
+              
+              <mat-card-actions class="card-footer">
+                <div class="footer-content">
+                  <div class="footer-text">
+                    <mat-icon class="footer-icon">admin_panel_settings</mat-icon>
+                    <span>אין לכם חשבון מנהל עדיין?</span>
+                  </div>
+                  <button mat-raised-button 
+                          color="accent" 
+                          (click)="goToRegister()"
+                          class="premium-register-button">
+                    <div class="button-shine"></div>
+                    <mat-icon>person_add</mat-icon>
+                    <span>צרו חשבון מנהל</span>
+                    <mat-icon class="button-arrow">arrow_back</mat-icon>
+                  </button>
+                </div>
+              </mat-card-actions>
+
+            </mat-card>
+          </div>
+          
+        </div>
+        
       </div>
       
     </div>
@@ -429,17 +465,415 @@ import { MatDividerModule } from '@angular/material/divider';
       100% { transform: rotate(360deg) translateX(50px) rotate(-360deg); }
     }
 
-    /* Content Wrapper */
+    /* Main Horizontal Content Wrapper */
     .content-wrapper {
       position: relative;
       z-index: 10;
       width: 100%;
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 500px;
+      gap: 60px;
+      align-items: center;
+      min-height: 80vh;
+    }
+
+    /* Left Section - Branding & Features */
+    .left-section {
       display: flex;
       flex-direction: column;
-      align-items: center;
       gap: 40px;
+      animation: leftSlideIn 1s ease-out;
+    }
+
+    @keyframes leftSlideIn {
+      0% {
+        opacity: 0;
+        transform: translateX(-50px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* Brand Header */
+    .brand-header {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      direction: ltr;
+    }
+
+    .logo-container {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      flex-shrink: 0;
+    }
+
+    .logo-background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 20px;
+      animation: logoFloat 6s infinite ease-in-out;
+    }
+
+    .logo-icon {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    .logo-icon mat-icon {
+      font-size: 40px;
+      width: 40px;
+      height: 40px;
+      color: white;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .icon-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 90px;
+      height: 90px;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
+      border-radius: 50%;
+      animation: iconGlow 3s infinite ease-in-out;
+    }
+
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-5px) rotate(3deg); }
+    }
+
+    @keyframes iconGlow {
+      0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+      50% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.2); }
+    }
+
+    .brand-info {
+      flex: 1;
+      text-align: right;
+    }
+
+    .brand-title {
+      font-size: 42px;
+      font-weight: 700;
+      margin: 0 0 12px 0;
+      letter-spacing: -1px;
+      background: linear-gradient(45deg, #1a237e, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .title-part {
+      display: inline-block;
+      animation: titleSlide 1s ease-out forwards;
+    }
+
+    .title-part.accent {
+      animation-delay: 0.3s;
+    }
+
+    @keyframes titleSlide {
+      0% {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .brand-subtitle {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      color: #666;
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .subtitle-icon {
+      animation: sparkle 2s infinite ease-in-out;
+    }
+
+    @keyframes sparkle {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+
+    .subtitle-badge {
+      background: linear-gradient(45deg, #ffd700, #ffed4e);
+      color: #1a237e;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+    }
+
+    .welcome-section {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 32px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .welcome-title {
+      font-size: 36px;
+      font-weight: 600;
+      margin: 0 0 16px 0;
+      color: white;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .welcome-text {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.9);
+      margin: 0 0 24px 0;
+      line-height: 1.6;
+    }
+
+    .header-decoration {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .decoration-line {
+      height: 2px;
+      width: 80px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+    }
+
+    .decoration-diamond {
+      width: 10px;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.8);
+      transform: rotate(45deg);
+      animation: diamondRotate 4s infinite ease-in-out;
+    }
+
+    @keyframes diamondRotate {
+      0%, 100% { transform: rotate(45deg) scale(1); }
+      50% { transform: rotate(225deg) scale(1.2); }
+    }
+
+    /* Features Section - Horizontal Layout */
+    .features-section {
+      animation: featuresSlideUp 1s ease-out 0.5s both;
+    }
+
+    @keyframes featuresSlideUp {
+      0% {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 24px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+      transform: scaleX(0);
+      transition: transform 0.4s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .feature-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .feature-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px auto;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-icon::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: inherit;
+      filter: blur(10px);
+      opacity: 0.3;
+    }
+
+    .feature-icon mat-icon {
+      color: white;
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+      position: relative;
+      z-index: 2;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .feature-icon.security {
+      background: linear-gradient(135deg, #4caf50, #81c784);
+    }
+
+    .feature-icon.cloud {
+      background: linear-gradient(135deg, #2196f3, #64b5f6);
+    }
+
+    .feature-icon.support {
+      background: linear-gradient(135deg, #ff9800, #ffb74d);
+    }
+
+    .feature-content h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      color: white;
+    }
+
+    .feature-content p {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.8);
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    /* Info Cards */
+    .info-cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .info-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .info-card:hover {
+      transform: translateY(-4px);
+      background: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .info-icon {
+      color: #ffd700;
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+    }
+
+    .info-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .info-title {
+      font-weight: 600;
+      color: white;
+      font-size: 14px;
+    }
+
+    .info-subtitle {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Right Section - Login Form */
+    .right-section {
+      display: flex;
+      justify-content: center;
+      animation: rightSlideIn 1s ease-out 0.3s both;
+    }
+
+    @keyframes rightSlideIn {
+      0% {
+        opacity: 0;
+        transform: translateX(50px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
 
     /* Enhanced Login Card */
@@ -447,18 +881,6 @@ import { MatDividerModule } from '@angular/material/divider';
       position: relative;
       width: 100%;
       max-width: 480px;
-      animation: cardEntrance 1s ease-out;
-    }
-
-    @keyframes cardEntrance {
-      0% {
-        opacity: 0;
-        transform: translateY(30px) scale(0.95);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
     }
 
     .card-glow {
@@ -503,208 +925,31 @@ import { MatDividerModule } from '@angular/material/divider';
         inset 0 1px 0 rgba(255, 255, 255, 0.9);
     }
 
-    /* Premium Header */
-    .card-header {
-      padding: 48px 40px 32px 40px;
+    /* Form Header */
+    .form-header {
+      padding: 32px 40px 24px 40px;
       background: linear-gradient(135deg, 
         rgba(255, 255, 255, 0.9) 0%, 
         rgba(248, 250, 255, 0.8) 100%);
-      position: relative;
-      overflow: hidden;
+      text-align: center;
+      border-bottom: 1px solid rgba(102, 126, 234, 0.1);
     }
 
-    .card-header::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, 
-        transparent 0%, 
-        rgba(102, 126, 234, 0.5) 50%, 
-        transparent 100%);
-    }
-
-    .logo-section {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      margin-bottom: 32px;
-      direction: ltr;
-    }
-
-    .logo-container {
-      position: relative;
-      width: 72px;
-      height: 72px;
-    }
-
-    .logo-background {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-radius: 20px;
-      animation: logoFloat 6s infinite ease-in-out;
-    }
-
-    .logo-icon {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 2;
-    }
-
-    .logo-icon mat-icon {
-      font-size: 36px;
-      width: 36px;
-      height: 36px;
-      color: white;
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    }
-
-    .icon-glow {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 80px;
-      height: 80px;
-      transform: translate(-50%, -50%);
-      background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
-      border-radius: 50%;
-      animation: iconGlow 3s infinite ease-in-out;
-    }
-
-    @keyframes logoFloat {
-      0%, 100% { transform: translateY(0) rotate(0deg); }
-      50% { transform: translateY(-3px) rotate(2deg); }
-    }
-
-    @keyframes iconGlow {
-      0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
-      50% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.2); }
-    }
-
-    .brand-info {
-      flex: 1;
-      text-align: right;
-    }
-
-    .brand-title {
-      font-size: 32px;
-      font-weight: 700;
+    .form-title {
+      font-size: 28px;
+      font-weight: 600;
       margin: 0 0 8px 0;
-      letter-spacing: -1px;
-      background: linear-gradient(45deg, #1a237e, #667eea, #764ba2);
+      color: #1a237e;
+      background: linear-gradient(45deg, #1a237e, #667eea);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 8px;
     }
 
-    .title-part {
-      display: inline-block;
-      animation: titleSlide 1s ease-out forwards;
-    }
-
-    .title-part.accent {
-      animation-delay: 0.3s;
-    }
-
-    @keyframes titleSlide {
-      0% {
-        opacity: 0;
-        transform: translateX(20px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    .brand-subtitle {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 8px;
+    .form-subtitle {
       color: #666;
       font-size: 14px;
-      font-weight: 500;
-    }
-
-    .subtitle-icon {
-      animation: sparkle 2s infinite ease-in-out;
-    }
-
-    @keyframes sparkle {
-      0%, 100% { opacity: 0.6; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.2); }
-    }
-
-    .subtitle-badge {
-      background: linear-gradient(45deg, #ffd700, #ffed4e);
-      color: #1a237e;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
-    }
-
-    .welcome-section {
-      text-align: center;
-    }
-
-    .welcome-title {
-      font-size: 28px;
-      font-weight: 600;
-      margin: 0 0 12px 0;
-      color: #1a237e;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .welcome-text {
-      font-size: 16px;
-      color: #666;
-      margin: 0 0 24px 0;
-      line-height: 1.5;
-    }
-
-    .header-decoration {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-    }
-
-    .decoration-line {
-      height: 1px;
-      width: 60px;
-      background: linear-gradient(90deg, transparent, #667eea, transparent);
-    }
-
-    .decoration-diamond {
-      width: 8px;
-      height: 8px;
-      background: #667eea;
-      transform: rotate(45deg);
-      animation: diamondRotate 4s infinite ease-in-out;
-    }
-
-    @keyframes diamondRotate {
-      0%, 100% { transform: rotate(45deg) scale(1); }
-      50% { transform: rotate(225deg) scale(1.2); }
+      margin: 0;
     }
 
     /* Enhanced Form */
@@ -1007,124 +1252,6 @@ import { MatDividerModule } from '@angular/material/divider';
       left: 100%;
     }
 
-    /* Features Section */
-    .features-section {
-      width: 100%;
-      max-width: 600px;
-      animation: featuresSlideUp 1s ease-out 0.5s both;
-    }
-
-    @keyframes featuresSlideUp {
-      0% {
-        opacity: 0;
-        transform: translateY(40px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 20px;
-    }
-
-    .feature-card {
-      background: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(20px);
-      border-radius: 20px;
-      padding: 24px;
-      text-align: center;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .feature-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
-      transform: scaleX(0);
-      transition: transform 0.4s ease;
-    }
-
-    .feature-card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
-    }
-
-    .feature-card:hover::before {
-      transform: scaleX(1);
-    }
-
-    .feature-icon {
-      width: 60px;
-      height: 60px;
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 16px auto;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .feature-icon::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: inherit;
-      filter: blur(10px);
-      opacity: 0.3;
-    }
-
-    .feature-icon mat-icon {
-      color: white;
-      font-size: 28px;
-      width: 28px;
-      height: 28px;
-      position: relative;
-      z-index: 2;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    }
-
-    .feature-icon.security {
-      background: linear-gradient(135deg, #4caf50, #81c784);
-    }
-
-    .feature-icon.cloud {
-      background: linear-gradient(135deg, #2196f3, #64b5f6);
-    }
-
-    .feature-icon.support {
-      background: linear-gradient(135deg, #ff9800, #ffb74d);
-    }
-
-    .feature-content h4 {
-      font-size: 16px;
-      font-weight: 600;
-      margin: 0 0 8px 0;
-      color: #333;
-    }
-
-    .feature-content p {
-      font-size: 14px;
-      color: #666;
-      margin: 0;
-      line-height: 1.4;
-    }
-
     /* Error Messages Enhancement */
     .mat-mdc-form-field-error {
       display: flex;
@@ -1141,18 +1268,75 @@ import { MatDividerModule } from '@angular/material/divider';
       color: #f44336;
     }
 
-    /* Responsive Design */
+    /* Responsive Design for Horizontal Layout */
+    @media (max-width: 1200px) {
+      .content-wrapper {
+        grid-template-columns: 1fr 450px;
+        gap: 40px;
+      }
+
+      .brand-title {
+        font-size: 36px;
+      }
+
+      .welcome-title {
+        font-size: 32px;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .info-cards {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 992px) {
+      .content-wrapper {
+        grid-template-columns: 1fr;
+        gap: 40px;
+        text-align: center;
+      }
+
+      .left-section {
+        order: 2;
+      }
+
+      .right-section {
+        order: 1;
+      }
+
+      .brand-info {
+        text-align: center;
+      }
+
+      .brand-title {
+        justify-content: center;
+      }
+
+      .brand-subtitle {
+        justify-content: center;
+      }
+
+      .features-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+
+      .info-cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
     @media (max-width: 768px) {
       .login-container {
         padding: 16px;
       }
 
       .content-wrapper {
-        gap: 24px;
-      }
-
-      .login-card-container {
-        max-width: 100%;
+        gap: 32px;
       }
 
       .card-glow {
@@ -1166,31 +1350,12 @@ import { MatDividerModule } from '@angular/material/divider';
         border-radius: 20px !important;
       }
 
-      .card-header {
-        padding: 32px 24px 24px 24px;
+      .form-header {
+        padding: 24px 24px 20px 24px;
       }
 
-      .logo-section {
-        flex-direction: column;
-        text-align: center;
-        gap: 16px;
-      }
-
-      .brand-info {
-        text-align: center;
-      }
-
-      .brand-title {
-        font-size: 28px;
-        justify-content: center;
-      }
-
-      .welcome-title {
+      .form-title {
         font-size: 24px;
-      }
-
-      .welcome-text {
-        font-size: 14px;
       }
 
       .card-content {
@@ -1220,6 +1385,32 @@ import { MatDividerModule } from '@angular/material/divider';
         gap: 16px;
       }
 
+      .brand-header {
+        gap: 24px;
+      }
+
+      .logo-section {
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .logo-container {
+        width: 70px;
+        height: 70px;
+      }
+
+      .brand-title {
+        font-size: 28px;
+      }
+
+      .welcome-title {
+        font-size: 24px;
+      }
+
+      .welcome-section {
+        padding: 24px;
+      }
+
       .features-grid {
         grid-template-columns: 1fr;
         gap: 16px;
@@ -1229,15 +1420,8 @@ import { MatDividerModule } from '@angular/material/divider';
         padding: 20px;
       }
 
-      .feature-icon {
-        width: 50px;
-        height: 50px;
-      }
-
-      .feature-icon mat-icon {
-        font-size: 24px;
-        width: 24px;
-        height: 24px;
+      .info-cards {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -1246,27 +1430,12 @@ import { MatDividerModule } from '@angular/material/divider';
         padding: 12px;
       }
 
-      .card-header {
-        padding: 24px 20px 20px 20px;
+      .form-header {
+        padding: 20px 20px 16px 20px;
       }
 
-      .logo-container {
-        width: 60px;
-        height: 60px;
-      }
-
-      .logo-icon mat-icon {
-        font-size: 30px;
-        width: 30px;
-        height: 30px;
-      }
-
-      .brand-title {
-        font-size: 24px;
-      }
-
-      .welcome-title {
-        font-size: 20px;
+      .form-title {
+        font-size: 22px;
       }
 
       .card-content {
@@ -1286,8 +1455,35 @@ import { MatDividerModule } from '@angular/material/divider';
         padding: 14px 24px !important;
       }
 
+      .brand-title {
+        font-size: 24px;
+      }
+
+      .welcome-title {
+        font-size: 20px;
+      }
+
+      .welcome-section {
+        padding: 20px;
+      }
+
+      .logo-container {
+        width: 60px;
+        height: 60px;
+      }
+
+      .logo-icon mat-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+      }
+
+      .left-section {
+        gap: 24px;
+      }
+
       .features-section {
-        display: none; /* Hide on very small screens */
+        display: none; /* Hide features on very small screens */
       }
     }
 
@@ -1309,6 +1505,17 @@ import { MatDividerModule } from '@angular/material/divider';
       .premium-submit-button {
         border: 2px solid #000 !important;
       }
+
+      .welcome-section {
+        background: rgba(255, 255, 255, 0.9) !important;
+        color: #000 !important;
+      }
+
+      .welcome-title,
+      .feature-content h4,
+      .info-title {
+        color: #000 !important;
+      }
     }
 
     /* Focus Indicators */
@@ -1326,32 +1533,22 @@ import { MatDividerModule } from '@angular/material/divider';
         color: #fff;
       }
 
-      .card-header {
+      .form-header {
         background: linear-gradient(135deg, 
           rgba(40, 40, 40, 0.9) 0%, 
           rgba(30, 30, 30, 0.8) 100%);
       }
 
-      .welcome-title {
+      .form-title {
         color: #fff;
+        background: linear-gradient(45deg, #667eea, #f093fb);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
       }
 
-      .welcome-text,
+      .form-subtitle,
       .footer-text {
-        color: #ccc;
-      }
-
-      .feature-card {
-        background: rgba(40, 40, 40, 0.9);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: #fff;
-      }
-
-      .feature-content h4 {
-        color: #fff;
-      }
-
-      .feature-content p {
         color: #ccc;
       }
     }
@@ -1359,6 +1556,7 @@ import { MatDividerModule } from '@angular/material/divider';
     /* High Performance Optimizations */
     .login-card,
     .feature-card,
+    .info-card,
     .premium-submit-button {
       will-change: transform;
     }
