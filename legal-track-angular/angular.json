@@ -25,14 +25,29 @@
             "tsConfig": "tsconfig.app.json",
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              {
+                "glob": "**/*",
+                "input": "src/assets/icons",
+                "output": "/assets/icons"
+              },
+              {
+                "glob": "manifest.json",
+                "input": "src/assets",
+                "output": "/"
+              },
+              {
+                "glob": "icon-generator.js",
+                "input": "src/assets/scripts",
+                "output": "/assets/scripts"
+              }
             ],
             "styles": [
+              "@angular/material/prebuilt-themes/indigo-pink.css",
               "src/styles.css"
             ],
-            "scripts": [],
-            "allowedCommonJsDependencies": [
-              "lodash"
+            "scripts": [
+              "src/assets/scripts/icon-generator.js"
             ]
           },
           "configurations": {
@@ -40,8 +55,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "2mb",
-                  "maximumError": "5mb"
+                  "maximumWarning": "1mb",
+                  "maximumError": "2mb"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -53,9 +68,12 @@
               "optimization": true,
               "sourceMap": false,
               "namedChunks": false,
+              "aot": true,
               "extractLicenses": true,
               "vendorChunk": false,
-              "buildOptimizer": true
+              "buildOptimizer": true,
+              "serviceWorker": true,
+              "ngswConfigPath": "ngsw-config.json"
             },
             "development": {
               "buildOptimizer": false,
@@ -78,11 +96,7 @@
               "buildTarget": "legal-track-angular:build:development"
             }
           },
-          "defaultConfiguration": "development",
-          "options": {
-            "port": 4200,
-            "host": "localhost"
-          }
+          "defaultConfiguration": "development"
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
@@ -100,18 +114,10 @@
               "src/assets"
             ],
             "styles": [
+              "@angular/material/prebuilt-themes/indigo-pink.css",
               "src/styles.css"
             ],
             "scripts": []
-          }
-        },
-        "lint": {
-          "builder": "@angular-eslint/builder:lint",
-          "options": {
-            "lintFilePatterns": [
-              "src/**/*.ts",
-              "src/**/*.html"
-            ]
           }
         }
       }
@@ -119,7 +125,9 @@
   },
   "defaultProject": "legal-track-angular",
   "cli": {
-    "analytics": false,
-    "schematicCollections": ["@angular-eslint/schematics"]
+    "analytics": "1833e874-b877-413c-980c-bb77a4332c4c",
+    "cache": {
+      "enabled": true
+    }
   }
 }

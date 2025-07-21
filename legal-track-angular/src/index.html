@@ -2,21 +2,205 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="utf-8">
-  <title>Legal Flow Admin</title>
+  <title>Legal Flow - מערכת ניהול משרד עורכי דין</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="מערכת ניהול מתקדמת למשרדי עורכי דין - ניהול לקוחות, תיקיות ומסמכים">
+  <meta name="keywords" content="עורך דין, ניהול משרד, תיקיות, לקוחות, מסמכים">
+  <meta name="author" content="Legal Flow">
+  
+  <!-- Favicon and App Icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+  <link rel="manifest" href="assets/manifest.json">
+  
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#1a237e">
+  <meta name="msapplication-TileColor" content="#1a237e">
+  
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="Legal Flow - מערכת ניהול משרד עורכי דין">
+  <meta property="og:description" content="מערכת ניהול מתקדמת למשרדי עורכי דין">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/icons/og-image.png">
   
   <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   
-  <!-- Preload critical resources -->
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&display=swap" as="style">
+  <!-- Preload Critical Resources -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" as="style">
+  
+  <!-- Custom Favicon Style -->
+  <style>
+    /* Loading screen styles */
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease;
+    }
+    
+    .loading-logo {
+      width: 80px;
+      height: 80px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      animation: pulse 2s infinite;
+    }
+    
+    .loading-logo::before {
+      content: "⚖";
+      font-size: 48px;
+      color: #ffd700;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    .loading-text {
+      color: white;
+      font-family: 'Heebo', sans-serif;
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    .loading-subtitle {
+      color: rgba(255, 255, 255, 0.8);
+      font-family: 'Heebo', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+    }
+    
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #ffd700;
+      animation: spin 1s linear infinite;
+      margin-top: 24px;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Hide loading screen when app is ready */
+    body.app-loaded .loading-screen {
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
 </head>
 <body>
+  <!-- Loading Screen -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loading-logo"></div>
+    <div class="loading-text">Legal Flow</div>
+    <div class="loading-subtitle">מערכת ניהול משרד עורכי דין</div>
+    <div class="loading-spinner"></div>
+  </div>
+  
+  <!-- Main App -->
   <app-root></app-root>
+  
+  <!-- Loading Script -->
+  <script>
+    // Hide loading screen when app is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        document.body.classList.add('app-loaded');
+        setTimeout(function() {
+          const loadingScreen = document.getElementById('loadingScreen');
+          if (loadingScreen) {
+            loadingScreen.remove();
+          }
+        }, 500);
+      }, 1000);
+    });
+    
+    // Update favicon dynamically with gavel icon
+    function setCustomFavicon() {
+      // Create canvas element
+      const canvas = document.createElement('canvas');
+      canvas.width = 32;
+      canvas.height = 32;
+      const ctx = canvas.getContext('2d');
+      
+      // Draw background
+      const gradient = ctx.createLinearGradient(0, 0, 32, 32);
+      gradient.addColorStop(0, '#1a237e');
+      gradient.addColorStop(1, '#3949ab');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 32, 32);
+      
+      // Add rounded corners
+      ctx.globalCompositeOperation = 'destination-in';
+      ctx.beginPath();
+      ctx.roundRect(0, 0, 32, 32, 6);
+      ctx.fill();
+      
+      // Reset composite operation
+      ctx.globalCompositeOperation = 'source-over';
+      
+      // Draw gavel icon (simplified)
+      ctx.fillStyle = '#ffd700';
+      ctx.font = '18px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('⚖', 16, 16);
+      
+      // Convert to data URL and set as favicon
+      const dataURL = canvas.toDataURL('image/png');
+      
+      // Update existing favicon
+      let favicon = document.querySelector('link[rel="icon"]');
+      if (!favicon) {
+        favicon = document.createElement('link');
+        favicon.rel = 'icon';
+        document.head.appendChild(favicon);
+      }
+      favicon.href = dataURL;
+      
+      // Also update shortcut icon
+      let shortcutIcon = document.querySelector('link[rel="shortcut icon"]');
+      if (!shortcutIcon) {
+        shortcutIcon = document.createElement('link');
+        shortcutIcon.rel = 'shortcut icon';
+        document.head.appendChild(shortcutIcon);
+      }
+      shortcutIcon.href = dataURL;
+    }
+    
+    // Set custom favicon when page loads
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setCustomFavicon);
+    } else {
+      setCustomFavicon();
+    }
+  </script>
 </body>
 </html>
