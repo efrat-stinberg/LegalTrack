@@ -9,11 +9,11 @@ import { RouterModule } from '@angular/router';
 import { routes } from './app/app.routes';
 
 // Import interceptors
+import { AuthInterceptor } from './app/interceptors/auth.intercptor';
 
 // Import Angular Material modules for global use
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialogModule } from '@angular/material/dialog';
-import { AuthInterceptor } from '@app/interceptors/auth.intercptor';
 
 bootstrapApplication(AppComponent, {
   providers: [

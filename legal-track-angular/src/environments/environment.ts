@@ -16,8 +16,8 @@ export const environment = {
   // API endpoints
   endpoints: {
     auth: {
-      login: '/auth/login',
-      registerAdmin: '/auth/register-admin',
+      login: '/login',
+      registerAdmin: '/register-admin',
       logout: '/auth/logout',
       refresh: '/auth/refresh'
     },

@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
-import { environment } from 'src/environments/environment';
+import { environment } from '../../environments/environment';
 
 // Interfaces
 export interface LoginRequest {
@@ -140,31 +140,6 @@ export class AuthService {
   }
 
   /**
-   * Refresh authentication token
-   */
-  refreshToken(): Observable<AuthResponse> {
-    const refreshToken = this.getRefreshToken();
-    
-    if (!refreshToken) {
-      return throwError(() => new Error('No refresh token available'));
-    }
-
-    return this.http.post<AuthResponse>(`${this.API_URL}/auth/refresh`, { 
-      refreshToken 
-    }).pipe(
-      tap(response => {
-        if (response.token) {
-          this.setSession(response);
-        }
-      }),
-      catchError(error => {
-        this.logout();
-        return throwError(() => error);
-      })
-    );
-  }
-
-  /**
    * Check if user is currently authenticated
    */
   isAuthenticated(): boolean {
@@ -258,47 +233,6 @@ export class AuthService {
     this.currentUserSubject.next(user);
     if (user) {
       this.storeUser(user);
-    }
-  }
-
-  /**
-   * Check if token is about to expire (within 5 minutes)
-   */
-  isTokenExpiringSoon(): boolean {
-    const token = this.getToken();
-    if (!token) return false;
-
-    try {
-      const payload = this.getTokenPayload(token);
-      if (!payload) return false;
-
-      const expirationTime = payload.exp * 1000;
-      const currentTime = Date.now();
-      const fiveMinutes = 5 * 60 * 1000;
-
-      return (expirationTime - currentTime) < fiveMinutes;
-    } catch {
-      return false;
-    }
-  }
-
-  /**
-   * Get time until token expires (in milliseconds)
-   */
-  getTimeUntilExpiration(): number {
-    const token = this.getToken();
-    if (!token) return 0;
-
-    try {
-      const payload = this.getTokenPayload(token);
-      if (!payload) return 0;
-
-      const expirationTime = payload.exp * 1000;
-      const currentTime = Date.now();
-
-      return Math.max(0, expirationTime - currentTime);
-    } catch {
-      return 0;
     }
   }
 

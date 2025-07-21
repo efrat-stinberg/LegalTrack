@@ -74,22 +74,42 @@ interface NavItem {
           }
         </div>
 
-        @if (futureNavItems.length > 0) {
+        @if (contentNavItems.length > 0) {
           <div class="nav-section">
             @if (isOpen) {
               <h3 class="section-title">ניהול תוכן</h3>
             }
             
-            @for (item of futureNavItems; track item.route) {
+            @for (item of contentNavItems; track item.route) {
               <a [routerLink]="item.route"
                  routerLinkActive="active"
-                 class="nav-item disabled"
-                 [matTooltip]="!isOpen ? item.label + ' (בפיתוח)' : ''"
+                 class="nav-item"
+                 [matTooltip]="!isOpen ? item.label : ''"
                  [matTooltipPosition]="'left'">
                 <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
                 @if (isOpen) {
                   <span class="nav-label">{{ item.label }}</span>
-                  <span class="coming-soon">בקרוב</span>
+                }
+              </a>
+            }
+          </div>
+        }
+
+        @if (analyticsNavItems.length > 0) {
+          <div class="nav-section">
+            @if (isOpen) {
+              <h3 class="section-title">דוחות ואנליטיקה</h3>
+            }
+            
+            @for (item of analyticsNavItems; track item.route) {
+              <a [routerLink]="item.route"
+                 routerLinkActive="active"
+                 class="nav-item"
+                 [matTooltip]="!isOpen ? item.label : ''"
+                 [matTooltipPosition]="'left'">
+                <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+                @if (isOpen) {
+                  <span class="nav-label">{{ item.label }}</span>
                 }
               </a>
             }
@@ -99,8 +119,10 @@ interface NavItem {
 
       <!-- Bottom Actions -->
       <div class="nav-bottom">
-        <a class="nav-item disabled" 
-           [matTooltip]="!isOpen ? 'הגדרות (בפיתוח)' : ''"
+        <a [routerLink]="'/settings'" 
+           routerLinkActive="active"
+           class="nav-item" 
+           [matTooltip]="!isOpen ? 'הגדרות' : ''"
            [matTooltipPosition]="'left'">
           <mat-icon class="nav-icon">settings</mat-icon>
           @if (isOpen) {
@@ -108,14 +130,16 @@ interface NavItem {
           }
         </a>
 
-        <button class="nav-item help-button" 
-                [matTooltip]="!isOpen ? 'עזרה' : ''"
-                [matTooltipPosition]="'left'">
+        <a [routerLink]="'/help'"
+           routerLinkActive="active" 
+           class="nav-item help-button" 
+           [matTooltip]="!isOpen ? 'עזרה' : ''"
+           [matTooltipPosition]="'left'">
           <mat-icon class="nav-icon">help</mat-icon>
           @if (isOpen) {
             <span class="nav-label">עזרה</span>
           }
-        </button>
+        </a>
       </div>
 
     </nav>
@@ -134,14 +158,15 @@ interface NavItem {
       right: 0;
       height: 100vh;
       width: 280px;
-      background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
+      background: linear-gradient(180deg, #1a237e 0%, #283593 50%, #3949ab 100%);
       color: white;
       transform: translateX(100%);
-      transition: transform 0.3s ease;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       z-index: 1000;
       display: flex;
       flex-direction: column;
-      box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+      box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+      border-left: 1px solid rgba(255, 255, 255, 0.12);
     }
 
     .sidenav.open {
@@ -150,7 +175,8 @@ interface NavItem {
 
     .logo-section {
       padding: 24px 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
     }
 
     .logo {
@@ -165,35 +191,45 @@ interface NavItem {
       width: 32px;
       height: 32px;
       color: #ffd700;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
     }
 
     .logo-text {
       font-size: 24px;
       font-weight: 600;
       letter-spacing: -0.5px;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     }
 
     .admin-badge {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.7);
-      font-weight: 500;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 4px 8px;
+      border-radius: 12px;
+      display: inline-block;
     }
 
     .user-section {
       padding: 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
       display: flex;
       align-items: center;
       gap: 12px;
+      background: rgba(255, 255, 255, 0.05);
     }
 
     .user-avatar mat-icon {
       font-size: 40px;
       width: 40px;
       height: 40px;
-      color: rgba(255, 255, 255, 0.8);
+      color: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      padding: 4px;
     }
 
     .user-info {
@@ -204,12 +240,14 @@ interface NavItem {
       margin: 0 0 4px 0;
       font-weight: 500;
       font-size: 16px;
+      color: rgba(255, 255, 255, 0.95);
     }
 
     .user-role {
       margin: 0;
       font-size: 12px;
       color: rgba(255, 255, 255, 0.7);
+      font-weight: 400;
     }
 
     .nav-menu {
@@ -219,25 +257,27 @@ interface NavItem {
     }
 
     .nav-section {
-      margin-bottom: 32px;
+      margin-bottom: 24px;
     }
 
     .section-title {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       color: rgba(255, 255, 255, 0.6);
       text-transform: uppercase;
-      letter-spacing: 1px;
-      margin: 0 0 16px 20px;
+      letter-spacing: 1.2px;
+      margin: 0 0 12px 20px;
+      padding: 0 0 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .nav-item {
       display: flex;
       align-items: center;
-      padding: 12px 20px;
-      color: rgba(255, 255, 255, 0.8);
+      padding: 14px 20px;
+      color: rgba(255, 255, 255, 0.85);
       text-decoration: none;
-      transition: all 0.2s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       gap: 16px;
       cursor: pointer;
@@ -245,16 +285,21 @@ interface NavItem {
       background: none;
       width: 100%;
       text-align: right;
+      border-radius: 0 25px 25px 0;
+      margin: 2px 0;
     }
 
-    .nav-item:hover:not(.disabled) {
-      background: rgba(255, 255, 255, 0.1);
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.12);
       color: white;
+      transform: translateX(-4px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .nav-item.active {
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.2);
       color: white;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     }
 
     .nav-item.active::before {
@@ -264,50 +309,45 @@ interface NavItem {
       top: 0;
       bottom: 0;
       width: 4px;
-      background: #ffd700;
-    }
-
-    .nav-item.disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+      background: linear-gradient(180deg, #ffd700 0%, #ffeb3b 100%);
+      box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
     }
 
     .nav-icon {
-      font-size: 24px;
-      width: 24px;
-      height: 24px;
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
       flex-shrink: 0;
+      transition: all 0.3s ease;
+    }
+
+    .nav-item:hover .nav-icon {
+      transform: scale(1.1);
     }
 
     .nav-label {
       flex: 1;
       font-size: 14px;
       font-weight: 500;
+      letter-spacing: 0.25px;
     }
 
     .nav-badge {
-      background: #f44336;
+      background: linear-gradient(45deg, #f44336, #e57373);
       color: white;
       font-size: 10px;
-      font-weight: 600;
-      padding: 2px 6px;
-      border-radius: 10px;
-      min-width: 18px;
+      font-weight: 700;
+      padding: 3px 7px;
+      border-radius: 12px;
+      min-width: 20px;
       text-align: center;
-    }
-
-    .coming-soon {
-      font-size: 10px;
-      color: #ffd700;
-      font-weight: 500;
-      background: rgba(255, 215, 0, 0.2);
-      padding: 2px 6px;
-      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(244, 67, 54, 0.3);
     }
 
     .nav-bottom {
       padding: 20px 0;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(0, 0, 0, 0.1);
     }
 
     .help-button {
@@ -321,8 +361,9 @@ interface NavItem {
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.6);
       z-index: 999;
+      backdrop-filter: blur(4px);
     }
 
     /* Custom scrollbar for nav menu */
@@ -331,22 +372,29 @@ interface NavItem {
     }
 
     .nav-menu::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 2px;
     }
 
     .nav-menu::-webkit-scrollbar-thumb {
       background: rgba(255, 255, 255, 0.3);
       border-radius: 2px;
+      transition: background 0.3s ease;
     }
 
     .nav-menu::-webkit-scrollbar-thumb:hover {
       background: rgba(255, 255, 255, 0.5);
     }
 
+    /* Responsive Design */
     @media (max-width: 768px) {
       .sidenav {
         width: 280px;
         transform: translateX(100%);
+      }
+
+      .nav-item:hover {
+        transform: none;
       }
     }
 
@@ -354,6 +402,28 @@ interface NavItem {
       .sidenav-overlay {
         display: none;
       }
+    }
+
+    /* Animation improvements */
+    .nav-item {
+      animation: fadeInUp 0.3s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Enhanced focus states for accessibility */
+    .nav-item:focus {
+      outline: 2px solid rgba(255, 215, 0, 0.8);
+      outline-offset: -2px;
     }
   `]
 })
@@ -373,11 +443,12 @@ export class SidenavComponent {
     {
       label: 'ניהול משתמשים',
       icon: 'people',
-      route: '/users'
+      route: '/users',
+      badge: 2
     }
   ];
 
-  futureNavItems: NavItem[] = [
+  contentNavItems: NavItem[] = [
     {
       label: 'ניהול לקוחות',
       icon: 'business',
@@ -389,9 +460,22 @@ export class SidenavComponent {
       route: '/folders'
     },
     {
-      label: 'דוחות ואנליטיקה',
-      icon: 'analytics',
+      label: 'ניהול מסמכים',
+      icon: 'description',
+      route: '/documents'
+    }
+  ];
+
+  analyticsNavItems: NavItem[] = [
+    {
+      label: 'דוחות',
+      icon: 'assessment',
       route: '/reports'
+    },
+    {
+      label: 'אנליטיקה',
+      icon: 'analytics',
+      route: '/analytics'
     }
   ];
 

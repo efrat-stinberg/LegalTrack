@@ -48,14 +48,7 @@ import { AppRoutingModule } from '@app/modules/app-routing-module';
 
 @NgModule({
   declarations: [
-    AppComponent,
-    LoginComponent,
-    RegisterAdminComponent,
-    DashboardComponent,
-    SidenavComponent,
-    HeaderComponent,
-    UsersComponent,
-    InviteUserDialogComponent
+ 
   ],
   imports: [
     BrowserModule,
@@ -97,6 +90,6 @@ import { AppRoutingModule } from '@app/modules/app-routing-module';
       multi: true
     }
   ],
-  bootstrap: [AppComponent]
+  bootstrap: []
 })
 export class AppModule { }

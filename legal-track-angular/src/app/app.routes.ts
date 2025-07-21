@@ -3,7 +3,7 @@ import { LoginComponent } from './auth/login/login.component';
 import { RegisterAdminComponent } from './auth/register-admin/register-admin.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { UsersComponent } from './users/users.component';
-import { AdminGuard } from './guards/auth.goard';
+import { AdminGuard } from './guards/auth.goard'; // Note: you might want to rename this file to 'auth.guard.ts'
 
 export const routes: Routes = [
   // Redirect root to dashboard
