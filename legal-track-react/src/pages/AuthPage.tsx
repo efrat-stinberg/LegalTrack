@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Login from "../components/Login";
-import { 
-  Box, 
-  Typography, 
+import {
+  Box,
+  Typography,
   useTheme,
   Fade,
   Container,
@@ -14,39 +14,39 @@ import {
   Chip
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { 
-  Scale, 
-  Shield, 
+import {
+  Scale,
+  Shield,
   Globe,
   CheckCircle,
   FileText,
   Users,
   Briefcase,
   Award,
-  Lock,
-  Star,
-  Zap
+  Lock
 } from "lucide-react";
 
-const PageContainer = styled(Box)(({ theme }) => ({
+// Page container that fills the viewport
+const PageContainer = styled(Box)(({  }) => ({
   minHeight: '100vh',
   display: 'flex',
   flexDirection: 'column',
   background: `linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%)`,
   position: 'relative',
   overflow: 'hidden',
+  paddingTop: 0,
 }));
 
+// Wrapper to align content at top
 const ContentWrapper = styled(Container)(({ theme }) => ({
-  flex: 1,
   display: 'flex',
-  alignItems: 'center',
+  alignItems: 'flex-start', // Align content to top
   justifyContent: 'center',
-  padding: theme.spacing(4, 2),
+  padding: theme.spacing(6, 2),
   maxWidth: '1400px !important',
-  
+
   [theme.breakpoints.down('md')]: {
-    padding: theme.spacing(2, 1),
+    padding: theme.spacing(4, 1),
   },
 }));
 
@@ -56,12 +56,12 @@ const MainContent = styled(Box)(({ theme }) => ({
   gap: theme.spacing(6),
   width: '100%',
   maxWidth: '1200px',
-  alignItems: 'center',
-  
+  alignItems: 'flex-start',
+
   [theme.breakpoints.down('lg')]: {
     gap: theme.spacing(4),
   },
-  
+
   [theme.breakpoints.down('md')]: {
     gridTemplateColumns: '1fr',
     gap: theme.spacing(3),
@@ -71,7 +71,7 @@ const MainContent = styled(Box)(({ theme }) => ({
 
 const BrandSection = styled(Box)(({ theme }) => ({
   padding: theme.spacing(4),
-  
+
   [theme.breakpoints.down('md')]: {
     padding: theme.spacing(2),
     order: 2,
@@ -87,7 +87,7 @@ const LoginSection = styled(Paper)(({ theme }) => ({
   boxShadow: `0 20px 40px rgba(0, 0, 0, 0.1)`,
   position: 'relative',
   overflow: 'hidden',
-  
+
   '&::before': {
     content: '""',
     position: 'absolute',
@@ -97,12 +97,12 @@ const LoginSection = styled(Paper)(({ theme }) => ({
     height: 4,
     background: `linear-gradient(90deg, #3b82f6, #8b5cf6)`,
   },
-  
+
   [theme.breakpoints.down('md')]: {
     padding: theme.spacing(3),
     order: 1,
   },
-  
+
   [theme.breakpoints.down('sm')]: {
     padding: theme.spacing(2),
     borderRadius: 16,
@@ -114,12 +114,12 @@ const LogoSection = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   gap: theme.spacing(3),
   marginBottom: theme.spacing(4),
-  
+
   [theme.breakpoints.down('md')]: {
     justifyContent: 'center',
     marginBottom: theme.spacing(3),
   },
-  
+
   [theme.breakpoints.down('sm')]: {
     gap: theme.spacing(2),
     marginBottom: theme.spacing(2),
@@ -132,7 +132,7 @@ const LogoIcon = styled(Avatar)(({ theme }) => ({
   background: `linear-gradient(135deg, #3b82f6, #8b5cf6)`,
   boxShadow: `0 8px 32px rgba(59, 130, 246, 0.4)`,
   position: 'relative',
-  
+
   '&::after': {
     content: '""',
     position: 'absolute',
@@ -144,7 +144,7 @@ const LogoIcon = styled(Avatar)(({ theme }) => ({
     WebkitMaskComposite: 'subtract',
     maskComposite: 'subtract',
   },
-  
+
   [theme.breakpoints.down('sm')]: {
     width: 56,
     height: 56,
@@ -155,16 +155,16 @@ const FeatureGrid = styled(Box)(({ theme }) => ({
   display: 'grid',
   gap: theme.spacing(3),
   marginTop: theme.spacing(4),
-  
+
   [theme.breakpoints.up('lg')]: {
     gridTemplateColumns: 'repeat(2, 1fr)',
   },
-  
+
   [theme.breakpoints.down('md')]: {
     gridTemplateColumns: 'repeat(2, 1fr)',
     gap: theme.spacing(2),
   },
-  
+
   [theme.breakpoints.down('sm')]: {
     gridTemplateColumns: '1fr',
   },
@@ -176,12 +176,12 @@ const FeatureCard = styled(Card)(({ theme }) => ({
   background: `linear-gradient(145deg, ${theme.palette.background.paper}, rgba(255, 255, 255, 0.8))`,
   border: `1px solid rgba(59, 130, 246, 0.1)`,
   transition: 'all 0.3s ease',
-  
+
   '&:hover': {
     transform: 'translateY(-4px)',
     boxShadow: `0 12px 32px rgba(59, 130, 246, 0.15)`,
   },
-  
+
   [theme.breakpoints.down('sm')]: {
     padding: theme.spacing(2),
   },
@@ -196,11 +196,11 @@ const FeatureIcon = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   marginBottom: theme.spacing(2),
-  
+
   '& svg': {
     color: 'white',
   },
-  
+
   [theme.breakpoints.down('sm')]: {
     width: 40,
     height: 40,
@@ -214,7 +214,7 @@ const StatsSection = styled(Box)(({ theme }) => ({
   marginTop: theme.spacing(4),
   justifyContent: 'center',
   flexWrap: 'wrap',
-  
+
   [theme.breakpoints.down('md')]: {
     gap: theme.spacing(2),
     marginTop: theme.spacing(3),
@@ -223,7 +223,7 @@ const StatsSection = styled(Box)(({ theme }) => ({
 
 const StatItem = styled(Box)(({ theme }) => ({
   textAlign: 'center',
-  
+
   [theme.breakpoints.down('sm')]: {
     minWidth: 80,
   },
@@ -235,7 +235,7 @@ const TrustBadges = styled(Box)(({ theme }) => ({
   marginTop: theme.spacing(3),
   justifyContent: 'center',
   flexWrap: 'wrap',
-  
+
   [theme.breakpoints.down('sm')]: {
     gap: theme.spacing(1),
   },
@@ -245,13 +245,13 @@ const AuthPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
-    
+
     return () => clearInterval(timer);
   }, []);
 
@@ -259,46 +259,45 @@ const AuthPage: React.FC = () => {
     {
       icon: <FileText size={20} />,
       title: "ניהול תיקים דיגיטלי",
-      description: "מערכת מתקדמת לניהול כל התיקים והמסמכים במקום אחד."
+      description: "מערכת מתקדמת לניהול כל התיקים והמסמכים במקום אחד.",
     },
     {
       icon: <Users size={20} />,
       title: "ניהול לקוחות מתקדם",
-      description: "מעקב מקצועי אחר פרטי הלקוחות והיסטוריית תיקים."
+      description: "מעקב מקצועי אחר פרטי הלקוחות והיסטוריית תיקים.",
     },
     {
       icon: <Shield size={20} />,
       title: "אבטחה ברמה בנקאית",
-      description: "הגנה מלאה על מידע רגיש עם הצפנה מתקדמת."
+      description: "הגנה מלאה על מידע רגיש עם הצפנה מתקדמת.",
     },
     {
       icon: <Award size={20} />,
       title: "דוחות ואנליטיקה",
-      description: "כלי ניתוח מתקדמים להערכת ביצועים ומעקב."
-    }
+      description: "כלי ניתוח מתקדמים להערכת ביצועים ומעקב.",
+    },
   ];
 
   const stats = [
     { number: '1,000+', label: 'תיקים' },
     { number: '50,000+', label: 'מסמכים' },
     { number: '99.9%', label: 'זמינות' },
-    { number: '24/7', label: 'תמיכה' }
+    { number: '24/7', label: 'תמיכה' },
   ];
 
   return (
     <PageContainer>
       <ContentWrapper>
         <MainContent>
-          {/* Brand Section */}
           <BrandSection>
             <LogoSection>
               <LogoIcon>
                 <Scale size={isMobile ? 28 : 36} color="white" />
               </LogoIcon>
               <Box>
-                <Typography 
-                  variant={isMobile ? "h4" : "h3"} 
-                  sx={{ 
+                <Typography
+                  variant={isMobile ? "h4" : "h3"}
+                  sx={{
                     fontWeight: 700,
                     color: '#1e293b',
                     letterSpacing: '-0.025em',
@@ -308,9 +307,9 @@ const AuthPage: React.FC = () => {
                 >
                   Legal Manager Pro
                 </Typography>
-                <Typography 
-                  variant={isSmall ? "body1" : "h6"} 
-                  sx={{ 
+                <Typography
+                  variant={isSmall ? "body1" : "h6"}
+                  sx={{
                     color: '#64748b',
                     fontWeight: 500
                   }}
@@ -319,10 +318,10 @@ const AuthPage: React.FC = () => {
                 </Typography>
               </Box>
             </LogoSection>
-            
-            <Typography 
-              variant={isMobile ? "h5" : "h4"} 
-              sx={{ 
+
+            <Typography
+              variant={isMobile ? "h5" : "h4"}
+              sx={{
                 fontWeight: 600,
                 color: '#334155',
                 mb: 2,
@@ -331,10 +330,10 @@ const AuthPage: React.FC = () => {
             >
               הפתרון המקצועי לעורכי דין מודרניים
             </Typography>
-            
-            <Typography 
-              variant="body1" 
-              sx={{ 
+
+            <Typography
+              variant="body1"
+              sx={{
                 color: '#64748b',
                 fontSize: isMobile ? '1rem' : '1.125rem',
                 lineHeight: 1.7,
@@ -345,18 +344,15 @@ const AuthPage: React.FC = () => {
               ניהול תיקים, מעקב אחר לקוחות, ארגון מסמכים ועוד - הכל במקום אחד.
             </Typography>
 
-            {/* Features Grid */}
             <FeatureGrid>
               {features.map((feature, index) => (
                 <Fade in={true} timeout={600 + index * 100} key={index}>
                   <FeatureCard>
                     <CardContent sx={{ p: '16px !important' }}>
-                      <FeatureIcon>
-                        {feature.icon}
-                      </FeatureIcon>
-                      <Typography 
-                        variant="h6" 
-                        sx={{ 
+                      <FeatureIcon>{feature.icon}</FeatureIcon>
+                      <Typography
+                        variant="h6"
+                        sx={{
                           fontWeight: 600,
                           color: '#1e293b',
                           mb: 1,
@@ -365,9 +361,9 @@ const AuthPage: React.FC = () => {
                       >
                         {feature.title}
                       </Typography>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
+                      <Typography
+                        variant="body2"
+                        sx={{
                           color: '#64748b',
                           lineHeight: 1.5,
                           fontSize: isSmall ? '0.875rem' : '1rem'
@@ -381,22 +377,21 @@ const AuthPage: React.FC = () => {
               ))}
             </FeatureGrid>
 
-            {/* Stats */}
             <StatsSection>
               {stats.map((stat, index) => (
                 <StatItem key={index}>
-                  <Typography 
-                    variant={isMobile ? "h5" : "h4"} 
-                    sx={{ 
-                      fontWeight: 700, 
+                  <Typography
+                    variant={isMobile ? "h5" : "h4"}
+                    sx={{
+                      fontWeight: 700,
                       color: '#3b82f6',
                       mb: 0.5
                     }}
                   >
                     {stat.number}
                   </Typography>
-                  <Typography 
-                    variant="body2" 
+                  <Typography
+                    variant="body2"
                     sx={{ color: '#64748b' }}
                   >
                     {stat.label}
@@ -405,42 +400,40 @@ const AuthPage: React.FC = () => {
               ))}
             </StatsSection>
 
-            {/* Trust Badges */}
             <TrustBadges>
-              <Chip 
+              <Chip
                 icon={<CheckCircle size={16} />}
-                label="מערכת מאובטחת" 
-                sx={{ 
-                  background: 'rgba(16, 185, 129, 0.1)', 
+                label="מערכת מאובטחת"
+                sx={{
+                  background: 'rgba(16, 185, 129, 0.1)',
                   color: '#10b981',
                   border: '1px solid rgba(16, 185, 129, 0.2)',
                   fontWeight: 600
-                }} 
+                }}
               />
-              <Chip 
+              <Chip
                 icon={<Globe size={16} />}
-                label="זמינות 24/7" 
-                sx={{ 
-                  background: 'rgba(59, 130, 246, 0.1)', 
+                label="זמינות 24/7"
+                sx={{
+                  background: 'rgba(59, 130, 246, 0.1)',
                   color: '#3b82f6',
                   border: '1px solid rgba(59, 130, 246, 0.2)',
                   fontWeight: 600
-                }} 
+                }}
               />
-              <Chip 
+              <Chip
                 icon={<Lock size={16} />}
-                label="הצפנה SSL" 
-                sx={{ 
-                  background: 'rgba(139, 92, 246, 0.1)', 
+                label="הצפנה SSL"
+                sx={{
+                  background: 'rgba(139, 92, 246, 0.1)',
                   color: '#8b5cf6',
                   border: '1px solid rgba(139, 92, 246, 0.2)',
                   fontWeight: 600
-                }} 
+                }}
               />
             </TrustBadges>
           </BrandSection>
 
-          {/* Login Section */}
           <LoginSection>
             <Box textAlign="center" mb={4}>
               {isMobile && (
@@ -450,10 +443,10 @@ const AuthPage: React.FC = () => {
                   </LogoIcon>
                 </Box>
               )}
-              
-              <Typography 
-                variant={isMobile ? "h4" : "h3"} 
-                sx={{ 
+
+              <Typography
+                variant={isMobile ? "h4" : "h3"}
+                sx={{
                   fontWeight: 700,
                   color: '#1e293b',
                   mb: 1,
@@ -462,10 +455,10 @@ const AuthPage: React.FC = () => {
               >
                 כניסה למערכת
               </Typography>
-              
-              <Typography 
-                variant="body1" 
-                sx={{ 
+
+              <Typography
+                variant="body1"
+                sx={{
                   color: '#64748b',
                   fontSize: isSmall ? '0.875rem' : '1rem',
                   lineHeight: 1.6
@@ -477,16 +470,15 @@ const AuthPage: React.FC = () => {
 
             <Login />
 
-            {/* Security Info */}
-            <Box 
-              sx={{ 
+            <Box
+              sx={{
                 mt: 4,
                 pt: 3,
                 borderTop: '1px solid #e2e8f0'
               }}
             >
-              <Box 
-                sx={{ 
+              <Box
+                sx={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: 2,
@@ -497,8 +489,8 @@ const AuthPage: React.FC = () => {
                   mb: 3
                 }}
               >
-                <Box 
-                  sx={{ 
+                <Box
+                  sx={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -513,9 +505,9 @@ const AuthPage: React.FC = () => {
                   <Briefcase size={20} />
                 </Box>
                 <Box>
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
+                  <Typography
+                    variant="body2"
+                    sx={{
                       fontWeight: 600,
                       color: '#374151',
                       mb: 0.5,
@@ -524,9 +516,9 @@ const AuthPage: React.FC = () => {
                   >
                     גישה מוגבלת למשרדי עורכי דין
                   </Typography>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
+                  <Typography
+                    variant="caption"
+                    sx={{
                       color: '#64748b',
                       fontSize: isSmall ? '0.75rem' : '0.875rem',
                       lineHeight: 1.4
@@ -538,9 +530,9 @@ const AuthPage: React.FC = () => {
               </Box>
 
               <Box sx={{ textAlign: 'center' }}>
-                <Typography 
-                  variant="caption" 
-                  sx={{ 
+                <Typography
+                  variant="caption"
+                  sx={{
                     color: '#94a3b8',
                     fontSize: '0.75rem'
                   }}
