@@ -401,7 +401,6 @@ appsettings.json
 *.env
 .env
 appsettings.Development.json
-appsettings.*.json
 secrets.json
 *.secrets.json
 *.key
