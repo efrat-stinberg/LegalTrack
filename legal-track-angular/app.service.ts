@@ -31,7 +31,7 @@ export interface User {
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_URL = 'https://localhost:7042/api'; // Update with your API URL
+  private readonly API_URL = 'https://legaltrack-server.onrender.com//api'; // Update with your API URL
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
 

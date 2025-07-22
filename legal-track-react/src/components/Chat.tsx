@@ -309,7 +309,7 @@ const Chat: React.FC<ChatProps> = ({ folderId }) => {
   useEffect(() => {
     if (!folderId) return;
 
-    fetch(`https://localhost:7042/api/Chat/${folderId}`)
+    fetch(`https://legaltrack-server.onrender.com/api/Chat/${folderId}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to load chat history");
         return res.json();
@@ -328,7 +328,7 @@ const Chat: React.FC<ChatProps> = ({ folderId }) => {
     setIsTyping(true);
 
     try {
-      const res = await fetch(`https://localhost:7042/api/Chat/${folderId}`, {
+      const res = await fetch(`https://legaltrack-server.onrender.com/api/Chat/${folderId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: userMessage }),

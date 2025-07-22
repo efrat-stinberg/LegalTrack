@@ -50,7 +50,7 @@ export interface Folder {
   providedIn: 'root'
 })
 export class DashboardService {
-  private readonly API_URL = 'https://localhost:7042/api'; // Update with your API URL
+  private readonly API_URL = 'https://legaltrack-server.onrender.com/api'; // Update with your API URL
 
   constructor(private http: HttpClient) {}
 

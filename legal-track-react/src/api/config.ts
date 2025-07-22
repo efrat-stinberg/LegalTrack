@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://localhost:7042/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://legaltrack-server.onrender.com/api";
 
 // Create axios instance
 export const apiClient = axios.create({

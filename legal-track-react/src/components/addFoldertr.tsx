@@ -11,7 +11,7 @@
 //         };
 
 //         try {
-//             const response = await fetch('https://localhost:7042/api/Folder/Add', {
+//             const response = await fetch('https://legaltrack-server.onrender.com/api/Folder/Add', {
 //                 method: 'POST',
 //                 headers: {
 //                     'Content-Type': 'application/json',

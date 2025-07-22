@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://localhost:7042',
+        target: 'https://legaltrack-server.onrender.com',
         changeOrigin: true,
         secure: false
       }

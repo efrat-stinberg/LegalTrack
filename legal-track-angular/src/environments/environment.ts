@@ -1,7 +1,7 @@
 // Development Environment Configuration
 export const environment = {
   production: false,
-  apiUrl: 'https://localhost:7042/api', // ודא שזה התואם לשרת שלך
+  apiUrl: '/api', // ודא שזה התואם לשרת שלך
   appName: 'Legal Flow Admin',
   version: '1.0.0',
   
@@ -107,8 +107,8 @@ export const environment = {
 export const environmentProd = {
   ...environment,
   production: true,
-  apiUrl: 'https://api.legalflow.com/api', // Replace with actual production URL
-  
+  apiUrl: 'https://legal-track.onrender.com//api', // Replace with actual production URL
+
   features: {
     enableNotifications: true,
     enableAnalytics: true,
