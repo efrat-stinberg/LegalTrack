@@ -1,0 +1,12 @@
+{
+    "/api/*": {
+      "target": "https://legaltrack-server.onrender.com",
+      "secure": true,
+      "changeOrigin": true,
+      "logLevel": "debug",
+      "headers": {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+      }
+    }
+  }

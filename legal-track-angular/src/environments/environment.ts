@@ -1,7 +1,8 @@
 // Development Environment Configuration
 export const environment = {
   production: false,
-  apiUrl: '/api', // ודא שזה התואם לשרת שלך
+  // 🔥 כתובת מלאה עם https:// - זה יפתור את הבעיה!
+  apiUrl: 'https://legaltrack-server.onrender.com/api',
   appName: 'Legal Flow Admin',
   version: '1.0.0',
   
@@ -33,40 +34,9 @@ export const environment = {
       getAll: '/group',
       getById: '/group/:id',
       create: '/group'
-    },
-    clients: {
-      getAll: '/client',
-      getById: '/client/:id',
-      create: '/client',
-      update: '/client/:id',
-      delete: '/client/:id'
-    },
-    folders: {
-      getAll: '/folders',
-      getById: '/folders/:id',
-      getByClient: '/folders/by-client/:clientId',
-      create: '/folders',
-      update: '/folders/:id',
-      delete: '/folders/:id',
-      getExtractedText: '/folders/folders/:folderId/extracted-text'
-    },
-    documents: {
-      getAll: '/documents',
-      getById: '/documents/:id',
-      create: '/documents',
-      update: '/documents/:id',
-      delete: '/documents/:id'
-    },
-    chat: {
-      getHistory: '/chat/:folderId',
-      sendMessage: '/chat/:folderId'
-    },
-    admin: {
-      deleteAllData: '/admin/delete-all'
     }
   },
   
-  // UI Configuration
   ui: {
     defaultPageSize: 10,
     pageSizeOptions: [5, 10, 20, 50],
@@ -77,15 +47,13 @@ export const environment = {
     snackBarDuration: 5000
   },
   
-  // Security Configuration
   security: {
     jwtTokenKey: 'token',
-    tokenExpirationBuffer: 300, // 5 minutes in seconds
+    tokenExpirationBuffer: 300,
     maxLoginAttempts: 5,
-    lockoutDuration: 900 // 15 minutes in seconds
+    lockoutDuration: 900
   },
   
-  // Validation Rules
   validation: {
     email: {
       pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
@@ -100,24 +68,5 @@ export const environment = {
       minLength: 2,
       maxLength: 50
     }
-  }
-};
-
-// Production Environment Configuration
-export const environmentProd = {
-  ...environment,
-  production: true,
-  apiUrl: 'https://legal-track.onrender.com//api', // Replace with actual production URL
-
-  features: {
-    enableNotifications: true,
-    enableAnalytics: true,
-    enableDebugMode: false,
-    enableOfflineMode: true
-  },
-  
-  ui: {
-    ...environment.ui,
-    snackBarDuration: 3000
   }
 };

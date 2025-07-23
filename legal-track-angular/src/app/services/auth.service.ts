@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { map, catchError, tap } from 'rxjs/operators';
+import { map, catchError, tap, retry, timeout } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 
@@ -90,9 +90,14 @@ export class AuthService {
    * Login user with email and password
    */
   login(credentials: LoginRequest): Observable<AuthResponse> {
+    console.log('🔄 Attempting login...', { email: credentials.email });
+    
     return this.http.post<AuthResponse>(`${this.API_URL}/login`, credentials)
       .pipe(
+        timeout(10000), // 10 second timeout
+        retry(1), // Retry once on failure
         tap(response => {
+          console.log('✅ Login successful:', response);
           if (response.token) {
             this.setSession(response);
           }
@@ -105,14 +110,26 @@ export class AuthService {
    * Register new admin user
    */
   registerAdmin(adminData: RegisterAdminRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.API_URL}/register-admin`, adminData)
+    console.log('🔄 Attempting admin registration...', { email: adminData.email, userName: adminData.userName });
+    
+    // Log the full URL being called
+    const fullUrl = `${this.API_URL}/register-admin`;
+    console.log('📡 Making request to:', fullUrl);
+    
+    return this.http.post<AuthResponse>(fullUrl, adminData)
       .pipe(
+        timeout(15000), // 15 second timeout for registration
+        retry(1), // Retry once on failure
         tap(response => {
+          console.log('✅ Registration successful:', response);
           if (response.token) {
             this.setSession(response);
           }
         }),
-        catchError(this.handleError)
+        catchError((error) => {
+          console.error('❌ Registration failed:', error);
+          return this.handleError(error);
+        })
       );
   }
 
@@ -360,39 +377,63 @@ export class AuthService {
    * Handle HTTP errors
    */
   private handleError = (error: HttpErrorResponse): Observable<never> => {
-    let errorMessage = 'An error occurred';
+    let errorMessage = 'שגיאה לא צפויה';
+
+    console.error('HTTP Error Details:', {
+      status: error.status,
+      statusText: error.statusText,
+      url: error.url,
+      message: error.message,
+      error: error.error
+    });
 
     if (error.error instanceof ErrorEvent) {
       // Client-side error
-      errorMessage = error.error.message;
+      errorMessage = `שגיאת רשת: ${error.error.message}`;
+      console.error('Client-side error:', error.error.message);
     } else {
       // Server-side error
       switch (error.status) {
+        case 0:
+          errorMessage = 'לא ניתן להתחבר לשרת. בדוק את החיבור לאינטרנט';
+          break;
         case 400:
-          errorMessage = 'Invalid request data';
+          errorMessage = error.error?.message || 'נתונים לא תקינים';
           break;
         case 401:
-          errorMessage = 'Invalid credentials';
+          errorMessage = 'פרטי התחברות שגויים';
           this.logout();
           break;
         case 403:
-          errorMessage = 'Access denied';
+          errorMessage = 'אין הרשאה לפעולה זו';
           break;
         case 404:
-          errorMessage = 'Service not found';
+          errorMessage = 'השירות לא נמצא. ייתכן שהשרת לא פעיל';
           break;
         case 409:
-          errorMessage = 'User already exists';
+          errorMessage = 'משתמש עם אימייל זה כבר קיים במערכת';
+          break;
+        case 422:
+          errorMessage = 'נתונים לא תקינים';
           break;
         case 500:
-          errorMessage = 'Server error. Please try again later';
+          errorMessage = 'שגיאת שרת פנימית';
+          break;
+        case 502:
+          errorMessage = 'השרת לא זמין זמנית';
+          break;
+        case 503:
+          errorMessage = 'השירות לא זמין כרגע';
+          break;
+        case 504:
+          errorMessage = 'תם הזמן לקבלת תגובה מהשרת';
           break;
         default:
-          errorMessage = error.error?.message || 'Unknown error occurred';
+          errorMessage = error.error?.message || `שגיאה: ${error.status} - ${error.statusText}`;
       }
     }
 
-    console.error('Auth Service Error:', error);
+    console.error('Auth Service Error:', errorMessage);
     return throwError(() => new Error(errorMessage));
   };
 }
