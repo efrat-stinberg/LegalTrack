@@ -399,7 +399,6 @@ FodyWeavers.xsd
 *.msp
 *.env
 .env
-appsettings.Development.json
 secrets.json
 *.secrets.json
 *.key

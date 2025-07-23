@@ -143,6 +143,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapGet("/", () => "Welcome to the AaxManager API!");
+//app.MapGet("/", () => "Welcome to the AaxManager API!");
 
 app.Run();
