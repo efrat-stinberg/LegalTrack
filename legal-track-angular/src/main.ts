@@ -1,4 +1,3 @@
-// Import Zone.js FIRST - זה חשוב מאוד!
 import 'zone.js';
 
 import { bootstrapApplication } from '@angular/platform-browser';
