@@ -1,0 +1,388 @@
+/* Login Component Styles */
+.login-container {
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  
+  /* Enhanced Background */
+  .background-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 20% 50%, #667eea 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, #764ba2 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, #f093fb 0%, transparent 50%),
+                linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    z-index: 1;
+  }
+  
+  .particle-field {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  
+  .particle {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    animation: float 15s infinite linear;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  }
+  
+  @keyframes float {
+    0% {
+      transform: translateY(100vh) rotate(0deg);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-100px) rotate(360deg);
+      opacity: 0;
+    }
+  }
+  
+  .gradient-orbs {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(40px);
+    animation: orbFloat 20s infinite ease-in-out;
+  }
+  
+  .orb-1 {
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(102, 126, 234, 0.4) 0%, transparent 70%);
+    top: 10%;
+    left: 10%;
+    animation-delay: 0s;
+  }
+  
+  .orb-2 {
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(240, 147, 251, 0.4) 0%, transparent 70%);
+    top: 60%;
+    right: 15%;
+    animation-delay: 7s;
+  }
+  
+  .orb-3 {
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, rgba(118, 75, 162, 0.3) 0%, transparent 70%);
+    bottom: 20%;
+    left: 20%;
+    animation-delay: 14s;
+  }
+  
+  .orb-4 {
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+    top: 30%;
+    right: 30%;
+    animation-delay: 10s;
+  }
+  
+  @keyframes orbFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -30px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+  }
+  
+  .geometric-shapes {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  
+  .shape {
+    position: absolute;
+    opacity: 0.1;
+    animation: shapeRotate 25s infinite linear;
+  }
+  
+  .shape-triangle {
+    width: 0;
+    height: 0;
+    border-left: 25px solid transparent;
+    border-right: 25px solid transparent;
+    border-bottom: 43px solid #fff;
+    top: 20%;
+    left: 15%;
+    animation-delay: 0s;
+  }
+  
+  .shape-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #fff;
+    top: 70%;
+    right: 25%;
+    animation-delay: 8s;
+  }
+  
+  .shape-square {
+    width: 40px;
+    height: 40px;
+    background: #fff;
+    top: 40%;
+    left: 70%;
+    animation-delay: 15s;
+    transform-origin: center;
+  }
+  
+  @keyframes shapeRotate {
+    0% { transform: rotate(0deg) translateX(50px) rotate(0deg); }
+    100% { transform: rotate(360deg) translateX(50px) rotate(-360deg); }
+  }
+  
+  /* Main Horizontal Content Wrapper */
+  .content-wrapper {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 500px;
+    gap: 60px;
+    align-items: center;
+    min-height: 80vh;
+  }
+  
+  /* Left Section - Branding & Features */
+  .left-section {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    animation: leftSlideIn 1s ease-out;
+  }
+  
+  @keyframes leftSlideIn {
+    0% {
+      opacity: 0;
+      transform: translateX(-50px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  /* Brand Header */
+  .brand-header {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+  
+  .logo-section {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    direction: ltr;
+  }
+  
+  .logo-container {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+  }
+  
+  .logo-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    animation: logoFloat 6s infinite ease-in-out;
+  }
+  
+  .logo-icon {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+  
+  .logo-icon mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    color: white;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .icon-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 90px;
+    height: 90px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: iconGlow 3s infinite ease-in-out;
+  }
+  
+  @keyframes logoFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-5px) rotate(3deg); }
+  }
+  
+  @keyframes iconGlow {
+    0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+    50% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.2); }
+  }
+  
+  .brand-info {
+    flex: 1;
+    text-align: right;
+  }
+  
+  .brand-title {
+    font-size: 42px;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    letter-spacing: -1px;
+    background: linear-gradient(45deg, #1a237e, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  
+  .title-part {
+    display: inline-block;
+    animation: titleSlide 1s ease-out forwards;
+  }
+  
+  .title-part.accent {
+    animation-delay: 0.3s;
+  }
+  
+  @keyframes titleSlide {
+    0% {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  .brand-subtitle {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    color: #666;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  
+  .subtitle-icon {
+    animation: sparkle 2s infinite ease-in-out;
+  }
+  
+  @keyframes sparkle {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+  
+  .subtitle-badge {
+    background: linear-gradient(45deg, #ffd700, #ffed4e);
+    color: #1a237e;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+  }
+  
+  .welcome-section {
+    text-align: center;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .welcome-title {
+    font-size: 36px;
+    font-weight: 600;
+    margin: 0 0 16px 0;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  .welcome-text {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 24px 0;
+    line-height: 1.6;
+  }
+  
+  .header-decoration {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+  
+  .decoration-line {
+    height: 2px;
+    width: 80px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+  }
+  
+  .decoration-diamond {
+    width: 10px;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.8);
+    transform: rotate(45deg);
+    animation: diamondRotate 4s infinite ease-in-out;
+  }
+  
+  @keyframes diamondRotate {
+    0%, 100% { transform: rotate(45deg) scale(1); }
+    50% { transform: rotate(225deg) scale(1.2); }
+  }

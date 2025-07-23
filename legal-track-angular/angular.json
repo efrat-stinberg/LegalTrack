@@ -27,7 +27,9 @@
             "outputPath": "dist/legal-track-angular",
             "index": "src/index.html",
             "main": "src/main.ts",
-            "polyfills": [],
+            "polyfills": [
+              "src/polyfills.ts"
+            ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
               "src/favicon.ico",
@@ -55,8 +57,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "6kb",
-                  "maximumError": "10kb"
+                  "maximumWarning": "20kb",
+                  "maximumError": "50kb"
                 }
               ],
               "outputHashing": "all",
@@ -127,8 +129,5 @@
         }
       }
     }
-  },
-  "cli": {
-    "analytics": "b185a9f6-ab1f-46d5-b2c1-9920f7816eea"
   }
 }

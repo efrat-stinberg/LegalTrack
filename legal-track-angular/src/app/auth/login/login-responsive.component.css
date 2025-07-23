@@ -1,0 +1,300 @@
+/* Responsive Design for Horizontal Layout */
+@media (max-width: 1200px) {
+    .content-wrapper {
+      grid-template-columns: 1fr 450px;
+      gap: 40px;
+    }
+  
+    .brand-title {
+      font-size: 36px;
+    }
+  
+    .welcome-title {
+      font-size: 32px;
+    }
+  
+    .features-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+  
+    .info-cards {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  @media (max-width: 992px) {
+    .content-wrapper {
+      grid-template-columns: 1fr;
+      gap: 40px;
+      text-align: center;
+    }
+  
+    .left-section {
+      order: 2;
+    }
+  
+    .right-section {
+      order: 1;
+    }
+  
+    .brand-info {
+      text-align: center;
+    }
+  
+    .brand-title {
+      justify-content: center;
+    }
+  
+    .brand-subtitle {
+      justify-content: center;
+    }
+  
+    .features-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+  
+    .info-cards {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .login-container {
+      padding: 16px;
+    }
+  
+    .content-wrapper {
+      gap: 32px;
+    }
+  
+    .card-glow {
+      top: -10px;
+      left: -10px;
+      right: -10px;
+      bottom: -10px;
+    }
+  
+    .login-card {
+      border-radius: 20px !important;
+    }
+  
+    .form-header {
+      padding: 24px 24px 20px 24px;
+    }
+  
+    .form-title {
+      font-size: 24px;
+    }
+  
+    .card-content {
+      padding: 24px !important;
+    }
+  
+    .premium-form {
+      gap: 24px;
+    }
+  
+    .form-options {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+  
+    .premium-submit-button {
+      height: 56px !important;
+      font-size: 15px !important;
+    }
+  
+    .card-footer {
+      padding: 24px !important;
+    }
+  
+    .footer-content {
+      gap: 16px;
+    }
+  
+    .brand-header {
+      gap: 24px;
+    }
+  
+    .logo-section {
+      flex-direction: column;
+      gap: 16px;
+    }
+  
+    .logo-container {
+      width: 70px;
+      height: 70px;
+    }
+  
+    .brand-title {
+      font-size: 28px;
+    }
+  
+    .welcome-title {
+      font-size: 24px;
+    }
+  
+    .welcome-section {
+      padding: 24px;
+    }
+  
+    .features-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+  
+    .feature-card {
+      padding: 20px;
+    }
+  
+    .info-cards {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .login-container {
+      padding: 12px;
+    }
+  
+    .form-header {
+      padding: 20px 20px 16px 20px;
+    }
+  
+    .form-title {
+      font-size: 22px;
+    }
+  
+    .card-content {
+      padding: 20px !important;
+    }
+  
+    .premium-submit-button {
+      height: 52px !important;
+      font-size: 14px !important;
+    }
+  
+    .card-footer {
+      padding: 20px !important;
+    }
+  
+    .premium-register-button {
+      padding: 14px 24px !important;
+    }
+  
+    .brand-title {
+      font-size: 24px;
+    }
+  
+    .welcome-title {
+      font-size: 20px;
+    }
+  
+    .welcome-section {
+      padding: 20px;
+    }
+  
+    .logo-container {
+      width: 60px;
+      height: 60px;
+    }
+  
+    .logo-icon mat-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+    }
+  
+    .left-section {
+      gap: 24px;
+    }
+  
+    .features-section {
+      display: none; /* Hide features on very small screens */
+    }
+  }
+  
+  /* Accessibility Improvements */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  
+  @media (prefers-contrast: high) {
+    .login-card {
+      border: 2px solid #000 !important;
+      background: #fff !important;
+    }
+    
+    .premium-submit-button {
+      border: 2px solid #000 !important;
+    }
+  
+    .welcome-section {
+      background: rgba(255, 255, 255, 0.9) !important;
+      color: #000 !important;
+    }
+  
+    .welcome-title,
+    .feature-content h4,
+    .info-title {
+      color: #000 !important;
+    }
+  }
+  
+  /* Focus Indicators */
+  .premium-submit-button:focus-visible,
+  .premium-register-button:focus-visible {
+    outline: 3px solid rgba(102, 126, 234, 0.5);
+    outline-offset: 2px;
+  }
+  
+  /* Dark Mode Support */
+  @media (prefers-color-scheme: dark) {
+    .login-card {
+      background: rgba(30, 30, 30, 0.95) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      color: #fff;
+    }
+  
+    .form-header {
+      background: linear-gradient(135deg, 
+        rgba(40, 40, 40, 0.9) 0%, 
+        rgba(30, 30, 30, 0.8) 100%);
+    }
+  
+    .form-title {
+      color: #fff;
+      background: linear-gradient(45deg, #667eea, #f093fb);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  
+    .form-subtitle,
+    .footer-text {
+      color: #ccc;
+    }
+  }
+  
+  /* High Performance Optimizations */
+  .login-card,
+  .feature-card,
+  .info-card,
+  .premium-submit-button {
+    will-change: transform;
+  }
+  
+  .particle {
+    will-change: transform, opacity;
+  }
+  
+  .orb {
+    will-change: transform;
+  }
