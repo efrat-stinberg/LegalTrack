@@ -1,5 +1,5 @@
-// src/components/Register.tsx - תיקון טיפול בטוקן
-import { useSearchParams, useNavigate } from "react-router-dom";
+// src/components/Register.tsx - Updated to handle both query and path parameters
+import { useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { TextField, Button, Snackbar, Box, Alert, Typography, Paper, Avatar, CircularProgress } from "@mui/material";
 import { styled } from "@mui/material/styles";
@@ -32,11 +32,17 @@ const Register = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
-  const token = searchParams.get("token");
+  const { token: pathToken } = useParams(); // Get token from path params
+  
+  // Try to get token from both query params and path params
+  const queryToken = searchParams.get("token");
+  const token = queryToken || pathToken;
   
   console.log('Register component rendered');
   console.log('Search params:', Object.fromEntries(searchParams.entries()));
-  console.log('Token from URL:', token);
+  console.log('Path params token:', pathToken);
+  console.log('Query params token:', queryToken);
+  console.log('Final token:', token);
   console.log('Current URL:', window.location.href);
   
   const [groupId, setGroupId] = useState<number | null>(null);
@@ -59,6 +65,7 @@ const Register = () => {
         console.error('No token provided in URL');
         console.log('Current URL:', window.location.href);
         console.log('Search params:', Object.fromEntries(searchParams.entries()));
+        console.log('Path params:', { pathToken });
         setStatus("invalid");
         setErrorMessage("לא נמצא טוקן בקישור");
         return;
@@ -68,7 +75,7 @@ const Register = () => {
         console.log('Validating token:', token);
         console.log('Full URL:', window.location.href);
         
-        // קריאה ל-API עם הטוקן
+        // Call API with the token
         const response = await apiClient.post("/invite/validate", { token });
         
         console.log('Token validation response:', response.data);
@@ -86,7 +93,6 @@ const Register = () => {
           console.error('API Error Response:', error.response.data);
           console.error('API Error Status:', error.response.status);
           
-          // בדיקה של סטטוס קודים ספציפיים
           if (error.response.status === 400) {
             errorMsg = error.response.data?.message || "הטוקן לא תקין";
           } else if (error.response.status === 404) {
@@ -107,7 +113,7 @@ const Register = () => {
     };
 
     validateToken();
-  }, [token, searchParams]);
+  }, [token, searchParams, pathToken]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -218,6 +224,12 @@ const Register = () => {
               Debug: Token = {token || 'NULL'}
             </Typography>
             <Typography variant="caption" component="div">
+              Query Token = {queryToken || 'NULL'}
+            </Typography>
+            <Typography variant="caption" component="div">
+              Path Token = {pathToken || 'NULL'}
+            </Typography>
+            <Typography variant="caption" component="div">
               URL = {window.location.href}
             </Typography>
           </Box>
@@ -258,6 +270,12 @@ const Register = () => {
               </Typography>
               <Typography variant="caption" component="div" color="error.dark">
                 Token: {token || 'NULL'}
+              </Typography>
+              <Typography variant="caption" component="div" color="error.dark">
+                Query Token: {queryToken || 'NULL'}
+              </Typography>
+              <Typography variant="caption" component="div" color="error.dark">
+                Path Token: {pathToken || 'NULL'}
               </Typography>
               <Typography variant="caption" component="div" color="error.dark">
                 Error: {errorMessage}
@@ -392,7 +410,13 @@ const Register = () => {
             Debug Info:
           </Typography>
           <Typography variant="caption" component="div" color="info.dark">
-            Token: {token}
+            Final Token: {token}
+          </Typography>
+          <Typography variant="caption" component="div" color="info.dark">
+            Query Token: {queryToken}
+          </Typography>
+          <Typography variant="caption" component="div" color="info.dark">
+            Path Token: {pathToken}
           </Typography>
           <Typography variant="caption" component="div" color="info.dark">
             Email: {email}
