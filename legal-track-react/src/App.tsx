@@ -39,7 +39,7 @@ function App() {
               
               {/* Protected Routes */}
               <Route path="/" element={<ProtectedRoute><ProtectedLayout /></ProtectedRoute>}>
-                <Route index element={<Navigate to="/home" replace />} />
+                <Route index element={<Navigate to="/login" replace />} />
                 <Route path="home" element={<HomePage />} />
                 <Route path="folders" element={<FoldersPage />} />
                 <Route path="folders/:folderId" element={<FolderDetailsPage />} />
