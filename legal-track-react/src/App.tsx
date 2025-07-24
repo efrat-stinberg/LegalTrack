@@ -1,5 +1,5 @@
-// App.tsx - Make sure you have this routing setup
-import { BrowserRouter as  Routes, Route, Navigate, HashRouter } from 'react-router-dom';
+// App.tsx - Fixed routing setup
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -23,28 +23,27 @@ import SettingsPage from './pages/SettingsPage';
 import SupportPage from './pages/SupportPage';
 import FolderManagementPage from './pages/FolderManagementPage';
 import ErrorBoundary from './components/ErrorBoundary';
+
 const theme = createTheme();
 
 function App() {
   return (
-    <Provider store={Store}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <ErrorBoundary>
-          <HashRouter>
+    <ErrorBoundary>
+      <Provider store={Store}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Router>
             <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<AuthPage />} />
               <Route path="/register" element={<Register />} />
               
-              
               {/* Protected Routes */}
               <Route path="/" element={<ProtectedRoute><ProtectedLayout /></ProtectedRoute>}>
-                <Route index element={<Navigate to="/login" replace />} />
+                <Route index element={<HomePage />} />
                 <Route path="home" element={<HomePage />} />
                 <Route path="folders" element={<FoldersPage />} />
-                <Route path="folders/:folderId" element={<FolderDetailsPage />} />
-                <Route path="folders-management" element={<FolderManagementPage />} />
+                <Route path="folders/:id" element={<FolderDetailsPage />} />
                 <Route path="clients" element={<ClientsPage />} />
                 <Route path="documents" element={<DocumentsPage />} />
                 <Route path="analytics" element={<AnalyticsPage />} />
@@ -52,15 +51,16 @@ function App() {
                 <Route path="messages" element={<MessagesPage />} />
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="support" element={<SupportPage />} />
+                <Route path="folder-management" element={<FolderManagementPage />} />
               </Route>
 
               {/* Fallback for unknown routes */}
-              <Route path="*" element={<Navigate to="/login" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-          </HashRouter>
-        </ErrorBoundary>
-      </ThemeProvider>
-    </Provider>
+          </Router>
+        </ThemeProvider>
+      </Provider>
+    </ErrorBoundary>
   );
 }
 
