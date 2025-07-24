@@ -37,6 +37,7 @@ function App() {
               <Route path="/login" element={<AuthPage />} />
               <Route path="/register" element={<Register />} />
               
+              
               {/* Protected Routes */}
               <Route path="/" element={<ProtectedRoute><ProtectedLayout /></ProtectedRoute>}>
                 <Route index element={<Navigate to="/login" replace />} />
