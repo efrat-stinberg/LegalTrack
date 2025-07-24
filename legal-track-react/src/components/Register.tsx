@@ -1,5 +1,5 @@
-// src/components/Register.tsx - Updated to handle both query and path parameters
-import { useSearchParams, useNavigate, useParams } from "react-router-dom";
+// src/components/Register.tsx - FIXED VERSION
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { TextField, Button, Snackbar, Box, Alert, Typography, Paper, Avatar, CircularProgress } from "@mui/material";
 import { styled } from "@mui/material/styles";
@@ -32,17 +32,13 @@ const Register = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
-  const { token: pathToken } = useParams(); // Get token from path params
   
-  // Try to get token from both query params and path params
-  const queryToken = searchParams.get("token");
-  const token = queryToken || pathToken;
+  // Only get token from query parameters - this is the fix!
+  const token = searchParams.get("token");
   
   console.log('Register component rendered');
   console.log('Search params:', Object.fromEntries(searchParams.entries()));
-  console.log('Path params token:', pathToken);
-  console.log('Query params token:', queryToken);
-  console.log('Final token:', token);
+  console.log('Token from query params:', token);
   console.log('Current URL:', window.location.href);
   
   const [groupId, setGroupId] = useState<number | null>(null);
@@ -65,7 +61,6 @@ const Register = () => {
         console.error('No token provided in URL');
         console.log('Current URL:', window.location.href);
         console.log('Search params:', Object.fromEntries(searchParams.entries()));
-        console.log('Path params:', { pathToken });
         setStatus("invalid");
         setErrorMessage("לא נמצא טוקן בקישור");
         return;
@@ -113,7 +108,7 @@ const Register = () => {
     };
 
     validateToken();
-  }, [token, searchParams, pathToken]);
+  }, [token, searchParams]); // Removed pathToken from dependencies
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -224,12 +219,6 @@ const Register = () => {
               Debug: Token = {token || 'NULL'}
             </Typography>
             <Typography variant="caption" component="div">
-              Query Token = {queryToken || 'NULL'}
-            </Typography>
-            <Typography variant="caption" component="div">
-              Path Token = {pathToken || 'NULL'}
-            </Typography>
-            <Typography variant="caption" component="div">
               URL = {window.location.href}
             </Typography>
           </Box>
@@ -270,12 +259,6 @@ const Register = () => {
               </Typography>
               <Typography variant="caption" component="div" color="error.dark">
                 Token: {token || 'NULL'}
-              </Typography>
-              <Typography variant="caption" component="div" color="error.dark">
-                Query Token: {queryToken || 'NULL'}
-              </Typography>
-              <Typography variant="caption" component="div" color="error.dark">
-                Path Token: {pathToken || 'NULL'}
               </Typography>
               <Typography variant="caption" component="div" color="error.dark">
                 Error: {errorMessage}
@@ -410,13 +393,7 @@ const Register = () => {
             Debug Info:
           </Typography>
           <Typography variant="caption" component="div" color="info.dark">
-            Final Token: {token}
-          </Typography>
-          <Typography variant="caption" component="div" color="info.dark">
-            Query Token: {queryToken}
-          </Typography>
-          <Typography variant="caption" component="div" color="info.dark">
-            Path Token: {pathToken}
+            Token: {token}
           </Typography>
           <Typography variant="caption" component="div" color="info.dark">
             Email: {email}
