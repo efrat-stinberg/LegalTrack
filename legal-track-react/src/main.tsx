@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App.tsx';
 
-// הוספת error handler גלובלי
 window.addEventListener('error', (event) => {
   console.error('Global error caught:', event.error);
 });
@@ -26,6 +25,7 @@ try {
 
   root.render(
     <StrictMode>
+        <App />
         <App />
     </StrictMode>,
   );
