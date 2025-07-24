@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -377,7 +377,7 @@ const Login = () => {
   const [passwordError, setPasswordError] = useState("");
   const [loginSuccess, setLoginSuccess] = useState(false);
 
-  const validateEmail = (email) => {
+  const validateEmail = (email : string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email) {
       setEmailError("אימייל הוא שדה חובה");
@@ -391,7 +391,7 @@ const Login = () => {
     }
   };
 
-  const validatePassword = (password) => {
+  const validatePassword = (password: string) => {
     if (!password) {
       setPasswordError("סיסמה היא שדה חובה");
       return false;
@@ -404,7 +404,7 @@ const Login = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e : any) => {
     e.preventDefault();
     
     const isEmailValid = validateEmail(email);
@@ -445,7 +445,7 @@ const Login = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleEmailChange = (e) => {
+  const handleEmailChange = (e : any) => {
     const value = e.target.value;
     setEmail(value);
     if (emailError) {
@@ -453,7 +453,7 @@ const Login = () => {
     }
   };
 
-  const handlePasswordChange = (e) => {
+  const handlePasswordChange = (e :any) => {
     const value = e.target.value;
     setPassword(value);
     if (passwordError) {
