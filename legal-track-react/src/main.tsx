@@ -1,7 +1,7 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import './index.css';
+import App from './App.tsx';
 
 // הוספת error handler גלובלי
 window.addEventListener('error', (event) => {
@@ -21,20 +21,19 @@ try {
   }
 
   const root = createRoot(rootElement);
-  
+
   console.log('Root created successfully');
-  
+
   root.render(
     <StrictMode>
-      <App />
-    </StrictMode>
+        <App />
+    </StrictMode>,
   );
-  
+
   console.log('App rendered successfully');
 } catch (error) {
   console.error('Failed to initialize React app:', error);
-  
-  // הצג שגיאה בHTML אם React נכשל
+
   const rootElement = document.getElementById('root');
   if (rootElement) {
     rootElement.innerHTML = `

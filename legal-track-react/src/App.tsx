@@ -1,5 +1,5 @@
 // App.tsx - Make sure you have this routing setup
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as  Routes, Route, Navigate, HashRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -31,7 +31,7 @@ function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <ErrorBoundary>
-          <Router>
+          <HashRouter>
             <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<AuthPage />} />
@@ -57,7 +57,7 @@ function App() {
               {/* Fallback for unknown routes */}
               <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
-          </Router>
+          </HashRouter>
         </ErrorBoundary>
       </ThemeProvider>
     </Provider>
