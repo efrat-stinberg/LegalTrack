@@ -80,7 +80,7 @@ import { MatDivider } from "@angular/material/divider";
             </mat-card-content>
           </mat-card>
 
-          <mat-card class="stat-card admins">
+          <!-- <mat-card class="stat-card admins">
             <mat-card-content>
               <div class="stat-content">
                 <div class="stat-icon admin">
@@ -96,7 +96,7 @@ import { MatDivider } from "@angular/material/divider";
                 </div>
               </div>
             </mat-card-content>
-          </mat-card>
+          </mat-card> -->
 
           <mat-card class="stat-card lawyers">
             <mat-card-content>
