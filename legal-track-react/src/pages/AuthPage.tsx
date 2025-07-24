@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import Login from "../components/Login";
 import {
   Box,
   Typography,
@@ -11,7 +10,15 @@ import {
   Card,
   CardContent,
   Avatar,
-  Chip
+  Chip,
+  TextField,
+  Button,
+  Snackbar,
+  InputAdornment,
+  IconButton,
+  Alert,
+  CircularProgress,
+  alpha
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import {
@@ -23,27 +30,34 @@ import {
   Users,
   Briefcase,
   Award,
-  Lock
+  Lock,
+  Mail,
+  LogIn,
+  Eye,
+  EyeOff
 } from "lucide-react";
 
-// Page container that fills the viewport
+// Fixed Page container that allows scrolling
 const PageContainer = styled(Box)(({  }) => ({
   minHeight: '100vh',
   display: 'flex',
   flexDirection: 'column',
   background: `linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%)`,
   position: 'relative',
-  overflow: 'hidden',
+  // Removed overflow: 'hidden' to allow scrolling
   paddingTop: 0,
+  paddingBottom: '2rem', // Add bottom padding for better spacing
 }));
 
-// Wrapper to align content at top
+// Wrapper to align content at top with natural height
 const ContentWrapper = styled(Container)(({ theme }) => ({
   display: 'flex',
-  alignItems: 'flex-start', // Align content to top
+  alignItems: 'flex-start',
   justifyContent: 'center',
   padding: theme.spacing(6, 2),
   maxWidth: '1400px !important',
+  flex: 1, // Allow natural growth
+  width: '100%',
 
   [theme.breakpoints.down('md')]: {
     padding: theme.spacing(4, 1),
@@ -86,7 +100,7 @@ const LoginSection = styled(Paper)(({ theme }) => ({
   backdropFilter: 'blur(20px)',
   boxShadow: `0 20px 40px rgba(0, 0, 0, 0.1)`,
   position: 'relative',
-  overflow: 'hidden',
+  // Removed overflow: 'hidden' to allow content to expand
 
   '&::before': {
     content: '""',
@@ -241,7 +255,331 @@ const TrustBadges = styled(Box)(({ theme }) => ({
   },
 }));
 
-const AuthPage: React.FC = () => {
+// Login Form Styles
+const FormContainer = styled(Box)(({  }) => ({
+  width: '100%',
+  maxWidth: 400,
+  margin: '0 auto',
+}));
+
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: 6,
+    background: '#ffffff',
+    transition: 'all 0.2s ease',
+    fontSize: '0.875rem',
+    
+    '& fieldset': {
+      borderColor: alpha('#64748b', 0.3),
+      borderWidth: '1px',
+    },
+    
+    '&:hover fieldset': {
+      borderColor: alpha('#3b82f6', 0.5),
+    },
+    
+    '&.Mui-focused fieldset': {
+      borderColor: '#3b82f6',
+      borderWidth: '2px',
+    },
+    
+    '&.Mui-error fieldset': {
+      borderColor: '#ef4444',
+    }
+  },
+  
+  '& .MuiInputLabel-root': {
+    color: '#64748b',
+    fontSize: '0.875rem',
+    
+    '&.Mui-focused': {
+      color: '#3b82f6',
+    },
+    
+    '&.Mui-error': {
+      color: '#ef4444',
+    }
+  },
+  
+  '& .MuiInputBase-input': {
+    fontSize: '0.875rem',
+    color: '#0f172a',
+    padding: '12px 14px',
+  },
+  
+  '& .MuiFormHelperText-root': {
+    fontSize: '0.75rem',
+    marginLeft: 0,
+    marginRight: 0,
+    marginTop: theme.spacing(0.5),
+    
+    '&.Mui-error': {
+      color: '#ef4444',
+    }
+  }
+}));
+
+const LoginButton = styled(Button)(({ theme }) => ({
+  borderRadius: 6,
+  padding: theme.spacing(1.5, 3),
+  background: '#3b82f6',
+  color: '#ffffff',
+  fontWeight: 500,
+  fontSize: '0.875rem',
+  textTransform: 'none',
+  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+  transition: 'all 0.2s ease',
+  border: 'none',
+  
+  '&:hover': {
+    background: '#2563eb',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+  },
+  
+  '&:active': {
+    background: '#1d4ed8',
+    transform: 'translateY(1px)',
+  },
+  
+  '&:disabled': {
+    background: '#e2e8f0',
+    color: '#94a3b8',
+    cursor: 'not-allowed',
+    boxShadow: 'none',
+    transform: 'none',
+    
+    '&:hover': {
+      background: '#e2e8f0',
+    }
+  }
+}));
+
+const SecurityBadge = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(1),
+  padding: theme.spacing(1.5, 2),
+  background: '#f0f9ff',
+  borderRadius: 6,
+  border: `1px solid ${alpha('#3b82f6', 0.2)}`,
+  marginTop: theme.spacing(3),
+}));
+
+// Login Component
+const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [loginSuccess, setLoginSuccess] = useState(false);
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      setEmailError("אימייל הוא שדה חובה");
+      return false;
+    } else if (!emailRegex.test(email)) {
+      setEmailError("אימייל לא תקין");
+      return false;
+    } else {
+      setEmailError("");
+      return true;
+    }
+  };
+
+  const validatePassword = (password) => {
+    if (!password) {
+      setPasswordError("סיסמה היא שדה חובה");
+      return false;
+    } else if (password.length < 3) {
+      setPasswordError("סיסמה חייבת להכיל לפחות 3 תווים");
+      return false;
+    } else {
+      setPasswordError("");
+      return true;
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    const isEmailValid = validateEmail(email);
+    const isPasswordValid = validatePassword(password);
+    
+    if (!isEmailValid || !isPasswordValid) {
+      return;
+    }
+    
+    setIsLoading(true);
+    setErrorMessage("");
+    
+    try {
+      // Simulate login process
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      setLoginSuccess(true);
+      
+      setTimeout(() => {
+        alert('Login successful! (This is a demo)');
+        setIsLoading(false);
+        setLoginSuccess(false);
+      }, 1000);
+      
+    } catch (error) {
+      setLoginSuccess(false);
+      setErrorMessage("התחברות נכשלה. אנא בדוק את הפרטים שלך.");
+      setOpenSnackbar(true);
+      setIsLoading(false);
+    }
+  };
+
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false);
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    setEmail(value);
+    if (emailError) {
+      validateEmail(value);
+    }
+  };
+
+  const handlePasswordChange = (e) => {
+    const value = e.target.value;
+    setPassword(value);
+    if (passwordError) {
+      validatePassword(value);
+    }
+  };
+
+  const isFormValid = email.trim() && password.trim() && !emailError && !passwordError;
+
+  return (
+    <FormContainer>
+      <Fade in={true} timeout={600}>
+        <Box component="form" onSubmit={handleSubmit}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+            <StyledTextField
+              type="email"
+              label="כתובת אימייל"
+              value={email}
+              onChange={handleEmailChange}
+              onBlur={() => validateEmail(email)}
+              error={!!emailError}
+              helperText={emailError}
+              required
+              fullWidth
+              disabled={isLoading}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Mail size={16} color="#64748b" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <StyledTextField
+              type={showPassword ? "text" : "password"}
+              label="סיסמה"
+              value={password}
+              onChange={handlePasswordChange}
+              onBlur={() => validatePassword(password)}
+              error={!!passwordError}
+              helperText={passwordError}
+              required
+              fullWidth
+              disabled={isLoading}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Lock size={16} color="#64748b" />
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton 
+                      onClick={togglePasswordVisibility} 
+                      edge="end"
+                      size="small"
+                      sx={{ color: '#64748b' }}
+                    >
+                      {showPassword ? <EyeOff fontSize="small" /> : <Eye fontSize="small" />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <LoginButton 
+              type="submit" 
+              variant="contained"
+              fullWidth
+              size="large"
+              disabled={isLoading || !isFormValid}
+              startIcon={
+                isLoading ? (
+                  <CircularProgress size={16} color="inherit" />
+                ) : loginSuccess ? (
+                  <CheckCircle size={16} />
+                ) : (
+                  <LogIn size={16} />
+                )
+              }
+            >
+              {isLoading ? 'מתחבר...' : loginSuccess ? 'התחברות הושלמה!' : 'התחבר למערכת'}
+            </LoginButton>
+
+            <SecurityBadge>
+              <CheckCircle size={16} color="#10b981" />
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: '#0f172a',
+                  fontSize: '0.75rem',
+                  fontWeight: 500
+                }}
+              >
+                חיבור מוצפן ומאובטח SSL
+              </Typography>
+            </SecurityBadge>
+          </Box>
+        </Box>
+      </Fade>
+      
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity="error" 
+          sx={{ 
+            width: '100%',
+            borderRadius: 2,
+            fontSize: '0.875rem'
+          }}
+        >
+          {errorMessage}
+        </Alert>
+      </Snackbar>
+    </FormContainer>
+  );
+};
+
+// Main AuthPage Component
+const AuthPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
