@@ -27,24 +27,19 @@ namespace TaxManagerServer.Service
         {
             if (_apiKey == null) throw new Exception("API key is missing from configuration");
             if (_senderEmail == null) throw new Exception("SenderEmail is missing from configuration");
+
             var client = new SendGridClient(_apiKey);
             var from = new EmailAddress(_senderEmail, "LegalFlow");
-            var subject = "You’ve been invited to join a group";
+            var subject = "You've been invited to join a group";
             var to = new EmailAddress(toEmail);
 
-            string url = $"{_frontendBaseUrl}/?token={token}";
-            Console.WriteLine("----------------------------------------");
-            Console.WriteLine("----------------------------------------");
-            Console.WriteLine("----------------------------------------");
-            Console.WriteLine("----------------------------------------");
-            Console.WriteLine("----------------------------------------");
-            Console.WriteLine("----------------------------------------");
-            Console.WriteLine(url);
+            // Fix: Use query parameter format instead of path parameter
+            string url = $"{_frontendBaseUrl}/register?token={token}";
+
             string htmlContent = $@"
             <p>Hello,</p>
             <p>You have been invited to join the LegalFlow platform.</p>
             <p><a href='{url}'>Click here to accept the invitation</a></p>
-            <p>{url}</p>
             <p>This link is personal and should not be shared.</p>";
 
             var msg = MailHelper.CreateSingleEmail(from, to, subject, null, htmlContent);
@@ -58,9 +53,6 @@ namespace TaxManagerServer.Service
             {
                 Console.WriteLine($"SendGrid error: " + ex.Message);
             }
-
-
-            
         }
     }
 }
