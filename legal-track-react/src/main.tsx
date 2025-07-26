@@ -25,8 +25,7 @@ try {
 
   root.render(
     <StrictMode>
-        <App />
-        <App />
+      <App />
     </StrictMode>,
   );
 

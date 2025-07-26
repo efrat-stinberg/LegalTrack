@@ -53,6 +53,7 @@ function App() {
                 <Route path="support" element={<SupportPage />} />
                 <Route path="folder-management" element={<FolderManagementPage />} />
               </Route>
+              
 
               {/* Fallback for unknown routes */}
               <Route path="*" element={<Navigate to="/" replace />} />
