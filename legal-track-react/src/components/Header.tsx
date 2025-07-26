@@ -289,7 +289,7 @@ const Header: React.FC = () => {
 
   const menuItems: MenuItem[] = [
     {
-      path: '/home',
+      path: '/',
       label: 'עמוד בית',
       icon: <Home size={20} />,
       section: 'main'
@@ -301,7 +301,7 @@ const Header: React.FC = () => {
       section: 'management'
     },
     {
-      path: '/folders-management',
+      path: '/folder-management',
       label: 'ניהול תיקיות מתקדם',
       icon: <FolderCog size={20} />,
       section: 'management'
@@ -340,7 +340,7 @@ const Header: React.FC = () => {
   ];
 
   const handleLogoClick = () => {
-    navigate('/home');
+    navigate('/');
   };
 
   const handleDrawerToggle = () => {
@@ -355,6 +355,11 @@ const Header: React.FC = () => {
   };
 
   const isActivePath = (path: string) => {
+    // מטפל בעמוד הבית
+    if (path === '/') {
+      return location.pathname === '/' || location.pathname === '/home';
+    }
+    
     return (
       location.pathname === path || 
       location.pathname.startsWith(path + '/') ||
@@ -459,6 +464,7 @@ const Header: React.FC = () => {
           <MenuListItem 
             sx={{ cursor: 'pointer' }}
             onClick={() => handleMenuItemClick('/settings')}
+            className={isActivePath('/settings') ? 'active' : ''}
           >
             <ListItemIcon sx={{ minWidth: 40 }}>
               <Settings size={20} />
@@ -474,6 +480,7 @@ const Header: React.FC = () => {
           <MenuListItem 
             sx={{ cursor: 'pointer' }}
             onClick={() => handleMenuItemClick('/support')}
+            className={isActivePath('/support') ? 'active' : ''}
           >
             <ListItemIcon sx={{ minWidth: 40 }}>
               <HelpCircle size={20} />

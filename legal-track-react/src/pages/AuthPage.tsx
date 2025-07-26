@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -36,27 +38,27 @@ import {
   Eye,
   EyeOff
 } from "lucide-react";
+import { loginUser, getUserByEmail } from "../api/api";
+import { login } from "../store/slices/userSlice";
 
-// Fixed Page container that allows scrolling
-const PageContainer = styled(Box)(({  }) => ({
+// Styled Components (קצרנו את הקוד)
+const PageContainer = styled(Box)(() => ({
   minHeight: '100vh',
   display: 'flex',
   flexDirection: 'column',
   background: `linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%)`,
   position: 'relative',
-  // Removed overflow: 'hidden' to allow scrolling
   paddingTop: 0,
-  paddingBottom: '2rem', // Add bottom padding for better spacing
+  paddingBottom: '2rem',
 }));
 
-// Wrapper to align content at top with natural height
 const ContentWrapper = styled(Container)(({ theme }) => ({
   display: 'flex',
   alignItems: 'flex-start',
   justifyContent: 'center',
   padding: theme.spacing(6, 2),
   maxWidth: '1400px !important',
-  flex: 1, // Allow natural growth
+  flex: 1,
   width: '100%',
 
   [theme.breakpoints.down('md')]: {
@@ -83,15 +85,6 @@ const MainContent = styled(Box)(({ theme }) => ({
   },
 }));
 
-const BrandSection = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(4),
-
-  [theme.breakpoints.down('md')]: {
-    padding: theme.spacing(2),
-    order: 2,
-  },
-}));
-
 const LoginSection = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
   borderRadius: 24,
@@ -100,7 +93,6 @@ const LoginSection = styled(Paper)(({ theme }) => ({
   backdropFilter: 'blur(20px)',
   boxShadow: `0 20px 40px rgba(0, 0, 0, 0.1)`,
   position: 'relative',
-  // Removed overflow: 'hidden' to allow content to expand
 
   '&::before': {
     content: '""',
@@ -116,150 +108,6 @@ const LoginSection = styled(Paper)(({ theme }) => ({
     padding: theme.spacing(3),
     order: 1,
   },
-
-  [theme.breakpoints.down('sm')]: {
-    padding: theme.spacing(2),
-    borderRadius: 16,
-  },
-}));
-
-const LogoSection = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: theme.spacing(3),
-  marginBottom: theme.spacing(4),
-
-  [theme.breakpoints.down('md')]: {
-    justifyContent: 'center',
-    marginBottom: theme.spacing(3),
-  },
-
-  [theme.breakpoints.down('sm')]: {
-    gap: theme.spacing(2),
-    marginBottom: theme.spacing(2),
-  },
-}));
-
-const LogoIcon = styled(Avatar)(({ theme }) => ({
-  width: 72,
-  height: 72,
-  background: `linear-gradient(135deg, #3b82f6, #8b5cf6)`,
-  boxShadow: `0 8px 32px rgba(59, 130, 246, 0.4)`,
-  position: 'relative',
-
-  '&::after': {
-    content: '""',
-    position: 'absolute',
-    inset: 0,
-    borderRadius: '50%',
-    padding: '2px',
-    background: 'linear-gradient(135deg, rgba(255,255,255,0.2), transparent)',
-    WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-    WebkitMaskComposite: 'subtract',
-    maskComposite: 'subtract',
-  },
-
-  [theme.breakpoints.down('sm')]: {
-    width: 56,
-    height: 56,
-  },
-}));
-
-const FeatureGrid = styled(Box)(({ theme }) => ({
-  display: 'grid',
-  gap: theme.spacing(3),
-  marginTop: theme.spacing(4),
-
-  [theme.breakpoints.up('lg')]: {
-    gridTemplateColumns: 'repeat(2, 1fr)',
-  },
-
-  [theme.breakpoints.down('md')]: {
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: theme.spacing(2),
-  },
-
-  [theme.breakpoints.down('sm')]: {
-    gridTemplateColumns: '1fr',
-  },
-}));
-
-const FeatureCard = styled(Card)(({ theme }) => ({
-  padding: theme.spacing(3),
-  borderRadius: 16,
-  background: `linear-gradient(145deg, ${theme.palette.background.paper}, rgba(255, 255, 255, 0.8))`,
-  border: `1px solid rgba(59, 130, 246, 0.1)`,
-  transition: 'all 0.3s ease',
-
-  '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: `0 12px 32px rgba(59, 130, 246, 0.15)`,
-  },
-
-  [theme.breakpoints.down('sm')]: {
-    padding: theme.spacing(2),
-  },
-}));
-
-const FeatureIcon = styled(Box)(({ theme }) => ({
-  width: 48,
-  height: 48,
-  borderRadius: 12,
-  background: `linear-gradient(135deg, #3b82f6, #8b5cf6)`,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginBottom: theme.spacing(2),
-
-  '& svg': {
-    color: 'white',
-  },
-
-  [theme.breakpoints.down('sm')]: {
-    width: 40,
-    height: 40,
-    marginBottom: theme.spacing(1),
-  },
-}));
-
-const StatsSection = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  gap: theme.spacing(4),
-  marginTop: theme.spacing(4),
-  justifyContent: 'center',
-  flexWrap: 'wrap',
-
-  [theme.breakpoints.down('md')]: {
-    gap: theme.spacing(2),
-    marginTop: theme.spacing(3),
-  },
-}));
-
-const StatItem = styled(Box)(({ theme }) => ({
-  textAlign: 'center',
-
-  [theme.breakpoints.down('sm')]: {
-    minWidth: 80,
-  },
-}));
-
-const TrustBadges = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  gap: theme.spacing(2),
-  marginTop: theme.spacing(3),
-  justifyContent: 'center',
-  flexWrap: 'wrap',
-
-  [theme.breakpoints.down('sm')]: {
-    gap: theme.spacing(1),
-  },
-}));
-
-// Login Form Styles
-const FormContainer = styled(Box)(({  }) => ({
-  width: '100%',
-  maxWidth: 400,
-  margin: '0 auto',
 }));
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
@@ -354,19 +202,11 @@ const LoginButton = styled(Button)(({ theme }) => ({
   }
 }));
 
-const SecurityBadge = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: theme.spacing(1),
-  padding: theme.spacing(1.5, 2),
-  background: '#f0f9ff',
-  borderRadius: 6,
-  border: `1px solid ${alpha('#3b82f6', 0.2)}`,
-  marginTop: theme.spacing(3),
-}));
-
 // Login Component
 const Login = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -377,7 +217,7 @@ const Login = () => {
   const [passwordError, setPasswordError] = useState("");
   const [loginSuccess, setLoginSuccess] = useState(false);
 
-  const validateEmail = (email : string) => {
+  const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email) {
       setEmailError("אימייל הוא שדה חובה");
@@ -404,7 +244,7 @@ const Login = () => {
     }
   };
 
-  const handleSubmit = async (e : any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const isEmailValid = validateEmail(email);
@@ -418,21 +258,47 @@ const Login = () => {
     setErrorMessage("");
     
     try {
-      // Simulate login process
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const token = await loginUser(email, password);
+      localStorage.setItem('token', JSON.stringify(token));
       
       setLoginSuccess(true);
       
+      const user = await getUserByEmail(email);
+      
+      if (!user || !user.email) {
+        throw new Error('Invalid user data received from server');
+      }
+      
+      dispatch(login(user));
+      
       setTimeout(() => {
-        alert('Login successful! (This is a demo)');
-        setIsLoading(false);
-        setLoginSuccess(false);
+        navigate("/home", { replace: true });
       }, 1000);
       
-    } catch (error) {
+    } catch (error: any) {
       setLoginSuccess(false);
-      setErrorMessage("התחברות נכשלה. אנא בדוק את הפרטים שלך.");
+      
+      let errorMsg = "התחברות נכשלה. אנא בדוק את הפרטים שלך.";
+      
+      if (error.response) {
+        if (error.response.status === 401) {
+          errorMsg = "אימייל או סיסמה שגויים";
+        } else if (error.response.status === 429) {
+          errorMsg = "יותר מדי ניסיונות התחברות. נסה שוב מאוחר יותר";
+        } else {
+          errorMsg = error.response.data?.message || `שגיאת שרת: ${error.response.status}`;
+        }
+      } else if (error.request) {
+        errorMsg = "בעיית חיבור לשרת. אנא בדוק את החיבור לאינטרנט.";
+      } else {
+        errorMsg = error.message || "אירעה שגיאה לא צפויה.";
+      }
+      
+      setErrorMessage(errorMsg);
       setOpenSnackbar(true);
+      
+      localStorage.removeItem('token');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -445,116 +311,113 @@ const Login = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleEmailChange = (e : any) => {
-    const value = e.target.value;
-    setEmail(value);
-    if (emailError) {
-      validateEmail(value);
-    }
-  };
-
-  const handlePasswordChange = (e :any) => {
-    const value = e.target.value;
-    setPassword(value);
-    if (passwordError) {
-      validatePassword(value);
-    }
-  };
-
   const isFormValid = email.trim() && password.trim() && !emailError && !passwordError;
 
   return (
-    <FormContainer>
-      <Fade in={true} timeout={600}>
-        <Box component="form" onSubmit={handleSubmit}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-            <StyledTextField
-              type="email"
-              label="כתובת אימייל"
-              value={email}
-              onChange={handleEmailChange}
-              onBlur={() => validateEmail(email)}
-              error={!!emailError}
-              helperText={emailError}
-              required
-              fullWidth
-              disabled={isLoading}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Mail size={16} color="#64748b" />
-                  </InputAdornment>
-                ),
-              }}
-            />
+    <Box component="form" onSubmit={handleSubmit}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+        <StyledTextField
+          type="email"
+          label="כתובת אימייל"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (emailError) validateEmail(e.target.value);
+          }}
+          onBlur={() => validateEmail(email)}
+          error={!!emailError}
+          helperText={emailError}
+          required
+          fullWidth
+          disabled={isLoading}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Mail size={16} color="#64748b" />
+              </InputAdornment>
+            ),
+          }}
+        />
 
-            <StyledTextField
-              type={showPassword ? "text" : "password"}
-              label="סיסמה"
-              value={password}
-              onChange={handlePasswordChange}
-              onBlur={() => validatePassword(password)}
-              error={!!passwordError}
-              helperText={passwordError}
-              required
-              fullWidth
-              disabled={isLoading}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Lock size={16} color="#64748b" />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton 
-                      onClick={togglePasswordVisibility} 
-                      edge="end"
-                      size="small"
-                      sx={{ color: '#64748b' }}
-                    >
-                      {showPassword ? <EyeOff fontSize="small" /> : <Eye fontSize="small" />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
+        <StyledTextField
+          type={showPassword ? "text" : "password"}
+          label="סיסמה"
+          value={password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            if (passwordError) validatePassword(e.target.value);
+          }}
+          onBlur={() => validatePassword(password)}
+          error={!!passwordError}
+          helperText={passwordError}
+          required
+          fullWidth
+          disabled={isLoading}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Lock size={16} color="#64748b" />
+              </InputAdornment>
+            ),
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton 
+                  onClick={togglePasswordVisibility} 
+                  edge="end"
+                  size="small"
+                  sx={{ color: '#64748b' }}
+                >
+                  {showPassword ? <EyeOff fontSize="small" /> : <Eye fontSize="small" />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
 
-            <LoginButton 
-              type="submit" 
-              variant="contained"
-              fullWidth
-              size="large"
-              disabled={isLoading || !isFormValid}
-              startIcon={
-                isLoading ? (
-                  <CircularProgress size={16} color="inherit" />
-                ) : loginSuccess ? (
-                  <CheckCircle size={16} />
-                ) : (
-                  <LogIn size={16} />
-                )
-              }
-            >
-              {isLoading ? 'מתחבר...' : loginSuccess ? 'התחברות הושלמה!' : 'התחבר למערכת'}
-            </LoginButton>
+        <LoginButton 
+          type="submit" 
+          variant="contained"
+          fullWidth
+          size="large"
+          disabled={isLoading || !isFormValid}
+          startIcon={
+            isLoading ? (
+              <CircularProgress size={16} color="inherit" />
+            ) : loginSuccess ? (
+              <CheckCircle size={16} />
+            ) : (
+              <LogIn size={16} />
+            )
+          }
+        >
+          {isLoading ? 'מתחבר...' : loginSuccess ? 'התחברות הושלמה!' : 'התחבר למערכת'}
+        </LoginButton>
 
-            <SecurityBadge>
-              <CheckCircle size={16} color="#10b981" />
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  color: '#0f172a',
-                  fontSize: '0.75rem',
-                  fontWeight: 500
-                }}
-              >
-                חיבור מוצפן ומאובטח SSL
-              </Typography>
-            </SecurityBadge>
-          </Box>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            padding: '12px 16px',
+            background: '#f0f9ff',
+            borderRadius: 6,
+            border: `1px solid ${alpha('#3b82f6', 0.2)}`,
+            marginTop: 3,
+          }}
+        >
+          <CheckCircle size={16} color="#10b981" />
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              color: '#0f172a',
+              fontSize: '0.75rem',
+              fontWeight: 500
+            }}
+          >
+            חיבור מוצפן ומאובטח SSL
+          </Typography>
         </Box>
-      </Fade>
+      </Box>
       
       <Snackbar
         open={openSnackbar}
@@ -574,7 +437,7 @@ const Login = () => {
           {errorMessage}
         </Alert>
       </Snackbar>
-    </FormContainer>
+    </Box>
   );
 };
 
@@ -583,20 +446,11 @@ const AuthPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
-  const [, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
 
   const features = [
     {
       icon: <FileText size={20} />,
-      title: "ניהול תיקים דיגיטלי",
+      title: "ניהול מסמכים חכם",
       description: "מערכת מתקדמת לניהול כל התיקים והמסמכים במקום אחד.",
     },
     {
@@ -616,22 +470,23 @@ const AuthPage = () => {
     },
   ];
 
-  const stats = [
-    { number: '1,000+', label: 'תיקים' },
-    { number: '50,000+', label: 'מסמכים' },
-    { number: '99.9%', label: 'זמינות' },
-    { number: '24/7', label: 'תמיכה' },
-  ];
-
   return (
     <PageContainer>
       <ContentWrapper>
         <MainContent>
-          <BrandSection>
-            <LogoSection>
-              <LogoIcon>
-                <Scale size={isMobile ? 28 : 36} color="white" />
-              </LogoIcon>
+          {/* Brand Section */}
+          <Box sx={{ p: 4 }}>
+            <Box display="flex" alignItems="center" gap={3} mb={4}>
+              <Avatar
+                sx={{
+                  width: 72,
+                  height: 72,
+                  background: `linear-gradient(135deg, #3b82f6, #8b5cf6)`,
+                  boxShadow: `0 8px 32px rgba(59, 130, 246, 0.4)`,
+                }}
+              >
+                <Scale size={36} color="white" />
+              </Avatar>
               <Box>
                 <Typography
                   variant={isMobile ? "h4" : "h3"}
@@ -655,7 +510,7 @@ const AuthPage = () => {
                   מערכת ניהול תיקים משפטיים מתקדמת
                 </Typography>
               </Box>
-            </LogoSection>
+            </Box>
 
             <Typography
               variant={isMobile ? "h5" : "h4"}
@@ -682,19 +537,33 @@ const AuthPage = () => {
               ניהול תיקים, מעקב אחר לקוחות, ארגון מסמכים ועוד - הכל במקום אחד.
             </Typography>
 
-            <FeatureGrid>
+            <Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap={3}>
               {features.map((feature, index) => (
                 <Fade in={true} timeout={600 + index * 100} key={index}>
-                  <FeatureCard>
-                    <CardContent sx={{ p: '16px !important' }}>
-                      <FeatureIcon>{feature.icon}</FeatureIcon>
+                  <Card>
+                    <CardContent sx={{ p: 2 }}>
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 2,
+                          background: `linear-gradient(135deg, #667eea, #764ba2)`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          mb: 2,
+                          color: 'white'
+                        }}
+                      >
+                        {feature.icon}
+                      </Box>
                       <Typography
                         variant="h6"
                         sx={{
                           fontWeight: 600,
                           color: '#1e293b',
                           mb: 1,
-                          fontSize: isSmall ? '1rem' : '1.125rem'
+                          fontSize: '1rem'
                         }}
                       >
                         {feature.title}
@@ -704,41 +573,18 @@ const AuthPage = () => {
                         sx={{
                           color: '#64748b',
                           lineHeight: 1.5,
-                          fontSize: isSmall ? '0.875rem' : '1rem'
+                          fontSize: '0.875rem'
                         }}
                       >
                         {feature.description}
                       </Typography>
                     </CardContent>
-                  </FeatureCard>
+                  </Card>
                 </Fade>
               ))}
-            </FeatureGrid>
+            </Box>
 
-            <StatsSection>
-              {stats.map((stat, index) => (
-                <StatItem key={index}>
-                  <Typography
-                    variant={isMobile ? "h5" : "h4"}
-                    sx={{
-                      fontWeight: 700,
-                      color: '#3b82f6',
-                      mb: 0.5
-                    }}
-                  >
-                    {stat.number}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: '#64748b' }}
-                  >
-                    {stat.label}
-                  </Typography>
-                </StatItem>
-              ))}
-            </StatsSection>
-
-            <TrustBadges>
+            <Box display="flex" gap={2} justifyContent="center" mt={4} flexWrap="wrap">
               <Chip
                 icon={<CheckCircle size={16} />}
                 label="מערכת מאובטחת"
@@ -759,29 +605,12 @@ const AuthPage = () => {
                   fontWeight: 600
                 }}
               />
-              <Chip
-                icon={<Lock size={16} />}
-                label="הצפנה SSL"
-                sx={{
-                  background: 'rgba(139, 92, 246, 0.1)',
-                  color: '#8b5cf6',
-                  border: '1px solid rgba(139, 92, 246, 0.2)',
-                  fontWeight: 600
-                }}
-              />
-            </TrustBadges>
-          </BrandSection>
+            </Box>
+          </Box>
 
+          {/* Login Section */}
           <LoginSection>
             <Box textAlign="center" mb={4}>
-              {isMobile && (
-                <Box mb={3}>
-                  <LogoIcon sx={{ margin: '0 auto', mb: 2 }}>
-                    <Scale size={28} color="white" />
-                  </LogoIcon>
-                </Box>
-              )}
-
               <Typography
                 variant={isMobile ? "h4" : "h3"}
                 sx={{
@@ -798,7 +627,7 @@ const AuthPage = () => {
                 variant="body1"
                 sx={{
                   color: '#64748b',
-                  fontSize: isSmall ? '0.875rem' : '1rem',
+                  fontSize: '1rem',
                   lineHeight: 1.6
                 }}
               >
@@ -849,7 +678,7 @@ const AuthPage = () => {
                       fontWeight: 600,
                       color: '#374151',
                       mb: 0.5,
-                      fontSize: isSmall ? '0.875rem' : '1rem'
+                      fontSize: '1rem'
                     }}
                   >
                     גישה מוגבלת למשרדי עורכי דין
@@ -858,7 +687,7 @@ const AuthPage = () => {
                     variant="caption"
                     sx={{
                       color: '#64748b',
-                      fontSize: isSmall ? '0.75rem' : '0.875rem',
+                      fontSize: '0.875rem',
                       lineHeight: 1.4
                     }}
                   >

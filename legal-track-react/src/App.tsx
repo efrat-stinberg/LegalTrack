@@ -1,4 +1,4 @@
-// App.tsx - Fixed routing setup
+// App.tsx - גרסה מתוקנת ומפושטת
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { ThemeProvider } from '@mui/material/styles';
@@ -6,7 +6,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { createTheme } from '@mui/material/styles';
 import Store from './store/store';
 
-// Import your components
+// Import components
 import AuthPage from './pages/AuthPage';
 import Register from './components/Register';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -24,7 +24,20 @@ import SupportPage from './pages/SupportPage';
 import FolderManagementPage from './pages/FolderManagementPage';
 import ErrorBoundary from './components/ErrorBoundary';
 
-const theme = createTheme();
+const theme = createTheme({
+  direction: 'rtl',
+  palette: {
+    primary: {
+      main: '#667eea',
+    },
+    secondary: {
+      main: '#764ba2',
+    },
+  },
+  typography: {
+    fontFamily: 'Heebo, Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+  },
+});
 
 function App() {
   return (
@@ -53,7 +66,6 @@ function App() {
                 <Route path="support" element={<SupportPage />} />
                 <Route path="folder-management" element={<FolderManagementPage />} />
               </Route>
-              
 
               {/* Fallback for unknown routes */}
               <Route path="*" element={<Navigate to="/" replace />} />
