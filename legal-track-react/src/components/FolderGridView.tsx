@@ -1,3 +1,4 @@
+// FolderGridView.tsx - תיקון הניווט
 import React, { useState } from 'react';
 import {
   Card,
@@ -61,7 +62,7 @@ interface Folder {
 
 interface FolderGridViewProps {
   folders: Folder[];
-  onFolderClick: (folder: Folder) => void;
+  onFolderClick: (folder: { id: number }) => void;
   onEditFolder: (oldName: string, newName: string) => void;
   onDeleteFolder: (folderId: number) => void;
   searchQuery?: string;
@@ -186,10 +187,27 @@ const FolderGridView: React.FC<FolderGridViewProps> = ({
     'linear-gradient(135deg, #fecfef, #fecfef)',
   ];
 
+  const handleCardClick = (folder: Folder) => {
+    console.log('FolderGridView: Card clicked:', {
+      folderId: folder.id,
+      folderName: folder.name
+    });
+    
+    // וודא שיש ID תקין
+    if (!folder.id || isNaN(folder.id)) {
+      console.error('FolderGridView: Invalid folder ID:', folder.id);
+      return;
+    }
+    
+    // קריאה לפונקציה עם האובייקט הנכון
+    onFolderClick({ id: folder.id });
+  };
+
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, folder: Folder) => {
     event.stopPropagation();
     setAnchorEl(event.currentTarget);
     setSelectedFolder(folder);
+    console.log('FolderGridView: Menu opened for folder:', folder.id);
   };
 
   const handleMenuClose = () => {
@@ -221,6 +239,7 @@ const FolderGridView: React.FC<FolderGridViewProps> = ({
 
   const handleDeleteConfirm = () => {
     if (selectedFolder) {
+      console.log('FolderGridView: Deleting folder:', selectedFolder.id);
       onDeleteFolder(selectedFolder.id);
       setDeleteDialogOpen(false);
       setSelectedFolder(null);
@@ -255,7 +274,7 @@ const FolderGridView: React.FC<FolderGridViewProps> = ({
         {folders.map((folder, index) => (
           <Zoom in={true} timeout={300 + index * 100} key={folder.id}>
             <FolderCard
-              onClick={() => onFolderClick(folder)}
+              onClick={() => handleCardClick(folder)}
               sx={{
                 '--folder-color': folderColors[index % folderColors.length],
               }}
@@ -297,6 +316,7 @@ const FolderGridView: React.FC<FolderGridViewProps> = ({
                     WebkitBoxOrient: 'vertical',
                     overflow: 'hidden'
                   }}
+                  title={folder.name}
                 >
                   {highlightText(folder.name, searchQuery)}
                 </Typography>
@@ -312,7 +332,7 @@ const FolderGridView: React.FC<FolderGridViewProps> = ({
                 {folder.clientName && (
                   <MetaInfo>
                     <User size={14} />
-                    <Typography variant="caption">
+                    <Typography variant="caption" title={folder.clientName}>
                       {highlightText(folder.clientName, searchQuery)}
                     </Typography>
                   </MetaInfo>
@@ -345,7 +365,7 @@ const FolderGridView: React.FC<FolderGridViewProps> = ({
           }
         }}
       >
-        <MenuItem onClick={() => selectedFolder && onFolderClick(selectedFolder)}>
+        <MenuItem onClick={() => selectedFolder && handleCardClick(selectedFolder)}>
           <Eye size={16} style={{ marginRight: 8 }} />
           פתח תיקייה
         </MenuItem>
