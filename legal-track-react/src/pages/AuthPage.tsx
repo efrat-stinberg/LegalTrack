@@ -4,10 +4,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
-  useTheme,
   Fade,
-  Container,
-  useMediaQuery,
   Paper,
   TextField,
   Button,
@@ -16,9 +13,7 @@ import {
   IconButton,
   Alert,
   CircularProgress,
-  alpha,
   Card,
-  Chip,
   Divider,
   Checkbox,
   FormControlLabel
@@ -28,28 +23,17 @@ import {
   Scale,
   Shield,
   CheckCircle,
-  FileText,
-  Users,
   Briefcase,
   Lock,
   Mail,
   LogIn,
   Eye,
   EyeOff,
-  Zap,
-  Sparkles,
-  Cpu,
-  Bot,
-  CloudDone,
-  SupportAgent,
   TrendingUp,
-  Groups,
-  Memory,
-  HelpOutline,
-  PersonAdd
 } from "lucide-react";
 import { loginUser, getUserByEmail } from "../api/api";
 import { login } from "../store/slices/userSlice";
+import { CloudDone, Groups, HelpOutline, Memory, PersonAdd, SupportAgent } from "@mui/icons-material";
 
 // Keyframes for animations
 const particleFloat = keyframes`
@@ -565,7 +549,11 @@ const FeatureIcon = styled(Box)<{ gradient: string }>(({ gradient }) => ({
   }
 }));
 
-const FeatureContent = styled(CardContent)(() => ({
+const StyledCardContent = styled(Box)(() => ({
+  padding: '40px !important',
+}));
+
+const FeatureContent = styled(Box)(() => ({
   padding: '0 !important',
 
   '& h4': {
@@ -703,9 +691,27 @@ const FormSubtitle = styled(Typography)(() => ({
   margin: 0,
 }));
 
-const CardContent = styled(Box)(() => ({
-  padding: '40px !important',
-}));
+// const CardContent = styled(Box)(() => ({
+//   padding: '40px !important',
+// }));
+
+// const FeatureContentDuplicate = styled(CardContent)(() => ({
+//   padding: '0 !important',
+
+//   '& h4': {
+//     fontSize: '16px',
+//     fontWeight: 600,
+//     margin: '0 0 8px 0',
+//     color: 'white',
+//   },
+
+//   '& p': {
+//     fontSize: '14px',
+//     color: 'rgba(255, 255, 255, 0.8)',
+//     margin: 0,
+//     lineHeight: 1.4,
+//   }
+// }));
 
 const PremiumForm = styled('form')(() => ({
   display: 'flex',
@@ -1075,7 +1081,7 @@ const Login = () => {
           <FormSubtitle>הכניסו את פרטי ההתחברות שלכם</FormSubtitle>
         </FormHeader>
 
-        <CardContent>
+        <StyledCardContent>
           <PremiumForm onSubmit={handleSubmit}>
             <FormGroup>
               <PremiumTextField
@@ -1174,13 +1180,13 @@ const Login = () => {
                 }
                 label={
                   <CheckboxText>
-                    <Memory size={16} color="#667eea" />
+                    <Memory fontSize="small" sx={{ color: "#667eea" }} />
                     זכור אותי למשך 30 יום
                   </CheckboxText>
                 }
               />
               <ForgotPassword disabled>
-                <HelpOutline size={16} />
+                <HelpOutline fontSize="small" />
                 שכחתם סיסמה?
               </ForgotPassword>
             </FormOptions>
@@ -1218,7 +1224,7 @@ const Login = () => {
               </ButtonContent>
             </PremiumSubmitButton>
           </PremiumForm>
-        </CardContent>
+        </StyledCardContent>
 
         <PremiumDivider />
 
@@ -1233,7 +1239,7 @@ const Login = () => {
               onClick={goToRegister}
             >
               <ButtonShine />
-              <PersonAdd size={20} />
+              <PersonAdd fontSize="small" />
               <span>צרו חשבון מנהל</span>
             </PremiumRegisterButton>
           </FooterContent>
@@ -1301,13 +1307,13 @@ const AuthPage = () => {
       gradient: "linear-gradient(135deg, #4caf50, #81c784)"
     },
     {
-      icon: <CloudDone size={28} />,
+      icon: <CloudDone fontSize="large" />,
       title: "גיבוי אוטומטי", 
       description: "נתונים מאובטחים בענן",
       gradient: "linear-gradient(135deg, #2196f3, #64b5f6)"
     },
     {
-      icon: <SupportAgent size={28} />,
+      icon: <SupportAgent fontSize="large" />,
       title: "תמיכה 24/6",
       description: "צוות מומחים זמין תמיד",
       gradient: "linear-gradient(135deg, #ff9800, #ffb74d)"
@@ -1321,7 +1327,7 @@ const AuthPage = () => {
       subtitle: "חיסכון של 40% בזמן העבודה"
     },
     {
-      icon: <Groups size={32} color="#ffd700" />,
+      icon: <Groups fontSize="large" sx={{ color: "#ffd700" }} />,
       title: "מעל 1,000 לקוחות",
       subtitle: "משרדי עורכי דין מובילים"
     }
