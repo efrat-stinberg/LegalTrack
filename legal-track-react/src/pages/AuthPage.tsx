@@ -9,10 +9,6 @@ import {
   Container,
   useMediaQuery,
   Paper,
-  Card,
-  CardContent,
-  Avatar,
-  Chip,
   TextField,
   Button,
   Snackbar,
@@ -20,41 +16,51 @@ import {
   IconButton,
   Alert,
   CircularProgress,
-  alpha
+  alpha,
+  Card,
+  CardContent,
+  Chip
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import {
   Scale,
   Shield,
-  Globe,
   CheckCircle,
   FileText,
   Users,
   Briefcase,
-  Award,
   Lock,
   Mail,
   LogIn,
   Eye,
-  EyeOff
+  EyeOff,
+  Zap,
+  Sparkles,
+  Cpu,
+  Bot
 } from "lucide-react";
 import { loginUser, getUserByEmail } from "../api/api";
 import { login } from "../store/slices/userSlice";
 
-// Styled Components (קצרנו את הקוד)
+// Styled Components
 const PageContainer = styled(Box)(() => ({
   minHeight: '100vh',
   display: 'flex',
   flexDirection: 'column',
-  background: `linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%)`,
+  background: `
+    radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+    linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #2d3748 100%)
+  `,
   position: 'relative',
   paddingTop: 0,
   paddingBottom: '2rem',
+  color: '#f0f6fc'
 }));
 
 const ContentWrapper = styled(Container)(({ theme }) => ({
   display: 'flex',
-  alignItems: 'flex-start',
+  alignItems: 'center',
   justifyContent: 'center',
   padding: theme.spacing(6, 2),
   maxWidth: '1400px !important',
@@ -68,19 +74,19 @@ const ContentWrapper = styled(Container)(({ theme }) => ({
 
 const MainContent = styled(Box)(({ theme }) => ({
   display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
-  gap: theme.spacing(6),
+  gridTemplateColumns: '1.2fr 1fr',
+  gap: theme.spacing(8),
   width: '100%',
   maxWidth: '1200px',
-  alignItems: 'flex-start',
+  alignItems: 'center',
 
   [theme.breakpoints.down('lg')]: {
-    gap: theme.spacing(4),
+    gap: theme.spacing(6),
   },
 
   [theme.breakpoints.down('md')]: {
     gridTemplateColumns: '1fr',
-    gap: theme.spacing(3),
+    gap: theme.spacing(4),
     textAlign: 'center',
   },
 }));
@@ -88,10 +94,13 @@ const MainContent = styled(Box)(({ theme }) => ({
 const LoginSection = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
   borderRadius: 24,
-  background: `linear-gradient(145deg, ${theme.palette.background.paper}, rgba(255, 255, 255, 0.8))`,
-  border: `1px solid rgba(59, 130, 246, 0.1)`,
+  background: 'rgba(13, 17, 23, 0.8)',
   backdropFilter: 'blur(20px)',
-  boxShadow: `0 20px 40px rgba(0, 0, 0, 0.1)`,
+  border: '1px solid rgba(56, 189, 248, 0.2)',
+  boxShadow: `
+    0 20px 40px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1)
+  `,
   position: 'relative',
 
   '&::before': {
@@ -100,8 +109,9 @@ const LoginSection = styled(Paper)(({ theme }) => ({
     top: 0,
     left: 0,
     right: 0,
-    height: 4,
-    background: `linear-gradient(90deg, #3b82f6, #8b5cf6)`,
+    height: 2,
+    background: `linear-gradient(90deg, #38bdf8, #8b5cf6)`,
+    borderRadius: '24px 24px 0 0',
   },
 
   [theme.breakpoints.down('md')]: {
@@ -112,46 +122,47 @@ const LoginSection = styled(Paper)(({ theme }) => ({
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
-    borderRadius: 6,
-    background: '#ffffff',
+    borderRadius: 12,
+    background: 'rgba(33, 38, 45, 0.8)',
     transition: 'all 0.2s ease',
     fontSize: '0.875rem',
+    color: '#f0f6fc',
     
     '& fieldset': {
-      borderColor: alpha('#64748b', 0.3),
+      borderColor: 'rgba(139, 148, 158, 0.3)',
       borderWidth: '1px',
     },
     
     '&:hover fieldset': {
-      borderColor: alpha('#3b82f6', 0.5),
+      borderColor: 'rgba(56, 189, 248, 0.5)',
     },
     
     '&.Mui-focused fieldset': {
-      borderColor: '#3b82f6',
+      borderColor: '#38bdf8',
       borderWidth: '2px',
     },
     
     '&.Mui-error fieldset': {
-      borderColor: '#ef4444',
+      borderColor: '#f87171',
     }
   },
   
   '& .MuiInputLabel-root': {
-    color: '#64748b',
+    color: '#8b949e',
     fontSize: '0.875rem',
     
     '&.Mui-focused': {
-      color: '#3b82f6',
+      color: '#38bdf8',
     },
     
     '&.Mui-error': {
-      color: '#ef4444',
+      color: '#f87171',
     }
   },
   
   '& .MuiInputBase-input': {
     fontSize: '0.875rem',
-    color: '#0f172a',
+    color: '#f0f6fc',
     padding: '12px 14px',
   },
   
@@ -160,45 +171,56 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
     marginLeft: 0,
     marginRight: 0,
     marginTop: theme.spacing(0.5),
+    color: '#8b949e',
     
     '&.Mui-error': {
-      color: '#ef4444',
+      color: '#f87171',
     }
   }
 }));
 
 const LoginButton = styled(Button)(({ theme }) => ({
-  borderRadius: 6,
+  borderRadius: 12,
   padding: theme.spacing(1.5, 3),
-  background: '#3b82f6',
+  background: 'linear-gradient(135deg, #238636, #2ea043)',
   color: '#ffffff',
-  fontWeight: 500,
+  fontWeight: 600,
   fontSize: '0.875rem',
   textTransform: 'none',
-  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+  boxShadow: '0 4px 12px rgba(35, 134, 54, 0.3)',
   transition: 'all 0.2s ease',
   border: 'none',
   
   '&:hover': {
-    background: '#2563eb',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+    background: 'linear-gradient(135deg, #2ea043, #238636)',
+    boxShadow: '0 6px 20px rgba(35, 134, 54, 0.4)',
+    transform: 'translateY(-1px)',
   },
   
   '&:active': {
-    background: '#1d4ed8',
-    transform: 'translateY(1px)',
+    transform: 'translateY(0px)',
   },
   
   '&:disabled': {
-    background: '#e2e8f0',
-    color: '#94a3b8',
+    background: 'rgba(139, 148, 158, 0.2)',
+    color: '#8b949e',
     cursor: 'not-allowed',
     boxShadow: 'none',
     transform: 'none',
-    
-    '&:hover': {
-      background: '#e2e8f0',
-    }
+  }
+}));
+
+const FeatureCard = styled(Card)(({  }) => ({
+  background: 'rgba(33, 38, 45, 0.6)',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(56, 189, 248, 0.1)',
+  borderRadius: 16,
+  transition: 'all 0.3s ease',
+  
+  '&:hover': {
+    transform: 'translateY(-4px)',
+    border: '1px solid rgba(56, 189, 248, 0.3)',
+    boxShadow: '0 8px 32px rgba(56, 189, 248, 0.2)',
   }
 }));
 
@@ -333,7 +355,7 @@ const Login = () => {
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <Mail size={16} color="#64748b" />
+                <Mail size={16} color="#8b949e" />
               </InputAdornment>
             ),
           }}
@@ -356,7 +378,7 @@ const Login = () => {
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <Lock size={16} color="#64748b" />
+                <Lock size={16} color="#8b949e" />
               </InputAdornment>
             ),
             endAdornment: (
@@ -365,7 +387,7 @@ const Login = () => {
                   onClick={togglePasswordVisibility} 
                   edge="end"
                   size="small"
-                  sx={{ color: '#64748b' }}
+                  sx={{ color: '#8b949e' }}
                 >
                   {showPassword ? <EyeOff fontSize="small" /> : <Eye fontSize="small" />}
                 </IconButton>
@@ -399,17 +421,17 @@ const Login = () => {
             alignItems: 'center',
             gap: 1,
             padding: '12px 16px',
-            background: '#f0f9ff',
-            borderRadius: 6,
-            border: `1px solid ${alpha('#3b82f6', 0.2)}`,
-            marginTop: 3,
+            background: 'rgba(16, 185, 129, 0.1)',
+            borderRadius: 12,
+            border: `1px solid rgba(16, 185, 129, 0.2)`,
+            marginTop: 2,
           }}
         >
           <CheckCircle size={16} color="#10b981" />
           <Typography 
             variant="body2" 
             sx={{ 
-              color: '#0f172a',
+              color: '#10b981',
               fontSize: '0.75rem',
               fontWeight: 500
             }}
@@ -431,7 +453,9 @@ const Login = () => {
           sx={{ 
             width: '100%',
             borderRadius: 2,
-            fontSize: '0.875rem'
+            fontSize: '0.875rem',
+            background: 'rgba(248, 113, 113, 0.9)',
+            color: 'white'
           }}
         >
           {errorMessage}
@@ -445,29 +469,32 @@ const Login = () => {
 const AuthPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
 
   const features = [
     {
-      icon: <FileText size={20} />,
-      title: "ניהול מסמכים חכם",
-      description: "מערכת מתקדמת לניהול כל התיקים והמסמכים במקום אחד.",
+      icon: <Bot size={24} />,
+      title: "AI חכם לניתוח מסמכים",
+      description: "בינה מלאכותית מתקדמת שמבינה את המסמכים שלך ומספקת תשובות מדויקות",
+      color: '#8b5cf6'
     },
     {
-      icon: <Users size={20} />,
-      title: "ניהול לקוחות מתקדם",
-      description: "מעקב מקצועי אחר פרטי הלקוחות והיסטוריית תיקים.",
+      icon: <FileText size={24} />,
+      title: "ניהול מסמכים מתקדם",
+      description: "ארגון חכם של כל המסמכים עם חיפוש מהיר ותיוג אוטומטי",
+      color: '#38bdf8'
     },
     {
-      icon: <Shield size={20} />,
+      icon: <Users size={24} />,
+      title: "ניהול לקוחות יעיל",
+      description: "מעקב מקצועי אחר לקוחות, תיקים וסטטוס הטיפול במקום אחד",
+      color: '#ec4899'
+    },
+    {
+      icon: <Shield size={24} />,
       title: "אבטחה ברמה בנקאית",
-      description: "הגנה מלאה על מידע רגיש עם הצפנה מתקדמת.",
-    },
-    {
-      icon: <Award size={20} />,
-      title: "דוחות ואנליטיקה",
-      description: "כלי ניתוח מתקדמים להערכת ביצועים ומעקב.",
-    },
+      description: "הגנה מלאה על מידע רגיש עם הצפנה והגנה מתקדמת",
+      color: '#10b981'
+    }
   ];
 
   return (
@@ -475,39 +502,48 @@ const AuthPage = () => {
       <ContentWrapper>
         <MainContent>
           {/* Brand Section */}
-          <Box sx={{ p: 4 }}>
+          <Box sx={{ color: '#f0f6fc' }}>
             <Box display="flex" alignItems="center" gap={3} mb={4}>
-              <Avatar
+              <Box
                 sx={{
-                  width: 72,
-                  height: 72,
-                  background: `linear-gradient(135deg, #3b82f6, #8b5cf6)`,
-                  boxShadow: `0 8px 32px rgba(59, 130, 246, 0.4)`,
+                  width: 80,
+                  height: 80,
+                  borderRadius: 3,
+                  background: `linear-gradient(135deg, #38bdf8, #8b5cf6)`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 8px 32px rgba(56, 189, 248, 0.4)',
                 }}
               >
-                <Scale size={36} color="white" />
-              </Avatar>
+                <Scale size={40} color="white" />
+              </Box>
               <Box>
                 <Typography
                   variant={isMobile ? "h4" : "h3"}
                   sx={{
-                    fontWeight: 700,
-                    color: '#1e293b',
+                    fontWeight: 800,
+                    color: '#f0f6fc',
                     letterSpacing: '-0.025em',
-                    mb: 0.5,
-                    lineHeight: 1.2
+                    mb: 1,
+                    lineHeight: 1.1,
+                    background: 'linear-gradient(135deg, #38bdf8, #8b5cf6)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent'
                   }}
                 >
                   Legal Manager Pro
                 </Typography>
                 <Typography
-                  variant={isSmall ? "body1" : "h6"}
+                  variant="h6"
                   sx={{
-                    color: '#64748b',
-                    fontWeight: 500
+                    color: '#8b949e',
+                    fontWeight: 500,
+                    lineHeight: 1.3
                   }}
                 >
-                  מערכת ניהול תיקים משפטיים מתקדמת
+                  מערכת ניהול תיקים משפטיים עם AI
                 </Typography>
               </Box>
             </Box>
@@ -515,39 +551,39 @@ const AuthPage = () => {
             <Typography
               variant={isMobile ? "h5" : "h4"}
               sx={{
-                fontWeight: 600,
-                color: '#334155',
+                fontWeight: 700,
+                color: '#f0f6fc',
                 mb: 2,
                 lineHeight: 1.3
               }}
             >
-              הפתרון המקצועי לעורכי דין מודרניים
+              הפתרון הטכנולוגי המתקדם ביותר לעורכי דין
             </Typography>
 
             <Typography
               variant="body1"
               sx={{
-                color: '#64748b',
-                fontSize: isMobile ? '1rem' : '1.125rem',
+                color: '#8b949e',
+                fontSize: '1.125rem',
                 lineHeight: 1.7,
                 mb: 4
               }}
             >
-              מערכת מתקדמת שפותחה במיוחד לצרכים הייחודיים של משרדי עורכי דין.
-              ניהול תיקים, מעקב אחר לקוחות, ארגון מסמכים ועוד - הכל במקום אחד.
+              שלב בינה מלאכותית מתקדמת עם ניהול תיקים מקצועי. 
+              צ'אט חכם עם המסמכים, ארגון אוטומטי ואבטחה מלאה.
             </Typography>
 
             <Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap={3}>
               {features.map((feature, index) => (
                 <Fade in={true} timeout={600 + index * 100} key={index}>
-                  <Card>
-                    <CardContent sx={{ p: 2 }}>
+                  <FeatureCard>
+                    <CardContent sx={{ p: 2.5 }}>
                       <Box
                         sx={{
                           width: 48,
                           height: 48,
                           borderRadius: 2,
-                          background: `linear-gradient(135deg, #667eea, #764ba2)`,
+                          background: `linear-gradient(135deg, ${feature.color}, ${alpha(feature.color, 0.8)})`,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -558,12 +594,12 @@ const AuthPage = () => {
                         {feature.icon}
                       </Box>
                       <Typography
-                        variant="h6"
+                        variant="subtitle1"
                         sx={{
                           fontWeight: 600,
-                          color: '#1e293b',
+                          color: '#f0f6fc',
                           mb: 1,
-                          fontSize: '1rem'
+                          fontSize: '0.95rem'
                         }}
                       >
                         {feature.title}
@@ -571,38 +607,51 @@ const AuthPage = () => {
                       <Typography
                         variant="body2"
                         sx={{
-                          color: '#64748b',
+                          color: '#8b949e',
                           lineHeight: 1.5,
-                          fontSize: '0.875rem'
+                          fontSize: '0.85rem'
                         }}
                       >
                         {feature.description}
                       </Typography>
                     </CardContent>
-                  </Card>
+                  </FeatureCard>
                 </Fade>
               ))}
             </Box>
 
             <Box display="flex" gap={2} justifyContent="center" mt={4} flexWrap="wrap">
               <Chip
-                icon={<CheckCircle size={16} />}
-                label="מערכת מאובטחת"
+                icon={<Sparkles size={16} />}
+                label="טכנולוגיית AI מתקדמת"
                 sx={{
-                  background: 'rgba(16, 185, 129, 0.1)',
-                  color: '#10b981',
-                  border: '1px solid rgba(16, 185, 129, 0.2)',
-                  fontWeight: 600
+                  background: 'rgba(139, 92, 246, 0.2)',
+                  color: '#8b5cf6',
+                  border: '1px solid rgba(139, 92, 246, 0.3)',
+                  fontWeight: 600,
+                  backdropFilter: 'blur(10px)'
                 }}
               />
               <Chip
-                icon={<Globe size={16} />}
-                label="זמינות 24/7"
+                icon={<Cpu size={16} />}
+                label="עיבוד מסמכים חכם"
                 sx={{
-                  background: 'rgba(59, 130, 246, 0.1)',
-                  color: '#3b82f6',
-                  border: '1px solid rgba(59, 130, 246, 0.2)',
-                  fontWeight: 600
+                  background: 'rgba(56, 189, 248, 0.2)',
+                  color: '#38bdf8',
+                  border: '1px solid rgba(56, 189, 248, 0.3)',
+                  fontWeight: 600,
+                  backdropFilter: 'blur(10px)'
+                }}
+              />
+              <Chip
+                icon={<Zap size={16} />}
+                label="ביצועים מהירים"
+                sx={{
+                  background: 'rgba(245, 158, 11, 0.2)',
+                  color: '#f59e0b',
+                  border: '1px solid rgba(245, 158, 11, 0.3)',
+                  fontWeight: 600,
+                  backdropFilter: 'blur(10px)'
                 }}
               />
             </Box>
@@ -612,10 +661,10 @@ const AuthPage = () => {
           <LoginSection>
             <Box textAlign="center" mb={4}>
               <Typography
-                variant={isMobile ? "h4" : "h3"}
+                variant="h4"
                 sx={{
                   fontWeight: 700,
-                  color: '#1e293b',
+                  color: '#f0f6fc',
                   mb: 1,
                   letterSpacing: '-0.025em'
                 }}
@@ -626,12 +675,12 @@ const AuthPage = () => {
               <Typography
                 variant="body1"
                 sx={{
-                  color: '#64748b',
+                  color: '#8b949e',
                   fontSize: '1rem',
                   lineHeight: 1.6
                 }}
               >
-                אנא הזן את פרטי ההתחברות שלך כדי לגשת למערכת
+                היכנס כדי לגשת למערכת הניהול המתקדמת
               </Typography>
             </Box>
 
@@ -641,7 +690,7 @@ const AuthPage = () => {
               sx={{
                 mt: 4,
                 pt: 3,
-                borderTop: '1px solid #e2e8f0'
+                borderTop: '1px solid rgba(139, 148, 158, 0.2)'
               }}
             >
               <Box
@@ -650,9 +699,9 @@ const AuthPage = () => {
                   alignItems: 'center',
                   gap: 2,
                   p: 2,
-                  background: '#f8fafc',
+                  background: 'rgba(33, 38, 45, 0.6)',
                   borderRadius: 2,
-                  border: '1px solid #e2e8f0',
+                  border: '1px solid rgba(56, 189, 248, 0.2)',
                   mb: 3
                 }}
               >
@@ -664,8 +713,8 @@ const AuthPage = () => {
                     width: 40,
                     height: 40,
                     borderRadius: 1,
-                    background: '#dbeafe',
-                    color: '#3b82f6',
+                    background: 'rgba(56, 189, 248, 0.2)',
+                    color: '#38bdf8',
                     flexShrink: 0
                   }}
                 >
@@ -676,9 +725,9 @@ const AuthPage = () => {
                     variant="body2"
                     sx={{
                       fontWeight: 600,
-                      color: '#374151',
+                      color: '#f0f6fc',
                       mb: 0.5,
-                      fontSize: '1rem'
+                      fontSize: '0.9rem'
                     }}
                   >
                     גישה מוגבלת למשרדי עורכי דין
@@ -686,12 +735,12 @@ const AuthPage = () => {
                   <Typography
                     variant="caption"
                     sx={{
-                      color: '#64748b',
-                      fontSize: '0.875rem',
+                      color: '#8b949e',
+                      fontSize: '0.8rem',
                       lineHeight: 1.4
                     }}
                   >
-                    המערכת מיועדת למשרדי עורכי דין מורשים בלבד.
+                    המערכת מיועדת למשרדי עורכי דין מורשים בלבד
                   </Typography>
                 </Box>
               </Box>
@@ -700,7 +749,7 @@ const AuthPage = () => {
                 <Typography
                   variant="caption"
                   sx={{
-                    color: '#94a3b8',
+                    color: '#6e7681',
                     fontSize: '0.75rem'
                   }}
                 >
