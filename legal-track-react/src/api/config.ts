@@ -6,7 +6,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "https://legaltrack-server.
 // Create axios instance
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 2000,
+  timeout: 5000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -15,7 +15,7 @@ export const apiClient = axios.create({
 // Create separate axios instance for file uploads with longer timeout
 export const fileUploadClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 120000, // 2 דקות להעלאת קבצים
+  timeout: 120000, 
   headers: {
     'Content-Type': 'multipart/form-data',
   },
