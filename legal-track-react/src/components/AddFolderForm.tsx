@@ -7,7 +7,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Chip,
   Paper,
   Typography,
   Autocomplete,
@@ -16,19 +15,16 @@ import {
   alpha
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { FolderPlus, Tag, Palette, AlertTriangle } from 'lucide-react';
+import { FolderPlus, Tag, User } from 'lucide-react';
 import { Client } from '../models/Client';
 
-// טיפוס נתוני הטופס (כולל שדות נוספים לעתיד)
+// טיפוס נתוני הטופס (רק השדות הפעילים)
 interface FormData {
   folderName: string;
   description: string;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  color: string;
-  tags: string[];
 }
 
-// טיפוס הנתונים שנשלחים לBackend (פשוט יותר)
+// טיפוס הנתונים שנשלחים לBackend
 interface BackendFolderData {
   folderName: string;
   clientId: number | null;
@@ -44,8 +40,9 @@ interface AddFolderFormProps {
 const FormContainer = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
   borderRadius: 16,
-  background: `linear-gradient(145deg, ${theme.palette.background.paper}, ${alpha(theme.palette.primary.main, 0.02)})`,
-  border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+  background: theme.palette.background.paper, // רקע לא שקוף
+  border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+  boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.1)}`,
 }));
 
 const SectionTitle = styled(Typography)(({ theme }) => ({
@@ -57,24 +54,6 @@ const SectionTitle = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.primary,
 }));
 
-const ColorButton = styled(Box)<{ selected: boolean; color: string }>(({ theme, selected, color }) => ({
-  width: 40,
-  height: 40,
-  borderRadius: '50%',
-  background: color,
-  cursor: 'pointer',
-  border: selected ? `3px solid ${theme.palette.primary.main}` : `2px solid ${alpha(theme.palette.common.black, 0.1)}`,
-  transition: 'all 0.2s ease',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  
-  '&:hover': {
-    transform: 'scale(1.1)',
-    boxShadow: `0 4px 12px ${alpha(color, 0.4)}`,
-  }
-}));
-
 const AddFolderForm: React.FC<AddFolderFormProps> = ({
   onAddFolder,
   clients,
@@ -83,57 +62,27 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
 }) => {
   const theme = useTheme();
   
-  // נתוני הטופס (כולל שדות שלא נשלחים לBackend)
+  // נתוני הטופס (רק השדות הפעילים)
   const [formData, setFormData] = useState<FormData>({
     folderName: '',
     description: '',
-    priority: 'medium',
-    color: '#667eea',
-    tags: [],
   });
   
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [newTag, setNewTag] = useState('');
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
 
-  const predefinedColors = [
-    '#667eea', '#f093fb', '#4facfe', '#43e97b', 
-    '#fa709a', '#ff9a9e', '#a8edea', '#fecfef',
-    '#764ba2', '#f5576c', '#ff6b6b', '#4ecdc4'
-  ];
-
-  const predefinedTags = [
-    'דחוף', 'פלילי', 'אזרחי', 'עבודה', 'נדל"ן', 
-    'חוזים', 'משפחה', 'נזיקין', 'מיסים', 'חברות'
-  ];
-
-  const priorityColors = {
-    low: '#10b981',
-    medium: '#f59e0b', 
-    high: '#ef4444',
-    urgent: '#dc2626'
-  };
-
-  const priorityLabels = {
-    low: 'נמוכה',
-    medium: 'בינונית',
-    high: 'גבוהה', 
-    urgent: 'דחופה'
-  };
-
-  // מניעת re-render אינסופי - השתמש בuseEffect עם dependency array
+  // מניעת re-render אינסופי
   useEffect(() => {
     if (clients && Array.isArray(clients)) {
       const client = clients.find(c => c.id === selectedClientId) || null;
       
-      // עדכן רק אם השתנה
       if (client !== selectedClient) {
         console.log('AddFolderForm: Selected client updated:', client);
         setSelectedClient(client);
       }
     }
-  }, [selectedClientId, clients]); // הסר selectedClient מה-dependencies
+  }, [selectedClientId, clients]);
 
   // פונקציות מאמורטות למניעת re-creation בכל render
   const validateForm = useCallback((): boolean => {
@@ -184,9 +133,6 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
       setFormData({
         folderName: '',
         description: '',
-        priority: 'medium',
-        color: '#667eea',
-        tags: [],
       });
       setSelectedClient(null);
       onSelectClient(null);
@@ -227,32 +173,6 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
       setFormErrors(prev => ({ ...prev, folderName: '' }));
     }
   }, [formErrors.folderName]);
-
-  const handleAddTag = useCallback(() => {
-    if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, newTag.trim()]
-      }));
-      setNewTag('');
-    }
-  }, [newTag, formData.tags]);
-
-  const handleRemoveTag = useCallback((tagToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }));
-  }, []);
-
-  // const handleTagSelect = useCallback((tag: string) => {
-  //   if (!formData.tags.includes(tag)) {
-  //     setFormData(prev => ({
-  //       ...prev,
-  //       tags: [...prev.tags, tag]
-  //     }));
-  //   }
-  // }, [formData.tags]);
 
   return (
     <FormContainer elevation={2}>
@@ -336,140 +256,9 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
                 multiline
                 rows={4}
                 variant="outlined"
-                helperText="שדה זה לא נשמר כרגע אבל יהיה זמין בעתיד"
                 disabled={isSubmitting}
               />
             </Box>
-          </Box>
-
-          <Divider />
-
-          {/* עדיפות וצבע (לעתיד) */}
-          <Box sx={{ 
-            display: 'grid', 
-            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, 
-            gap: 3 
-          }}>
-            <Box>
-              <SectionTitle variant="h6">
-                <AlertTriangle size={20} />
-                עדיפות (לעתיד)
-              </SectionTitle>
-              
-              <FormControl fullWidth>
-                <InputLabel>עדיפות</InputLabel>
-                <Select
-                  value={formData.priority}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
-                    priority: e.target.value as 'low' | 'medium' | 'high' | 'urgent'
-                  }))}
-                  label="עדיפות"
-                  disabled
-                >
-                  {Object.entries(priorityLabels).map(([value, label]) => (
-                    <MenuItem key={value} value={value}>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <Box
-                          width={12}
-                          height={12}
-                          borderRadius="50%"
-                          bgcolor={priorityColors[value as keyof typeof priorityColors]}
-                        />
-                        {label}
-                      </Box>
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-
-            <Box>
-              <SectionTitle variant="h6">
-                <Palette size={20} />
-                צבע תיקייה (לעתיד)
-              </SectionTitle>
-              
-              <Box display="flex" flexWrap="wrap" gap={1}>
-                {predefinedColors.map((color, index) => (
-                  <ColorButton
-                    key={`color-${index}-${color}`}
-                    selected={formData.color === color}
-                    color={color}
-                    onClick={() => setFormData(prev => ({ ...prev, color }))}
-                    sx={{ opacity: 0.5, pointerEvents: 'none' }}
-                  />
-                ))}
-              </Box>
-              <Typography variant="caption" color="text.secondary">
-                תכונה זו תהיה זמינה בעתיד
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* תגיות (לעתיד) */}
-          <Box>
-            <SectionTitle variant="h6">
-              <Tag size={20} />
-              תגיות (לעתיד)
-            </SectionTitle>
-            
-            <Box mb={2}>
-              <Box display="flex" gap={1} mb={2}>
-                <TextField
-                  size="small"
-                  label="הוסף תגית"
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                  disabled
-                />
-                <Button 
-                  variant="outlined" 
-                  onClick={handleAddTag}
-                  disabled
-                >
-                  הוסף
-                </Button>
-              </Box>
-              
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                תגיות מוצעות (לא פעילות):
-              </Typography>
-              <Box display="flex" flexWrap="wrap" gap={1} mb={2}>
-                {predefinedTags.map((tag) => (
-                  <Chip
-                    key={tag}
-                    label={tag}
-                    size="small"
-                    variant="outlined"
-                    sx={{ opacity: 0.5 }}
-                  />
-                ))}
-              </Box>
-            </Box>
-
-            {formData.tags.length > 0 && (
-              <Box>
-                <Typography variant="body2" gutterBottom>
-                  תגיות נבחרות:
-                </Typography>
-                <Box display="flex" flexWrap="wrap" gap={1}>
-                  {formData.tags.map((tag) => (
-                    <Chip
-                      key={tag}
-                      label={tag}
-                      onDelete={() => handleRemoveTag(tag)}
-                      color="primary"
-                    />
-                  ))}
-                </Box>
-              </Box>
-            )}
-            
-            <Typography variant="caption" color="text.secondary">
-              תכונה זו תהיה זמינה בעתיד
-            </Typography>
           </Box>
 
           {/* כפתור שליחה */}
