@@ -1,4 +1,4 @@
-// FolderDetailsPage.tsx - תיקון הבעיה
+// FolderDetailsPage.tsx - גרסה משופרת
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getFolderByIdWithDocuments } from "../api/api";
@@ -88,9 +88,6 @@ const FolderDetailsPage: React.FC = () => {
 
   // המרת הפרמטר לID
   const folderId = folderIdParam ? parseInt(folderIdParam, 10) : null;
-
-  console.log('FolderDetailsPage: URL param:', folderIdParam);
-  console.log('FolderDetailsPage: Parsed folderId:', folderId);
 
   useEffect(() => {
     const loadFolder = async () => {
@@ -308,7 +305,7 @@ const FolderDetailsPage: React.FC = () => {
                     }
                   }}
                 >
-                  העלה קובץ
+                  העלה קבצים
                 </Button>
               </Box>
             </Box>
@@ -343,14 +340,14 @@ const FolderDetailsPage: React.FC = () => {
             </Box>
           )}
 
-          {/* Main Content */}
+          {/* Main Content - עכשיו הצאט רחב יותר */}
           <Box 
             display="flex" 
-            flexDirection={{ xs: "column", md: "row" }} 
+            flexDirection={{ xs: "column", lg: "row" }} 
             gap={4}
           >
-            {/* Documents Section */}
-            <ContentSection sx={{ flex: 1 }}>
+            {/* Documents Section - עכשיו קטן יותר */}
+            <ContentSection sx={{ flex: { xs: 1, lg: 0.4 } }}>
               <Box display="flex" alignItems="center" gap={2} mb={3}>
                 <Avatar
                   sx={{
@@ -391,21 +388,21 @@ const FolderDetailsPage: React.FC = () => {
                     אין מסמכים בתיקייה זו
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                    התחל על ידי העלאת המסמך הראשון
+                    התחל על ידי העלאת המסמכים הראשונים
                   </Typography>
                   <Button
                     variant="contained"
                     startIcon={<Upload size={20} />}
                     onClick={() => setIsFileUploadOpen(true)}
                   >
-                    העלה מסמך ראשון
+                    העלה מסמכים
                   </Button>
                 </Box>
               )}
             </ContentSection>
 
-            {/* Chat Section */}
-            <ContentSection sx={{ width: { xs: "100%", md: 400 } }}>
+            {/* Chat Section - עכשיו רחב יותר */}
+            <ContentSection sx={{ flex: { xs: 1, lg: 0.6 } }}>
               <Box display="flex" alignItems="center" gap={2} mb={3}>
                 <Avatar
                   sx={{
@@ -413,11 +410,20 @@ const FolderDetailsPage: React.FC = () => {
                     color: 'white'
                   }}
                 >
-                  💬
+                  🤖
                 </Avatar>
                 <Typography variant="h5" fontWeight={700}>
-                  צ'אט AI
+                  צ'אט AI חכם
                 </Typography>
+                <Chip
+                  label="מתקדם"
+                  size="small"
+                  sx={{
+                    background: alpha(theme.palette.success.main, 0.1),
+                    color: theme.palette.success.main,
+                    border: `1px solid ${alpha(theme.palette.success.main, 0.3)}`,
+                  }}
+                />
               </Box>
               <Divider sx={{ mb: 3 }} />
               <Chat folderId={folder.folderId} />

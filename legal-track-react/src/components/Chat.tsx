@@ -12,7 +12,10 @@ import {
   useTheme,
   alpha,
   Tooltip,
-  Chip
+  Chip,
+  Divider,
+  Card,
+  CardContent
 } from "@mui/material";
 import { styled, keyframes } from "@mui/material/styles";
 import {
@@ -22,7 +25,12 @@ import {
   ThumbsUp,
   ThumbsDown,
   Sparkles,
-  Clock
+  Clock,
+  Zap,
+  MessageSquare,
+  FileText,
+  Search,
+  Brain
 } from "lucide-react";
 
 type ChatMessage = {
@@ -65,7 +73,7 @@ const ChatContainer = styled(Paper)(({ theme }) => ({
   boxShadow: `0 20px 40px ${alpha(theme.palette.common.black, 0.1)}`,
   display: 'flex',
   flexDirection: 'column',
-  height: 600,
+  height: 700, // גובה מוגדל
   overflow: 'hidden',
   position: 'relative',
   
@@ -76,13 +84,13 @@ const ChatContainer = styled(Paper)(({ theme }) => ({
     left: 0,
     right: 0,
     height: 4,
-    background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+    background: `linear-gradient(90deg, ${theme.palette.info.main}, ${theme.palette.info.dark})`,
   }
 }));
 
 const ChatHeader = styled(Box)(({ theme }) => ({
   padding: theme.spacing(3),
-  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+  background: `linear-gradient(135deg, ${theme.palette.info.main}, ${theme.palette.info.dark})`,
   color: 'white',
   display: 'flex',
   alignItems: 'center',
@@ -102,11 +110,12 @@ const ChatHeader = styled(Box)(({ theme }) => ({
 }));
 
 const BotAvatar = styled(Avatar)(({ theme }) => ({
-  width: 48,
-  height: 48,
+  width: 52,
+  height: 52,
   background: alpha(theme.palette.common.white, 0.2),
   backdropFilter: 'blur(10px)',
   border: `2px solid ${alpha(theme.palette.common.white, 0.3)}`,
+  fontSize: '1.5rem',
   
   '& svg': {
     color: 'white',
@@ -116,46 +125,46 @@ const BotAvatar = styled(Avatar)(({ theme }) => ({
 const MessagesContainer = styled(Box)(({ theme }) => ({
   flex: 1,
   overflowY: 'auto',
-  padding: theme.spacing(2),
-  background: `linear-gradient(to bottom, ${alpha(theme.palette.primary.main, 0.02)}, transparent)`,
+  padding: theme.spacing(3),
+  background: `linear-gradient(to bottom, ${alpha(theme.palette.info.main, 0.02)}, transparent)`,
   
   '&::-webkit-scrollbar': {
-    width: 6,
+    width: 8,
   },
   
   '&::-webkit-scrollbar-track': {
     background: alpha(theme.palette.action.hover, 0.1),
-    borderRadius: 3,
+    borderRadius: 4,
   },
   
   '&::-webkit-scrollbar-thumb': {
-    background: alpha(theme.palette.primary.main, 0.3),
-    borderRadius: 3,
+    background: alpha(theme.palette.info.main, 0.3),
+    borderRadius: 4,
     
     '&:hover': {
-      background: alpha(theme.palette.primary.main, 0.5),
+      background: alpha(theme.palette.info.main, 0.5),
     }
   }
 }));
 
 const MessageBubble = styled(Box)<{ isUser: boolean }>(({ theme, isUser }) => ({
-  maxWidth: '75%',
-  marginBottom: theme.spacing(2),
+  maxWidth: '70%', // רוחב מותאם לצ'אט הרחב יותר
+  marginBottom: theme.spacing(3),
   alignSelf: isUser ? 'flex-end' : 'flex-start',
   animation: `${slideUp} 0.3s ease-out`,
 }));
 
 const BubbleContent = styled(Paper)<{ isUser: boolean }>(({ theme, isUser }) => ({
-  padding: theme.spacing(2),
-  borderRadius: isUser ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
+  padding: theme.spacing(2.5),
+  borderRadius: isUser ? '24px 24px 8px 24px' : '24px 24px 24px 8px',
   background: isUser
-    ? `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`
+    ? `linear-gradient(135deg, ${theme.palette.info.main}, ${theme.palette.info.dark})`
     : theme.palette.background.paper,
   color: isUser ? 'white' : theme.palette.text.primary,
-  border: `1px solid ${isUser ? 'transparent' : alpha(theme.palette.primary.main, 0.1)}`,
+  border: `1px solid ${isUser ? 'transparent' : alpha(theme.palette.info.main, 0.1)}`,
   boxShadow: isUser
-    ? `0 8px 24px ${alpha(theme.palette.primary.main, 0.3)}`
-    : `0 4px 16px ${alpha(theme.palette.common.black, 0.1)}`,
+    ? `0 12px 32px ${alpha(theme.palette.info.main, 0.3)}`
+    : `0 8px 24px ${alpha(theme.palette.common.black, 0.08)}`,
   position: 'relative',
   
   '&::before': isUser ? {
@@ -172,8 +181,8 @@ const BubbleContent = styled(Paper)<{ isUser: boolean }>(({ theme, isUser }) => 
 
 const MessageActions = styled(Box)(({ theme }) => ({
   display: 'flex',
-  gap: theme.spacing(0.5),
-  marginTop: theme.spacing(1),
+  gap: theme.spacing(1),
+  marginTop: theme.spacing(2),
   opacity: 0,
   transition: 'opacity 0.3s ease',
   
@@ -183,15 +192,17 @@ const MessageActions = styled(Box)(({ theme }) => ({
 }));
 
 const ActionButton = styled(IconButton)(({ theme }) => ({
-  width: 28,
-  height: 28,
+  width: 32,
+  height: 32,
   background: alpha(theme.palette.background.paper, 0.8),
   backdropFilter: 'blur(10px)',
-  border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+  border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
+  borderRadius: 8,
   
   '&:hover': {
-    background: alpha(theme.palette.primary.main, 0.1),
+    background: alpha(theme.palette.info.main, 0.1),
     transform: 'scale(1.1)',
+    borderColor: alpha(theme.palette.info.main, 0.4),
   }
 }));
 
@@ -203,19 +214,19 @@ const InputContainer = styled(Box)(({ theme }) => ({
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
-    borderRadius: 16,
+    borderRadius: 20,
     background: alpha(theme.palette.background.default, 0.5),
-    border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+    border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
     transition: 'all 0.3s ease',
     
     '&:hover': {
-      borderColor: alpha(theme.palette.primary.main, 0.4),
-      boxShadow: `0 4px 16px ${alpha(theme.palette.primary.main, 0.1)}`,
+      borderColor: alpha(theme.palette.info.main, 0.4),
+      boxShadow: `0 4px 16px ${alpha(theme.palette.info.main, 0.1)}`,
     },
     
     '&.Mui-focused': {
-      borderColor: theme.palette.primary.main,
-      boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.2)}`,
+      borderColor: theme.palette.info.main,
+      boxShadow: `0 8px 24px ${alpha(theme.palette.info.main, 0.2)}`,
     }
   },
   
@@ -225,17 +236,17 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
 }));
 
 const SendButton = styled(Button)(({ theme }) => ({
-  borderRadius: 12,
-  minWidth: 48,
-  height: 48,
-  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+  borderRadius: 16,
+  minWidth: 56,
+  height: 56,
+  background: `linear-gradient(135deg, ${theme.palette.info.main}, ${theme.palette.info.dark})`,
   color: 'white',
-  boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.3)}`,
+  boxShadow: `0 8px 24px ${alpha(theme.palette.info.main, 0.3)}`,
   transition: 'all 0.3s ease',
   
   '&:hover': {
     transform: 'translateY(-2px)',
-    boxShadow: `0 12px 32px ${alpha(theme.palette.primary.main, 0.4)}`,
+    boxShadow: `0 12px 32px ${alpha(theme.palette.info.main, 0.4)}`,
   },
   
   '&:disabled': {
@@ -249,8 +260,8 @@ const SendButton = styled(Button)(({ theme }) => ({
 const TypingIndicator = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  gap: theme.spacing(1),
-  padding: theme.spacing(2),
+  gap: theme.spacing(2),
+  padding: theme.spacing(2.5),
   color: theme.palette.text.secondary,
 }));
 
@@ -258,7 +269,7 @@ const TypingDot = styled(Box)(({ theme }) => ({
   width: 8,
   height: 8,
   borderRadius: '50%',
-  background: theme.palette.primary.main,
+  background: theme.palette.info.main,
   animation: `${typing} 1.4s infinite ease-in-out`,
   
   '&:nth-of-type(2)': {
@@ -276,20 +287,42 @@ const EmptyState = styled(Box)(({ theme }) => ({
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
-  padding: theme.spacing(4),
+  padding: theme.spacing(6),
   textAlign: 'center',
 }));
 
 const SparkleContainer = styled(Box)(({ theme }) => ({
-  width: 80,
-  height: 80,
+  width: 100,
+  height: 100,
   borderRadius: '50%',
-  background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.1)}, ${alpha(theme.palette.secondary.main, 0.1)})`,
+  background: `linear-gradient(135deg, ${alpha(theme.palette.info.main, 0.1)}, ${alpha(theme.palette.info.dark, 0.1)})`,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   marginBottom: theme.spacing(3),
   animation: `${pulse} 2s ease-in-out infinite`,
+  border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
+}));
+
+const SuggestedQuestions = styled(Box)(({ theme }) => ({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+  gap: theme.spacing(2),
+  marginTop: theme.spacing(3),
+  width: '100%',
+}));
+
+const QuestionCard = styled(Card)(({ theme }) => ({
+  cursor: 'pointer',
+  transition: 'all 0.3s ease',
+  border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
+  borderRadius: 16,
+  
+  '&:hover': {
+    transform: 'translateY(-4px)',
+    boxShadow: `0 12px 32px ${alpha(theme.palette.info.main, 0.15)}`,
+    borderColor: alpha(theme.palette.info.main, 0.4),
+  }
 }));
 
 const Chat: React.FC<ChatProps> = ({ folderId }) => {
@@ -318,10 +351,10 @@ const Chat: React.FC<ChatProps> = ({ folderId }) => {
       .catch((err) => setError(err.message));
   }, [folderId]);
 
-  const sendQuestion = async () => {
-    if (!question.trim()) return;
+  const sendQuestion = async (questionText?: string) => {
+    const userMessage = questionText || question;
+    if (!userMessage.trim()) return;
 
-    const userMessage = question;
     setQuestion("");
     setLoading(true);
     setError(null);
@@ -341,7 +374,6 @@ const Chat: React.FC<ChatProps> = ({ folderId }) => {
 
       const newMessage: ChatMessage = await res.json();
       
-      // Simulate typing delay
       setTimeout(() => {
         setIsTyping(false);
         setMessages((prev) => [...prev, newMessage]);
@@ -373,80 +405,119 @@ const Chat: React.FC<ChatProps> = ({ folderId }) => {
     });
   };
 
+  const suggestedQuestions = [
+    "מה התוכן העיקרי של המסמכים?",
+    "סכם לי את המידע החשוב",
+    "איזה תאריכים מופיעים במסמכים?",
+    "מה הנקודות המרכזיות לתשומת לב?"
+  ];
+
   return (
     <ChatContainer elevation={0}>
       <ChatHeader>
         <BotAvatar>
-          <Bot size={24} />
+          <Brain size={28} />
         </BotAvatar>
         <Box flex={1}>
           <Typography variant="h6" fontWeight={700}>
-            עוזר AI חכם
+            עוזר AI מתקדם
           </Typography>
           <Typography variant="body2" sx={{ opacity: 0.9 }}>
-            שאל אותי הכל על המסמכים בתיקייה
+            שאל אותי הכל על המסמכים שלך - אני כאן לעזור!
           </Typography>
         </Box>
-        <Chip
-          label="מחובר"
-          size="small"
-          sx={{
-            background: alpha(theme.palette.success.main, 0.2),
-            color: 'white',
-            border: `1px solid ${alpha(theme.palette.success.main, 0.3)}`,
-          }}
-        />
+        <Box display="flex" gap={1}>
+          <Chip
+            label="מחובר"
+            size="small"
+            sx={{
+              background: alpha(theme.palette.success.main, 0.2),
+              color: 'white',
+              border: `1px solid ${alpha(theme.palette.success.main, 0.3)}`,
+            }}
+            icon={<Zap size={14} />}
+          />
+          <Chip
+            label={`${messages.length} שיחות`}
+            size="small"
+            sx={{
+              background: alpha('#ffffff', 0.2),
+              color: 'white',
+              border: `1px solid ${alpha('#ffffff', 0.3)}`,
+            }}
+            icon={<MessageSquare size={14} />}
+          />
+        </Box>
       </ChatHeader>
 
       <MessagesContainer>
         {messages.length === 0 && !isTyping ? (
           <EmptyState>
             <SparkleContainer>
-              <Sparkles size={32} color={theme.palette.primary.main} />
+              <Sparkles size={40} color={theme.palette.info.main} />
             </SparkleContainer>
-            <Typography variant="h6" fontWeight={600} gutterBottom>
-              התחל שיחה חדשה
+            <Typography variant="h5" fontWeight={700} gutterBottom>
+              בוא נתחיל לשוחח! 🚀
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              שאל אותי שאלות על המסמכים בתיקייה וקבל תשובות מדויקות
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: 400 }}>
+              אני כאן לעזור לך להבין ולנתח את המסמכים בתיקייה. 
+              שאל אותי שאלות ואקבל תשובות מדויקות מתוך התוכן.
             </Typography>
-            <Box display="flex" gap={1} flexWrap="wrap" justifyContent="center">
-              <Chip label="מה התוכן העיקרי?" size="small" variant="outlined" />
-              <Chip label="סכם לי את המסמכים" size="small" variant="outlined" />
-              <Chip label="מצא נתונים חשובים" size="small" variant="outlined" />
-            </Box>
+            
+            <Typography variant="h6" fontWeight={600} gutterBottom color="info.main">
+              שאלות מוצעות:
+            </Typography>
+            <SuggestedQuestions>
+              {suggestedQuestions.map((q, index) => (
+                <QuestionCard key={index} onClick={() => sendQuestion(q)}>
+                  <CardContent sx={{ p: 2 }}>
+                    <Box display="flex" alignItems="center" gap={1} mb={1}>
+                      <FileText size={16} color={theme.palette.info.main} />
+                      <Typography variant="body2" fontWeight={600}>
+                        {q}
+                      </Typography>
+                    </Box>
+                  </CardContent>
+                </QuestionCard>
+              ))}
+            </SuggestedQuestions>
           </EmptyState>
         ) : (
-          <Box display="flex" flexDirection="column">
+          <Box display="flex" flexDirection="column" gap={2}>
             {messages.map((message) => (
               <Box key={message.id}>
                 {/* User Message */}
-                <Box display="flex" justifyContent="flex-end" mb={1}>
+                <Box display="flex" justifyContent="flex-end" mb={2}>
                   <MessageBubble isUser={true} className="message-container">
                     <BubbleContent isUser={true} elevation={0}>
                       <Typography variant="body1">
                         {message.question}
                       </Typography>
+                      <Box display="flex" alignItems="center" justifyContent="flex-end" mt={1}>
+                        <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                          {formatTime(message.createdAt)}
+                        </Typography>
+                      </Box>
                     </BubbleContent>
                   </MessageBubble>
                 </Box>
 
                 {/* AI Response */}
-                <Box display="flex" mb={3} className="message-container">
+                <Box display="flex" mb={4} className="message-container">
                   <Avatar
                     sx={{
-                      width: 32,
-                      height: 32,
-                      mr: 1,
-                      background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                      width: 36,
+                      height: 36,
+                      mr: 2,
+                      background: `linear-gradient(135deg, ${theme.palette.info.main}, ${theme.palette.info.dark})`,
                     }}
                   >
-                    <Bot size={16} color="white" />
+                    <Bot size={18} color="white" />
                   </Avatar>
                   <Box flex={1}>
                     <MessageBubble isUser={false}>
                       <BubbleContent isUser={false} elevation={0}>
-                        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
                           {message.answer}
                         </Typography>
                         <Box display="flex" alignItems="center" justifyContent="space-between" mt={2}>
@@ -455,17 +526,17 @@ const Chat: React.FC<ChatProps> = ({ folderId }) => {
                             {formatTime(message.createdAt)}
                           </Typography>
                           <MessageActions>
-                            <Tooltip title="העתק">
+                            <Tooltip title="העתק תשובה">
                               <ActionButton size="small" onClick={() => copyMessage(message.answer)}>
                                 <Copy size={14} />
                               </ActionButton>
                             </Tooltip>
-                            <Tooltip title="תשובה טובה">
+                            <Tooltip title="תשובה מועילה">
                               <ActionButton size="small">
                                 <ThumbsUp size={14} />
                               </ActionButton>
                             </Tooltip>
-                            <Tooltip title="תשובה לא טובה">
+                            <Tooltip title="תשובה לא מועילה">
                               <ActionButton size="small">
                                 <ThumbsDown size={14} />
                               </ActionButton>
@@ -484,17 +555,17 @@ const Chat: React.FC<ChatProps> = ({ folderId }) => {
                 <Box display="flex" alignItems="center">
                   <Avatar
                     sx={{
-                      width: 32,
-                      height: 32,
-                      mr: 1,
-                      background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                      width: 36,
+                      height: 36,
+                      mr: 2,
+                      background: `linear-gradient(135deg, ${theme.palette.info.main}, ${theme.palette.info.dark})`,
                     }}
                   >
-                    <Bot size={16} color="white" />
+                    <Bot size={18} color="white" />
                   </Avatar>
                   <TypingIndicator>
-                    <Typography variant="body2">
-                      מכין תשובה...
+                    <Typography variant="body2" fontWeight={500}>
+                      AI חושב ומנתח...
                     </Typography>
                     <Box display="flex" gap={0.5}>
                       <TypingDot />
@@ -514,40 +585,47 @@ const Chat: React.FC<ChatProps> = ({ folderId }) => {
       {error && (
         <Box p={2}>
           <Typography color="error" variant="body2" textAlign="center">
-            שגיאה: {error}
+            ⚠️ שגיאה: {error}
           </Typography>
         </Box>
       )}
 
+      <Divider />
+
       <InputContainer>
         <Box display="flex" gap={2} alignItems="flex-end">
           <StyledTextField
-            label="כתוב שאלה..."
-            placeholder="שאל אותי הכל על המסמכים..."
+            label="כתוב שאלה לעוזר AI..."
+            placeholder="למשל: מה התוכן העיקרי של המסמכים?"
             multiline
-            maxRows={3}
+            maxRows={4}
             fullWidth
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyPress={handleKeyPress}
             disabled={loading}
             variant="outlined"
+            InputProps={{
+              startAdornment: (
+                <Search size={20} color={theme.palette.text.secondary} style={{ marginRight: 8 }} />
+              ),
+            }}
           />
           <SendButton
-            onClick={sendQuestion}
+            onClick={() => sendQuestion()}
             disabled={loading || !question.trim()}
-            sx={{ alignSelf: 'stretch' }}
+            sx={{ alignSelf: 'flex-end' }}
           >
             {loading ? (
-              <CircularProgress size={20} color="inherit" />
+              <CircularProgress size={24} color="inherit" />
             ) : (
-              <Send size={20} />
+              <Send size={24} />
             )}
           </SendButton>
         </Box>
         
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-          לחץ Enter לשליחה • Shift+Enter לשורה חדשה
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: 'block', textAlign: 'center' }}>
+          💡 Enter לשליחה • Shift+Enter לשורה חדשה • AI מנתח את כל המסמכים בתיקייה
         </Typography>
       </InputContainer>
     </ChatContainer>

@@ -3,19 +3,14 @@ import {
   Box,
   TextField,
   Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Paper,
   Typography,
   Autocomplete,
-  Divider,
   useTheme,
   alpha
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { FolderPlus, Tag, User } from 'lucide-react';
+import { FolderPlus} from 'lucide-react';
 import { Client } from '../models/Client';
 
 // טיפוס נתוני הטופס (רק השדות הפעילים)
