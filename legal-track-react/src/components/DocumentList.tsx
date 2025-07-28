@@ -20,13 +20,10 @@ import {
   Zoom,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { 
-  Delete, 
+import {
+  Delete,
   Download,
   FileText,
-  Image,
-  FileArchive,
-  FileCode,
   Calendar,
   ExternalLink,
   Share2,
@@ -52,12 +49,12 @@ const DocumentCard = styled(Card)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   background: `linear-gradient(145deg, ${theme.palette.background.paper}, ${alpha(theme.palette.primary.main, 0.02)})`,
-  
+
   '&:hover': {
     transform: 'translateY(-4px)',
     boxShadow: `0 12px 32px ${alpha(theme.palette.primary.main, 0.15)}`,
     border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-    
+
     '& .document-actions': {
       opacity: 1,
       transform: 'translateY(0)',
@@ -71,7 +68,7 @@ const DocumentCard = styled(Card)(({ theme }) => ({
     left: 0,
     right: 0,
     height: 4,
-    background: 'var(--file-color, linear-gradient(90deg, #667eea, #764ba2))',
+    background: '#e0e0e0', // Light gray top bar
   }
 }));
 
@@ -79,9 +76,9 @@ const DocumentIcon = styled(Avatar)(({ theme }) => ({
   width: 56,
   height: 56,
   borderRadius: 12,
-  background: 'var(--file-color, linear-gradient(135deg, #667eea, #764ba2))',
+  background: '#e0e0e0', // Light gray icon background
   color: 'white',
-  boxShadow: `0 8px 24px ${alpha('#667eea', 0.3)}`,
+  boxShadow: `0 8px 24px ${alpha('#000000', 0.1)}`,
   marginBottom: theme.spacing(2),
 }));
 
@@ -99,7 +96,7 @@ const DocumentGrid = styled(Box)(({ theme }) => ({
   display: 'grid',
   gap: theme.spacing(2),
   gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-  
+
   [theme.breakpoints.down('md')]: {
     gridTemplateColumns: '1fr',
   },
@@ -118,34 +115,6 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, onDelete }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedDoc, setSelectedDoc] = useState<MyDocument | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-  // פונקציה לקבלת צבע ואייקון לפי סוג קובץ
-  const getFileInfo = (fileName: string) => {
-    const extension = fileName.split('.').pop()?.toLowerCase() || '';
-    
-    const fileTypes: Record<string, { icon: React.ReactNode; color: string; category: string }> = {
-      pdf: { icon: <FileText size={24} />, color: '#ef4444', category: 'מסמך' },
-      doc: { icon: <FileText size={24} />, color: '#2563eb', category: 'וורד' },
-      docx: { icon: <FileText size={24} />, color: '#2563eb', category: 'וורד' },
-      txt: { icon: <FileText size={24} />, color: '#64748b', category: 'טקסט' },
-      jpg: { icon: <Image size={24} />, color: '#10b981', category: 'תמונה' },
-      jpeg: { icon: <Image size={24} />, color: '#10b981', category: 'תמונה' },
-      png: { icon: <Image size={24} />, color: '#10b981', category: 'תמונה' },
-      gif: { icon: <Image size={24} />, color: '#f59e0b', category: 'תמונה' },
-      zip: { icon: <FileArchive size={24} />, color: '#8b5cf6', category: 'ארכיון' },
-      rar: { icon: <FileArchive size={24} />, color: '#8b5cf6', category: 'ארכיון' },
-      js: { icon: <FileCode size={24} />, color: '#f59e0b', category: 'קוד' },
-      ts: { icon: <FileCode size={24} />, color: '#3b82f6', category: 'קוד' },
-      css: { icon: <FileCode size={24} />, color: '#06b6d4', category: 'סטייל' },
-      html: { icon: <FileCode size={24} />, color: '#ef4444', category: 'HTML' },
-    };
-    
-    return fileTypes[extension] || { 
-      icon: <FileText size={24} />, 
-      color: '#64748b', 
-      category: 'קובץ' 
-    };
-  };
 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
@@ -178,14 +147,11 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, onDelete }) => {
 
   const handlePreview = async () => {
     if (!selectedDoc) return;
-    
+
     try {
       const fileName = selectedDoc.filePath.split('/').pop() || selectedDoc.documentName;
       const url = await getDownloadUrl(fileName);
-      
-      // פתח בטאב חדש
       window.open(url, '_blank', 'noopener,noreferrer');
-      
     } catch (error) {
       console.error('Error getting download URL:', error);
       alert('שגיאה בפתיחת המסמך');
@@ -195,19 +161,17 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, onDelete }) => {
 
   const handleDownload = async () => {
     if (!selectedDoc) return;
-    
+
     try {
       const fileName = selectedDoc.filePath.split('/').pop() || selectedDoc.documentName;
       const url = await getDownloadUrl(fileName);
-      
-      // צור קישור הורדה
+
       const link = document.createElement('a');
       link.href = url;
       link.download = selectedDoc.documentName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
     } catch (error) {
       console.error('Error downloading file:', error);
       alert('שגיאה בהורדת הקובץ');
@@ -221,7 +185,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, onDelete }) => {
       handleMenuClose();
       return;
     }
-    
+
     try {
       await deleteDocument(selectedDoc.filePath);
       onDelete?.(selectedDoc.documentId);
@@ -235,11 +199,11 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, onDelete }) => {
 
   const handleCopyLink = async () => {
     if (!selectedDoc) return;
-    
+
     try {
       const fileName = selectedDoc.filePath.split('/').pop() || selectedDoc.documentName;
       const url = await getDownloadUrl(fileName);
-      
+
       await navigator.clipboard.writeText(url);
       alert('הקישור הועתק ללוח');
     } catch (error) {
@@ -261,125 +225,114 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, onDelete }) => {
   }
 
   return (
-    <Box>
+    <Box sx={{ maxHeight: '75vh', overflowY: 'auto', pr: 1 }}>
       <DocumentGrid>
-        {documents.map((doc, index) => {
-          const fileInfo = getFileInfo(doc.documentName);
-          
-          return (
-            <Zoom in={true} timeout={300 + index * 100} key={doc.documentId}>
-              <DocumentCard
-                className="document-card"
-                sx={{ '--file-color': fileInfo.color }}
-              >
-                <ActionButtons className="document-actions">
-                  <Tooltip title="אפשרויות">
-                    <IconButton
-                      size="small"
-                      onClick={(e) => handleMenuOpen(e, doc)}
-                      sx={{
-                        backgroundColor: alpha(theme.palette.background.paper, 0.9),
-                        backdropFilter: 'blur(10px)',
-                        border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-                        '&:hover': {
-                          backgroundColor: theme.palette.background.paper,
-                          transform: 'scale(1.1)',
-                        }
-                      }}
-                    >
-                      <MoreVert fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                </ActionButtons>
-
-                <CardContent sx={{ p: 3, flex: 1, textAlign: 'center' }}>
-                  <DocumentIcon sx={{ '--file-color': fileInfo.color }}>
-                    {fileInfo.icon}
-                  </DocumentIcon>
-
-                  <Typography 
-                    variant="h6" 
-                    fontWeight={600} 
-                    gutterBottom
-                    sx={{ 
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                      minHeight: '3em',
-                      textAlign: 'center'
+        {documents.map((doc, index) => (
+          <Zoom in={true} timeout={300 + index * 100} key={doc.documentId}>
+            <DocumentCard className="document-card">
+              <ActionButtons className="document-actions">
+                <Tooltip title="אפשרויות">
+                  <IconButton
+                    size="small"
+                    onClick={(e) => handleMenuOpen(e, doc)}
+                    sx={{
+                      backgroundColor: alpha(theme.palette.background.paper, 0.9),
+                      backdropFilter: 'blur(10px)',
+                      border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                      '&:hover': {
+                        backgroundColor: theme.palette.background.paper,
+                        transform: 'scale(1.1)',
+                      }
                     }}
-                    title={doc.documentName}
                   >
-                    {doc.documentName}
+                    <MoreVert fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </ActionButtons>
+
+              <CardContent sx={{ p: 3, flex: 1, textAlign: 'center' }}>
+                <DocumentIcon>
+                  <FileText size={24} />
+                </DocumentIcon>
+
+                <Typography
+                  variant="h6"
+                  fontWeight={600}
+                  gutterBottom
+                  sx={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    minHeight: '3em',
+                    textAlign: 'center'
+                  }}
+                  title={doc.documentName}
+                >
+                  {doc.documentName}
+                </Typography>
+
+                <Box display="flex" justifyContent="center" gap={1} mb={2}>
+                  <MetaChip label="קובץ" size="small" />
+                  <MetaChip label={formatFileSize(1024 * 1024)} size="small" />
+                </Box>
+
+                <Box display="flex" alignItems="center" justifyContent="center" gap={1} mb={2}>
+                  <Calendar size={14} color={theme.palette.text.secondary} />
+                  <Typography variant="caption" color="text.secondary">
+                    {formatDate(doc.uploadDate)}
                   </Typography>
+                </Box>
+              </CardContent>
 
-                  <Box display="flex" justifyContent="center" gap={1} mb={2}>
-                    <MetaChip label={fileInfo.category} size="small" />
-                    <MetaChip 
-                      label={formatFileSize(1024 * 1024)} // דמה - אין גודל קובץ ב-API
-                      size="small" 
-                    />
-                  </Box>
+              <CardActions sx={{ p: 2, pt: 0, justifyContent: 'center' }}>
+                <Button
+                  size="small"
+                  startIcon={<ExternalLink size={16} />}
+                  onClick={() => {
+                    setSelectedDoc(doc);
+                    handlePreview();
+                  }}
+                  variant="contained"
+                  sx={{
+                    backgroundColor: '#9e9e9e',
+                    color: 'white',
+                    borderRadius: 2,
+                    '&:hover': {
+                      backgroundColor: '#757575',
+                      transform: 'translateY(-2px)',
+                    }
+                  }}
+                >
+                  פתח
+                </Button>
 
-                  <Box display="flex" alignItems="center" justifyContent="center" gap={1} mb={2}>
-                    <Calendar size={14} color={theme.palette.text.secondary} />
-                    <Typography variant="caption" color="text.secondary">
-                      {formatDate(doc.uploadDate)}
-                    </Typography>
-                  </Box>
-                </CardContent>
-
-                <CardActions sx={{ p: 2, pt: 0, justifyContent: 'center' }}>
-                  <Button
-                    size="small"
-                    startIcon={<ExternalLink size={16} />}
-                    onClick={() => {
-                      setSelectedDoc(doc);
-                      handlePreview();
-                    }}
-                    variant="contained"
-                    sx={{
-                      background: `linear-gradient(135deg, ${fileInfo.color}, ${alpha(fileInfo.color, 0.8)})`,
-                      color: 'white',
-                      borderRadius: 2,
-                      '&:hover': {
-                        background: `linear-gradient(135deg, ${alpha(fileInfo.color, 0.9)}, ${fileInfo.color})`,
-                        transform: 'translateY(-2px)',
-                      }
-                    }}
-                  >
-                    פתח
-                  </Button>
-                  
-                  <Button
-                    size="small"
-                    startIcon={<Download size={16} />}
-                    onClick={() => {
-                      setSelectedDoc(doc);
-                      handleDownload();
-                    }}
-                    variant="outlined"
-                    sx={{
-                      borderColor: alpha(fileInfo.color, 0.3),
-                      color: fileInfo.color,
-                      borderRadius: 2,
-                      '&:hover': {
-                        borderColor: fileInfo.color,
-                        background: alpha(fileInfo.color, 0.1),
-                      }
-                    }}
-                  >
-                    הורד
-                  </Button>
-                </CardActions>
-              </DocumentCard>
-            </Zoom>
-          );
-        })}
+                <Button
+                  size="small"
+                  startIcon={<Download size={16} />}
+                  onClick={() => {
+                    setSelectedDoc(doc);
+                    handleDownload();
+                  }}
+                  variant="outlined"
+                  sx={{
+                    borderColor: '#bdbdbd',
+                    color: '#424242',
+                    borderRadius: 2,
+                    '&:hover': {
+                      borderColor: '#9e9e9e',
+                      background: alpha('#9e9e9e', 0.1),
+                    }
+                  }}
+                >
+                  הורד
+                </Button>
+              </CardActions>
+            </DocumentCard>
+          </Zoom>
+        ))}
       </DocumentGrid>
 
-      {/* Context Menu */}
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
@@ -422,7 +375,6 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, onDelete }) => {
         </MenuItem>
       </Menu>
 
-      {/* Preview Dialog - אם תרצה להוסיף תצוגה מקדימה בדיאלוג */}
       <Dialog
         open={!!previewUrl}
         onClose={() => setPreviewUrl(null)}
@@ -437,9 +389,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, onDelete }) => {
             <Typography variant="h6" fontWeight={600}>
               תצוגה מקדימה - {selectedDoc?.documentName}
             </Typography>
-            <IconButton onClick={() => setPreviewUrl(null)}>
-              ×
-            </IconButton>
+            <IconButton onClick={() => setPreviewUrl(null)}>×</IconButton>
           </Box>
         </DialogTitle>
         <DialogContent>
@@ -447,18 +397,18 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, onDelete }) => {
             <iframe
               src={previewUrl}
               title="Document Preview"
-              style={{ 
-                width: "100%", 
-                height: "600px", 
+              style={{
+                width: "100%",
+                height: "600px",
                 border: "none",
                 borderRadius: '8px'
               }}
             />
           ) : (
-            <Box 
-              display="flex" 
-              alignItems="center" 
-              justifyContent="center" 
+            <Box
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
               height={400}
             >
               <Typography color="text.secondary">
