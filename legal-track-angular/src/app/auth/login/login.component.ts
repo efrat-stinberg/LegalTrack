@@ -128,7 +128,7 @@ import { MatDividerModule } from '@angular/material/divider';
                   <mat-icon>support_agent</mat-icon>
                 </div>
                 <div class="feature-content">
-                  <h4>תמיכה 24/7</h4>
+                  <h4>תמיכה 24/6</h4>
                   <p>צוות מומחים זמין תמיד</p>
                 </div>
               </div>
