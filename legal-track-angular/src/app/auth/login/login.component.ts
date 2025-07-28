@@ -181,7 +181,6 @@ import { MatDividerModule } from '@angular/material/divider';
                       <input matInput 
                              type="email" 
                              formControlName="email" 
-                             placeholder="admin@legalflow.co.il"
                              autocomplete="email">
                       <mat-icon matPrefix class="field-icon">alternate_email</mat-icon>
                       <div class="field-decoration"></div>
@@ -335,11 +334,11 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    // Add demo data for development
-    this.loginForm.patchValue({
-      email: 'admin@legal-flow.com',
-      password: 'admin123'
-    });
+    // // Add demo data for development
+    // this.loginForm.patchValue({
+    //   email: 'admin@legal-flow.com',
+    //   password: 'admin123'
+    // });
 
     // Randomly position particles
     this.initializeParticles();
