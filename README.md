@@ -92,7 +92,7 @@ All routes are prefixed with `/api`. Swagger UI is available at `/swagger`.
 | Area      | Endpoints |
 |-----------|-----------|
 | Auth      | `POST /login`, `POST /register`, `POST /register-admin` |
-| Users     | `GET/POST /user`, `GET/PUT/DELETE /user/{id}`, `GET /user/{email}` |
+| Users     | `GET/POST /users`, `GET/PUT/DELETE /users/{id}`, `GET /users/{email}` |
 | Invites   | `POST /invite/invite-lawyer` (Admin), `POST /invite/validate` |
 | Groups    | `GET/POST /group`, `GET /group/{id}` |
 | Clients   | `GET/POST /client`, `GET/PUT/DELETE /client/{id}` |
