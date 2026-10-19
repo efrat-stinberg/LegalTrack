@@ -1,170 +1,194 @@
-# 🧑‍⚖️ Legal Case Management System
+# 🧑‍⚖️ LegalTrack – Legal Case Management System
 
-A full-featured case and document management system for legal professionals, with integrated AI-powered legal chat.  
-Built as a Full Stack project using modern web technologies and cloud infrastructure.
+A full-stack case and document management system for law firms, with an AI legal chat that answers questions based on the documents in each case.
 
----
-
-## 📚 Overview
-
-The **Legal Case Management System** is built to streamline lawyers’ workflows by providing tools to manage legal cases, organize documents, and leverage AI to extract insights from legal materials.
+- **Lawyers' app** (React): manage clients, cases and documents, and chat with the AI about a case.
+- **Admin app** (Angular): office managers invite lawyers, manage users and view dashboard statistics.
+- **Server** (ASP.NET Core): REST API with JWT auth, MySQL, Amazon S3 file storage and OpenAI integration.
 
 ---
 
 ## 🏗️ Tech Stack
 
-| Layer          | Technology                      |
-|----------------|----------------------------------|
-| Backend        | ASP.NET Core Web API             |
-| Lawyer Frontend| React                            |
-| Admin Frontend | Angular                          |
-| Database       | MySQL                            |
-| File Storage   | Amazon S3                        |
-| AI Engine      | GPT-based legal chat             |
-| Auth           | JWT with role-based permissions  |
+| Layer           | Technology                                                     |
+|-----------------|----------------------------------------------------------------|
+| Backend         | ASP.NET Core Web API (.NET 9), Entity Framework Core, AutoMapper |
+| Lawyers' client | React 19, TypeScript, Vite, Redux Toolkit, Material UI, Recharts |
+| Admin client    | Angular 19, Angular Material, Chart.js (ng2-charts)            |
+| Database        | MySQL (Pomelo EF Core provider)                                |
+| File storage    | Amazon S3 (presigned upload/download URLs)                     |
+| PDF parsing     | PdfPig (text extraction for the AI chat)                       |
+| AI engine       | OpenAI Chat Completions (`gpt-4o-mini`)                        |
+| Email           | SendGrid (lawyer invitations)                                  |
+| Auth            | JWT Bearer tokens, Admin / Lawyer roles                        |
+| Deployment      | Docker, Render.com                                             |
 
 ---
 
-## 🎯 System Objectives
+## 📁 Repository Structure
 
-- Empower lawyers to manage cases and documents independently.
-- Provide AI tools to extract and interpret legal insights from documents.
-- Centralize all legal materials in one secure, accessible workspace.
-
----
-
-## ⚙️ Main Modules
-
-### 🧑‍💼 Lawyers’ Application (React)
-
-#### 📁 Case Management
-- Create, update, and delete cases (folders).
-- Assign client info, status, open/close dates.
-- Filter case list by status (open/closed).
-
-#### 📄 Document Management
-- Upload (PDF), view, download, and delete documents.
-- Documents are linked to specific cases.
-- Text is extracted for AI processing (OCR/Parser).
-
-#### 💬 AI Legal Chat
-- Ask case-specific questions.
-- AI answers are based solely on associated documents.
-- Chat history stored per case.
-
-#### 📚 Client Management
-- Manage basic client details (name, contact).
-- View documents by client.
+```plaintext
+LegalTrack/
+├── LagalTrackServer/              # ASP.NET Core solution (TaxManagerServer.sln)
+│   ├── AaxManagerServer.API/      # Web API project: controllers, Program.cs, Dockerfile
+│   ├── TaxManagerServer.Core/     # Entities, DTOs, interfaces, middleware
+│   ├── TaxManagerServer.Data/     # DbContext, EF Core migrations, repositories
+│   ├── TaxManagerServer.Service/  # Business logic (auth, chat, S3, email, PDF…)
+│   └── Dockerfile
+├── legal-track-react/             # Lawyers' application (Vite + React)
+└── legal-track-angular/           # Admin application (Angular)
+```
 
 ---
 
-### 🏢 Administrative Application (Angular)
+## ⚙️ Features
 
-- Accessible only to office managers.
-- Add/remove users (lawyers), assign to cases.
-- View lawyer activity and workload.
-- Dashboard for case statistics and user load.
+### 🧑‍💼 Lawyers' Application (React)
+
+- **Clients** – add, edit, delete and search clients (name, email, phone).
+- **Cases (folders)** – create cases linked to a client, view them in a grid, filter by client.
+- **Documents** – upload PDFs to S3, view, download and delete documents per case.
+- **AI legal chat** – ask questions about a case; answers are based on the text extracted from that case's documents. Chat history is saved per case.
+- **Stats** – overview of cases and documents.
+
+### 🏢 Admin Application (Angular)
+
+- Register an office (group) with an admin account.
+- Invite lawyers by email (SendGrid); invite links expire after a configurable time.
+- View, edit and remove users.
+- Dashboard with charts of users and activity.
 
 ---
 
 ## 🗃️ Data Model
 
 ```plaintext
-User
-├── Id
-├── Name
-├── Email
-├── Role (Lawyer / Admin)
+Group (law firm)          User                      Client
+├── Id                    ├── UserId                ├── Id
+├── Name                  ├── UserName              ├── FullName
+├── CreatedByUserId       ├── Email                 ├── Email
+└── Users[]               ├── Password              ├── Phone
+                          ├── IsAdmin               └── Folders[]
+                          └── GroupId
 
-Folder (Case)
-├── Id
-├── Title
-├── ClientName
-├── Status (Open/Closed)
-├── CreatedDate
-├── UserId
+Folder (case)             Document                  ChatMessage
+├── FolderId              ├── DocumentId            ├── Id
+├── FolderName            ├── DocumentName          ├── FolderId
+├── ClientId              ├── FilePath (S3 key)     ├── Question
+├── GroupId               ├── UploadDate            ├── Answer
+├── CreatedDate           └── FolderId              └── CreatedAt
+└── Documents[]
 
-Document
-├── Id
-├── FileName
-├── FolderId
-├── S3Url
-├── ExtractedText
+Invite
+├── Id, Email, Token, GroupId, IsUsed, CreatedAt
+```
 
-ChatMessage
-├── Id
-├── FolderId
-├── Question
-├── Answer
-├── Timestamp
-🔐 Infrastructure & Security
-JWT Authentication with token validation.
+---
 
-Role-based access (Admin, Lawyer).
+## 🧪 API Endpoints
 
-Document access restricted per case.
+All routes are prefixed with `/api`. Swagger UI is available at `/swagger`.
 
-Lawyers and admins are fully separated by access level.
+| Area      | Endpoints |
+|-----------|-----------|
+| Auth      | `POST /login`, `POST /register`, `POST /register-admin` |
+| Users     | `GET/POST /user`, `GET/PUT/DELETE /user/{id}`, `GET /user/{email}` |
+| Invites   | `POST /invite/invite-lawyer` (Admin), `POST /invite/validate` |
+| Groups    | `GET/POST /group`, `GET /group/{id}` |
+| Clients   | `GET/POST /client`, `GET/PUT/DELETE /client/{id}` |
+| Folders   | `GET/POST /folders`, `GET/PUT/DELETE /folders/{id}`, `GET /folders/by-client/{clientId}` |
+| Documents | `GET/POST /document`, `GET/PUT/DELETE /document/{id}` |
+| S3        | `POST /s3/upload`, `GET /s3/presigned-upload-url`, `GET /s3/presigned-download-url`, `GET /s3/download`, `GET /s3/list`, `POST /s3/notify-upload`, `DELETE /s3/delete` |
+| Chat      | `GET /chat/{folderId}` (history), `POST /chat/{folderId}` (ask a question) |
 
-🧪 API Endpoints
-Endpoint	Description
-/api/folders	Manage cases (CRUD)
-/api/documents	Upload/download/delete documents
-/api/chat	Ask questions and get AI answers
-/api/users	Manage users (admins only)
-/api/auth	Register/login
+---
 
-🎨 UI/UX Principles
-Clean, responsive design with intuitive navigation.
+## ✅ Getting Started
 
-Case display using card/grid layout.
+### Prerequisites
 
-Drag & Drop support for file upload.
+- [.NET 9 SDK](https://dotnet.microsoft.com/download)
+- Node.js 18+ and npm
+- MySQL 8
+- An AWS S3 bucket, an OpenAI API key and a SendGrid API key
 
-File previews with metadata.
+### 1. Clone the repository
 
-Legal chat interface with contextual hints.
+```bash
+git clone https://github.com/efrat-stinberg/LegalTrack.git
+cd LegalTrack
+```
 
-✅ Getting Started
-1. Clone the repository
-bash
-Copy
-Edit
-git clone https://github.com/your-org/legal-case-system.git
-2. Configure your environment
-Set the following values in appsettings.json or environment variables:
+### 2. Configure the server
 
-JWT:Key, JWT:Issuer, JWT:Audience
+The server reads settings from `appsettings.json`, [user secrets](https://learn.microsoft.com/aspnet/core/security/app-secrets) or environment variables (use `__` instead of `:` in env var names, e.g. `JWT__Key`). Don't commit real secrets.
 
-AWS:AccessKey, AWS:SecretKey, AWS:BucketName
+| Key | Description |
+|-----|-------------|
+| `ConnectionStrings:DefaultConnection` | MySQL connection string |
+| `JWT:Key`, `JWT:Issuer`, `JWT:Audience` | JWT signing settings |
+| `JWT:TokenExpirationMinutes` | Token lifetime |
+| `AWS:AccessKey`, `AWS:SecretKey`, `AWS:Region`, `AWS:BucketName` | S3 storage |
+| `ChatKey` | OpenAI API key |
+| `SendGrid:ApiKey`, `SendGrid:SenderEmail` | Invitation emails |
+| `Invite:ExpirationMinutes` | Invite link lifetime |
+| `Frontend:BaseUrl` | URL of the React app (used in invite links) |
 
-MySQL connection string in DefaultConnection
+Example using user secrets:
 
-3. Run the backend
-bash
-Copy
-Edit
-cd LegalCaseManagement.Server
-dotnet ef database update
-dotnet run
-4. Run React client (lawyers)
-bash
-Copy
-Edit
-cd Client.React
+```bash
+cd LagalTrackServer/AaxManagerServer.API
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost;Database=legaltrack;User=root;Password=yourpassword;"
+dotnet user-secrets set "JWT:Key" "a-long-random-secret-key"
+```
+
+### 3. Run the server
+
+```bash
+cd LagalTrackServer
+dotnet ef database update --project TaxManagerServer.Data --startup-project AaxManagerServer.API
+dotnet run --project AaxManagerServer.API
+```
+
+Or with Docker:
+
+```bash
+cd LagalTrackServer
+docker build -t legaltrack-server .
+docker run -p 8080:8080 --env-file .env legaltrack-server
+```
+
+### 4. Run the lawyers' app (React)
+
+```bash
+cd legal-track-react
+npm install
+npm run dev
+```
+
+Set `VITE_API_URL` (e.g. in `.env.local`) to point at your server. By default it uses `https://legaltrack-server.onrender.com/api`.
+
+### 5. Run the admin app (Angular)
+
+```bash
+cd legal-track-angular
 npm install
 npm start
-5. Run Angular client (admins)
-bash
-Copy
-Edit
-cd Client.Angular
-npm install
-ng serve
-👥 Contributors
+```
 
-[Your Name] – Backend Developer (.NET)
+The API URL is set in `src/environments/environment.ts` (`apiUrl`).
 
-[Frontend Dev] – React UI Developer
+---
 
-[Admin UI Dev] – Angular Admin Dashboard
+## 🔐 Security
+
+- JWT authentication on protected endpoints, validated on every request.
+- Role-based access: admin-only actions (e.g. inviting lawyers) require the `Admin` role.
+- Cases are scoped to the user's office (group).
+- Files are stored in S3 and uploaded/downloaded via presigned URLs.
+
+---
+
+## 👩‍💻 Author
+
+[@efrat-stinberg](https://github.com/efrat-stinberg)
