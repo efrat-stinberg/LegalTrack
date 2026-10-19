@@ -78,7 +78,6 @@ export const uploadFileToServer = async (
       headers: {
         "Content-Type": "multipart/form-data",
       },
-      timeout: 30000, // 5 דקות
       onUploadProgress: (progressEvent) => {
         if (onProgress && progressEvent.total) {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);

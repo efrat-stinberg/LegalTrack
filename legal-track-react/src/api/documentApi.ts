@@ -1,4 +1,4 @@
-import { apiClient, API_BASE_URL } from "./config";
+import { apiClient } from "./config";
 import DocumentPostModel from "../models/DocumentPostModel";
 import DocumentDTO from "../models/DocumentDTO";
 
@@ -54,12 +54,7 @@ export const deleteDocument = async (fileKey: string): Promise<void> => {
   try {
     console.log('Deleting document with fileKey:', fileKey);
     const decodedFileKey = decodeURIComponent(fileKey);
-    const url = `${API_BASE_URL}/s3/delete?fileKey=${encodeURIComponent(decodedFileKey)}`;
-    
-    const response = await fetch(url, { method: 'DELETE' });
-    if (!response.ok) {
-      throw new Error(`Failed to delete file: ${response.statusText}`);
-    }
+    await apiClient.delete('/s3/delete', { params: { fileKey: decodedFileKey } });
     console.log('Document deleted successfully');
   } catch (error) {
     console.error("Error deleting document:", error);

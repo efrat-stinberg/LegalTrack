@@ -32,6 +32,11 @@ import {
   Search,
   Brain
 } from "lucide-react";
+import axios from "axios";
+import { apiClient } from "../api/config";
+
+// The AI answer can take a while; the default apiClient timeout (10s) is too short
+const CHAT_TIMEOUT_MS = 120000;
 
 type ChatMessage = {
   id: number;
@@ -342,13 +347,10 @@ const Chat: React.FC<ChatProps> = ({ folderId }) => {
   useEffect(() => {
     if (!folderId) return;
 
-    fetch(`https://legaltrack-server.onrender.com/api/Chat/${folderId}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load chat history");
-        return res.json();
-      })
-      .then((data: ChatMessage[]) => setMessages(data))
-      .catch((err) => setError(err.message));
+    apiClient
+      .get<ChatMessage[]>(`/Chat/${folderId}`)
+      .then((res) => setMessages(res.data))
+      .catch(() => setError("Failed to load chat history"));
   }, [folderId]);
 
   const sendQuestion = async (questionText?: string) => {
@@ -361,26 +363,20 @@ const Chat: React.FC<ChatProps> = ({ folderId }) => {
     setIsTyping(true);
 
     try {
-      const res = await fetch(`https://legaltrack-server.onrender.com/api/Chat/${folderId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: userMessage }),
-      });
+      const { data: newMessage } = await apiClient.post<ChatMessage>(
+        `/Chat/${folderId}`,
+        { question: userMessage },
+        { timeout: CHAT_TIMEOUT_MS }
+      );
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || "Failed to send question");
-      }
-
-      const newMessage: ChatMessage = await res.json();
-      
       setTimeout(() => {
         setIsTyping(false);
         setMessages((prev) => [...prev, newMessage]);
       }, 1500);
       
     } catch (err: any) {
-      setError(err.message || "Unknown error");
+      const serverMessage = axios.isAxiosError(err) && typeof err.response?.data === "string" ? err.response.data : null;
+      setError(serverMessage || err.message || "Failed to send question");
       setIsTyping(false);
     } finally {
       setLoading(false);
