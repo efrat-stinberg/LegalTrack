@@ -10,8 +10,8 @@ namespace TaxManager.Core.Services
     public interface IUserService
     {
         Task<IEnumerable<User>> GetAllAsync();
-        Task<User> GetByIdAsync(int id);
-        Task<User> GetByEmailAsync(string email);
+        Task<User?> GetByIdAsync(int id);
+        Task<User?> GetByEmailAsync(string email);
         Task UpdateAsync(int id, User updatedUser);
         Task AddAsync(User newUser);
         Task DeleteAsync(int id);

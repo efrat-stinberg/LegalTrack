@@ -10,9 +10,10 @@ namespace TaxManager.Core.Services
     public interface IDocumentService
     {
         Task AddAsync(Document document);
-        Task<Document> GetByIdAsync(int documentId);
-        Task<Document> GetByFilePathAsync(string filePath);
+        Task<Document?> GetByIdAsync(int documentId);
+        Task<Document?> GetByFilePathAsync(string filePath);
         Task<IEnumerable<Document>> GetAllAsync();
+        Task<List<Document>> GetAllByGroupAsync(int groupId);
         Task UpdateAsync(Document document);
         Task DeleteAsync(int documentId);
 

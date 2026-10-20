@@ -10,6 +10,8 @@ namespace TaxManagerServer.Core.Repository
     {
         Task<IEnumerable<T>> GetAllAsync();
 
+        Task<List<T>> FindAsync(Expression<Func<T, bool>> predicate);
+
         Task<T?> GetByIdAsync(int id);
 
         Task<T> AddAsync(T entity);

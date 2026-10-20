@@ -19,7 +19,13 @@ namespace TaxManagerServer.Data.Repositories
             _context = context;
         }
 
-        public async Task<Document> GetByFilePathAsync(string filePath)
+        public async Task<List<Document>> GetAllByGroupAsync(int groupId)
+        {
+            var folderIds = _context.Folders.Where(f => f.GroupId == groupId).Select(f => f.FolderId);
+            return await _context.Documents.Where(d => folderIds.Contains(d.FolderId)).ToListAsync();
+        }
+
+        public async Task<Document?> GetByFilePathAsync(string filePath)
         {
             var normalizedPath = filePath.TrimStart('/');
             return await _context.Documents

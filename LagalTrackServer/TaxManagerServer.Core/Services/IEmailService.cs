@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TaxManagerServer.Core.Services
+﻿namespace TaxManagerServer.Core.Services
 {
     public interface IEmailService
     {
-        Task SendInviteEmailAsync(string email, string token);
+        // Throws EmailSendException when the email could not be sent.
+        Task SendInviteEmailAsync(string toEmail, string inviteLink);
+    }
 
+    public class EmailSendException : Exception
+    {
+        public EmailSendException(string message, Exception? inner = null) : base(message, inner) { }
     }
 }

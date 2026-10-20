@@ -43,9 +43,14 @@ namespace TaxManager.Service
             return await _documentRepository.GetAllAsync(); // Use GetAllAsync
         }
 
-        public async Task<Document> GetByFilePathAsync(string filePath)
+        public async Task<Document?> GetByFilePathAsync(string filePath)
         {
             return await _documentRepository.GetByFilePathAsync(filePath);
+        }
+
+        public async Task<List<Document>> GetAllByGroupAsync(int groupId)
+        {
+            return await _documentRepository.GetAllByGroupAsync(groupId);
         }
 
         public async Task UpdateAsync(Document document)

@@ -10,6 +10,8 @@ namespace TaxManagerServer.Core.Repository
     public interface IClientRepository : IRepository<Client>
     {
         Task<List<Client>> GetAllAsync();
+        Task<List<Client>> GetAllByGroupAsync(int groupId);
+        Task<bool> HasFoldersAsync(int clientId);
         Task<Client?> GetByIdAsync(int id);
     }
 }

@@ -20,19 +20,22 @@ namespace TaxManagerServer.API.Controllers
         private readonly IRepositoryManager _repositoryManager;
         private readonly IUserService _userService;
         private readonly IAuthService _authService;
+        private readonly IInviteService _inviteService;
 
         public AuthController(
             IConfiguration configuration,
             IUserRepository userRepository,
             IRepositoryManager repositoryManager,
             IUserService userService,
-            IAuthService authService)
+            IAuthService authService,
+            IInviteService inviteService)
         {
             _configuration = configuration;
             _userRepository = userRepository;
             _repositoryManager = repositoryManager;
             _userService = userService;
             _authService = authService;
+            _inviteService = inviteService;
         }
 
         [HttpPost("login")]
@@ -41,16 +44,26 @@ namespace TaxManagerServer.API.Controllers
             if (!_userService.IsValidEmail(loginModel.Email))
                 return BadRequest("Invalid email format.");
 
-            if (!_userService.IsValidPassword(loginModel.Password))
-                return BadRequest("Password must be at least 5 characters long and contain both letters and numbers.");
+            // The password policy is enforced at registration; here we only check the password matches
+            if (string.IsNullOrEmpty(loginModel.Password))
+                return BadRequest("Password is required.");
 
             var user = await _userRepository.GetByEmailAsync(loginModel.Email);
             if (user == null)
                 return Unauthorized("Invalid credentials.");
 
             var passwordHasher = new PasswordHasher<User>();
-            var result = passwordHasher.VerifyHashedPassword(user, user.Password, loginModel.Password);
-            if (result != PasswordVerificationResult.Success)
+            PasswordVerificationResult result;
+            try
+            {
+                result = passwordHasher.VerifyHashedPassword(user, user.Password, loginModel.Password);
+            }
+            catch (FormatException)
+            {
+                // Stored value is not a hash (e.g. a user created by the old POST /api/users endpoint)
+                result = PasswordVerificationResult.Failed;
+            }
+            if (result == PasswordVerificationResult.Failed)
                 return Unauthorized("Invalid credentials.");
 
             var token = _authService.GenerateJwtToken(user);
@@ -60,10 +73,14 @@ namespace TaxManagerServer.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
-            var invite = await _repositoryManager.Invite.GetByTokenAsync(request.Token);
+            if (string.IsNullOrWhiteSpace(request?.Name))
+                return BadRequest("Name is required.");
 
-            int expirationMinutes = int.Parse(_configuration["Invite:ExpirationMinutes"]);
-            if (invite == null || invite.IsUsed || invite.CreatedAt.AddMinutes(expirationMinutes) < DateTime.UtcNow)
+            if (!_userService.IsValidPassword(request.Password ?? ""))
+                return BadRequest("Password must be at least 5 characters long and contain both letters and numbers.");
+
+            var invite = await _inviteService.GetValidInviteAsync(request.Token);
+            if (invite == null)
                 return BadRequest("Invalid or expired token.");
 
             var email = invite.Email;
@@ -74,7 +91,7 @@ namespace TaxManagerServer.API.Controllers
 
             var newUser = new User
             {
-                UserName = request.Name,
+                UserName = request.Name.Trim(),
                 Email = email,
                 GroupId = groupId,
                 IsAdmin = false

@@ -13,4 +13,10 @@ namespace TaxManagerServer.Core.Services
         Task<ChatMessage> AskQuestionAsync(int folderId, string question);
     }
 
+    // The AI service is not configured or did not answer; the API maps this to 503
+    public class ChatUnavailableException : Exception
+    {
+        public ChatUnavailableException(string message, Exception? inner = null) : base(message, inner) { }
+    }
+
 }

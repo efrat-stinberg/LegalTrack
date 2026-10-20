@@ -1,46 +1,63 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Net.Http;
-using System.Text.Json;
+using TaxManager.Core.Services;
 using TaxManagerServer.Core.DTOs;
-using TaxManagerServer.Core.Models;
 using TaxManagerServer.Core.Services;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace TaxManagerServer.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
-    public class ChatController : ControllerBase
+    [Authorize]
+    public class ChatController : OfficeControllerBase
     {
         private readonly IChatService _chatService;
+        private readonly IFolderService _folderService;
         private readonly IMapper _mapper;
 
-        public ChatController(IChatService chatService, IMapper mapper)
+        public ChatController(IChatService chatService, IFolderService folderService, IMapper mapper)
         {
             _chatService = chatService;
+            _folderService = folderService;
             _mapper = mapper;
+        }
+
+        private async Task<bool> IsOwnFolderAsync(int folderId)
+        {
+            var folder = await _folderService.GetByIdAsync(folderId);
+            return folder != null && await IsInMyOfficeAsync(folder.GroupId);
         }
 
         [HttpGet("{folderId}")]
         public async Task<IActionResult> GetHistory(int folderId)
         {
+            if (!await IsOwnFolderAsync(folderId))
+                return NotFound();
+
             var messages = await _chatService.GetChatHistoryAsync(folderId);
-            var result = messages.Select(m => _mapper.Map<ChatMessageResponseDto>(m));
-            return Ok(result);
+            return Ok(messages.Select(m => _mapper.Map<ChatMessageResponseDto>(m)));
         }
 
         [HttpPost("{folderId}")]
         public async Task<IActionResult> AskQuestion(int folderId, [FromBody] ChatMessageDto dto)
         {
-            var message = await _chatService.AskQuestionAsync(folderId, dto.Question);
-            var result = _mapper.Map<ChatMessageResponseDto>(message);
-            return Ok(result);
+            if (string.IsNullOrWhiteSpace(dto?.Question))
+                return BadRequest("Question is required.");
+
+            if (!await IsOwnFolderAsync(folderId))
+                return NotFound();
+
+            try
+            {
+                var message = await _chatService.AskQuestionAsync(folderId, dto.Question.Trim());
+                return Ok(_mapper.Map<ChatMessageResponseDto>(message));
+            }
+            catch (ChatUnavailableException ex)
+            {
+                Console.WriteLine($"Chat failed: {ex.Message}");
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, ex.Message);
+            }
         }
     }
-
 }

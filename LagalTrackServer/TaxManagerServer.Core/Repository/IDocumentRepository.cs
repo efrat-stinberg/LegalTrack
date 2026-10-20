@@ -9,7 +9,8 @@ namespace TaxManagerServer.Core.Repository
 {
     public interface IDocumentRepository : IRepository<Document>
     {
-        Task<Document> GetByFilePathAsync(string filePath);
+        Task<Document?> GetByFilePathAsync(string filePath);
+        Task<List<Document>> GetAllByGroupAsync(int groupId);
 
     }
 }

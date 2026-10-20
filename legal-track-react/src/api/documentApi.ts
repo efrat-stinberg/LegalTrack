@@ -53,8 +53,9 @@ export const updateDocument = async (id: number, document: DocumentPostModel): P
 export const deleteDocument = async (fileKey: string): Promise<void> => {
   try {
     console.log('Deleting document with fileKey:', fileKey);
-    const decodedFileKey = decodeURIComponent(fileKey);
-    await apiClient.delete('/s3/delete', { params: { fileKey: decodedFileKey } });
+    // Send the stored key as-is: keys of non-English file names contain %XX sequences
+    // that must reach the server unchanged
+    await apiClient.delete('/s3/delete', { params: { fileKey } });
     console.log('Document deleted successfully');
   } catch (error) {
     console.error("Error deleting document:", error);

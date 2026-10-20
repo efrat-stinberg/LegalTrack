@@ -28,18 +28,21 @@ namespace TaxManagerServer.Service
             new Claim(ClaimTypes.Name, user.UserName),
             new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
             new Claim(ClaimTypes.Role, user.IsAdmin ? "Admin" : "User"),
-            new Claim("GroupId", user.GroupId.ToString())
+            new Claim("GroupId", user.GroupId?.ToString() ?? "")
         };
 
-            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Key"]));
+            var jwtKey = _configuration["JWT:Key"] ?? throw new InvalidOperationException("JWT:Key is not configured.");
+            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var credentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
-            int expirationMinutes = int.Parse(_configuration["JWT:TokenExpirationMinutes"]);
+            // Default to one day when JWT:TokenExpirationMinutes is missing or invalid
+            if (!int.TryParse(_configuration["JWT:TokenExpirationMinutes"], out var expirationMinutes) || expirationMinutes <= 0)
+                expirationMinutes = 24 * 60;
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["JWT:Issuer"],
                 audience: _configuration["JWT:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(expirationMinutes),
+                expires: DateTime.UtcNow.AddMinutes(expirationMinutes),
                 signingCredentials: credentials
             );
 

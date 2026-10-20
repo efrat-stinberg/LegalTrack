@@ -30,7 +30,7 @@ namespace TaxManager.Service
             return await _userRepository.GetByIdAsync(id);
         }
 
-        public async Task<User> GetByEmailAsync(string email)
+        public async Task<User?> GetByEmailAsync(string email)
         {
             return await _userRepository.GetByEmailAsync(email);
         }

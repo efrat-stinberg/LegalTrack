@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.RegularExpressions;
+using TaxManager.Core.Services;
 using TaxManagerServer.API.Models;
 using TaxManagerServer.Core.Models;
 using TaxManagerServer.Core.Services;
@@ -10,38 +9,49 @@ namespace TaxManagerServer.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class InviteController : ControllerBase
+    public class InviteController : OfficeControllerBase
     {
         private readonly IInviteService _inviteService;
+        private readonly IUserService _userService;
 
-        public InviteController(IInviteService inviteService)
+        public InviteController(IInviteService inviteService, IUserService userService)
         {
             _inviteService = inviteService;
+            _userService = userService;
         }
 
+        // Always returns the invite link. If the email could not be sent, EmailSent is false and
+        // EmailError says why, so the admin can still pass the link on (e.g. by WhatsApp).
         [Authorize(Roles = "Admin")]
         [HttpPost("invite-lawyer")]
         public async Task<IActionResult> InviteLawyer([FromBody] InviteLawyerModel model)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (!_userService.IsValidEmail(model?.Email ?? ""))
+                return BadRequest("Invalid email format.");
 
-            var groupIdClaim = User.Claims.FirstOrDefault(c => c.Type == "GroupId");
-            if (groupIdClaim == null)
+            var groupId = await GetCurrentGroupIdAsync();
+            if (groupId == null)
                 return Unauthorized("Group ID not found.");
 
-            int groupId = int.Parse(groupIdClaim.Value);
+            if (await _userService.GetByEmailAsync(model!.Email) != null)
+                return Conflict("A user with this email already exists.");
 
-            var invite = await _inviteService.CreateInviteAsync(model.Email, groupId);
+            var result = await _inviteService.CreateInviteAsync(model.Email.Trim(), groupId.Value);
 
-            return Ok(new { Token = invite.Token });
+            return Ok(new
+            {
+                Token = result.Invite.Token,
+                result.InviteLink,
+                result.EmailSent,
+                result.EmailError
+            });
         }
 
         [HttpPost("validate")]
         public async Task<IActionResult> ValidateInviteToken([FromBody] ValidateTokenRequest request)
         {
-            var invite = await _inviteService.GetInviteByTokenAsync(request.Token);
-            if (invite == null || invite.IsUsed || invite.CreatedAt.AddMinutes(15) < DateTime.UtcNow)
+            var invite = await _inviteService.GetValidInviteAsync(request?.Token ?? "");
+            if (invite == null)
                 return BadRequest("Invalid or expired token.");
 
             return Ok(new
@@ -50,6 +60,5 @@ namespace TaxManagerServer.API.Controllers
                 groupId = invite.GroupId
             });
         }
-
     }
 }

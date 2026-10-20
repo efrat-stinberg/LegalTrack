@@ -46,6 +46,26 @@ namespace TaxManager.Service
             {
                 throw new KeyNotFoundException("Folder not found.");
             }
+            // Remove the case's files from S3; a failure here shouldn't block deleting the case itself
+            foreach (var doc in folder.Documents)
+            {
+                try
+                {
+                    await _s3Service.DeleteFileAsync(doc.FilePath);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Could not delete S3 object {doc.FilePath}: {ex.Message}");
+                }
+            }
+
+            // Chat messages have no FK to Folders, so they are not cascaded by the database
+            var chatMessages = await _repositoryManager.ChatMessages.FindAsync(m => m.FolderId == folderId);
+            foreach (var message in chatMessages)
+            {
+                await _repositoryManager.ChatMessages.DeleteAsync(message);
+            }
+
             await _folderRepository.DeleteAsync(folder); // Use DeleteAsync
             await _repositoryManager.SaveAsync();
         }
@@ -62,12 +82,8 @@ namespace TaxManager.Service
 
         public async Task<Folder?> GetByIdAsync(int folderId)
         {
-            var folder = await _folderRepository.GetByIdAsync(folderId); // Use GetByIdAsync
-            if (folder == null)
-            {
-                throw new KeyNotFoundException("Folder not found.");
-            }
-            return folder;
+            // Returns null when not found so controllers can answer 404
+            return await _folderRepository.GetByIdAsync(folderId);
         }
 
         public async Task UpdateAsync(Folder folder)

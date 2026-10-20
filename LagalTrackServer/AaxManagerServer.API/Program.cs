@@ -15,7 +15,7 @@ using Amazon.S3;
 using Microsoft.AspNetCore.Hosting;
 using TaxManagerServer.Core.Services;
 using TaxManagerServer.Service;
-using System.Configuration;
+using TaxManagerServer.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddUserSecrets<Program>();
@@ -68,19 +68,26 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["JWT:Issuer"],
         ValidAudience = builder.Configuration["JWT:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"] ?? throw new InvalidOperationException("JWT:Key is not configured.")))
     };
 });
 
-// Add CORS policy
+// Add CORS policy.
+// Set Cors:AllowedOrigins (comma separated, e.g. "https://legaltrack.onrender.com,https://legal-track.onrender.com")
+// to restrict which sites may call the API; when it is not set any origin is allowed.
+var allowedOrigins = (builder.Configuration["Cors:AllowedOrigins"] ?? "")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins",
-        builder =>
+        policy =>
         {
-            builder.AllowAnyOrigin()
-                   .AllowAnyMethod()
-                   .AllowAnyHeader();
+            if (allowedOrigins.Length > 0)
+                policy.WithOrigins(allowedOrigins);
+            else
+                policy.AllowAnyOrigin();
+            policy.AllowAnyMethod()
+                  .AllowAnyHeader();
         });
 });
 
@@ -104,7 +111,8 @@ builder.Services.AddScoped<IPdfTextExtractor, PdfTextExtractor>();
 // Register application services
 builder.Services.AddScoped<IGroupRepository, GroupRepository>();
 builder.Services.AddScoped<IGroupService, GroupService>();
-builder.Services.AddScoped<IChatService, ChatService>();
+// Typed HttpClient: one pooled client for the OpenAI calls, replaceable in tests
+builder.Services.AddHttpClient<IChatService, ChatService>(client => client.Timeout = TimeSpan.FromMinutes(2));
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IFolderService, FolderService>();
@@ -126,6 +134,20 @@ builder.Services.AddAutoMapper(typeof(Mapping));
 
 var app = builder.Build();
 
+// Apply small idempotent schema changes (see SchemaUpgrader). A failure is logged, not fatal,
+// so the API still starts and the rest of the system keeps working.
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        await SchemaUpgrader.UpgradeAsync(scope.ServiceProvider.GetRequiredService<DataContext>());
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Schema upgrade failed");
+    }
+}
+
 //Configure the HTTP request pipeline.
 //if (app.Environment.IsDevelopment())
 //{
@@ -146,3 +168,6 @@ app.MapControllers();
 //app.MapGet("/", () => "Welcome to the AaxManager API!");
 
 app.Run();
+
+// Lets the integration tests start the app with WebApplicationFactory<Program>
+public partial class Program { }

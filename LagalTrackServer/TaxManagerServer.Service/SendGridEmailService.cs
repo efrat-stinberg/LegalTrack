@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using SendGrid;
 using SendGrid.Helpers.Mail;
 using TaxManagerServer.Core.Services;
@@ -12,46 +8,56 @@ namespace TaxManagerServer.Service
 {
     public class SendGridEmailService : IEmailService
     {
-        private readonly string _apiKey;
-        private readonly string _senderEmail;
-        private readonly string _frontendBaseUrl;
+        private readonly string? _apiKey;
+        private readonly string? _senderEmail;
+        private readonly ILogger<SendGridEmailService> _logger;
 
-        public SendGridEmailService(IConfiguration configuration)
+        public SendGridEmailService(IConfiguration configuration, ILogger<SendGridEmailService> logger)
         {
             _apiKey = configuration["SendGrid:ApiKey"];
             _senderEmail = configuration["SendGrid:SenderEmail"];
-            _frontendBaseUrl = configuration["Frontend:BaseUrl"];
+            _logger = logger;
         }
 
-        public async Task SendInviteEmailAsync(string toEmail, string token)
+        public async Task SendInviteEmailAsync(string toEmail, string inviteLink)
         {
-            if (_apiKey == null) throw new Exception("API key is missing from configuration");
-            if (_senderEmail == null) throw new Exception("SenderEmail is missing from configuration");
+            if (string.IsNullOrWhiteSpace(_apiKey))
+                throw new EmailSendException("SendGrid:ApiKey is not configured on the server.");
+            if (string.IsNullOrWhiteSpace(_senderEmail))
+                throw new EmailSendException("SendGrid:SenderEmail is not configured on the server.");
 
             var client = new SendGridClient(_apiKey);
             var from = new EmailAddress(_senderEmail, "LegalFlow");
-            var subject = "You've been invited to join a group";
             var to = new EmailAddress(toEmail);
+            const string subject = "הוזמנת להצטרף ל-LegalFlow";
+            var htmlContent = $@"
+<div dir='rtl' style='font-family:Arial,sans-serif'>
+  <p>שלום,</p>
+  <p>הוזמנת להצטרף למערכת LegalFlow.</p>
+  <p><a href='{inviteLink}'>לחצו כאן כדי להשלים את ההרשמה</a></p>
+  <p>הקישור אישי ואין להעביר אותו לאחרים.</p>
+</div>";
+            var plainContent = $"הוזמנת להצטרף למערכת LegalFlow. להשלמת ההרשמה: {inviteLink}";
 
-            // Fix: Use query parameter format instead of path parameter
-            string url = $"{_frontendBaseUrl}/register?token={token}";
+            var msg = MailHelper.CreateSingleEmail(from, to, subject, plainContent, htmlContent);
 
-            string htmlContent = $@"
-            <p>Hello,</p>
-            <p>You have been invited to join the LegalFlow platform.</p>
-            <p><a href='{url}'>Click here to accept the invitation</a></p>
-            <p>This link is personal and should not be shared.</p>";
-
-            var msg = MailHelper.CreateSingleEmail(from, to, subject, null, htmlContent);
-
+            Response response;
             try
             {
-                var response = await client.SendEmailAsync(msg);
-                Console.WriteLine($"SendGrid Status: {response.StatusCode}");
+                response = await client.SendEmailAsync(msg);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"SendGrid error: " + ex.Message);
+                _logger.LogError(ex, "SendGrid request failed");
+                throw new EmailSendException($"Could not reach SendGrid: {ex.Message}", ex);
+            }
+
+            // SendGrid reports problems (bad key, unverified sender, no credits) as a non-2xx response, not an exception
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await response.Body.ReadAsStringAsync();
+                _logger.LogError("SendGrid returned {Status}: {Body}", (int)response.StatusCode, body);
+                throw new EmailSendException($"SendGrid returned {(int)response.StatusCode}: {body}");
             }
         }
     }

@@ -13,6 +13,9 @@ namespace TaxManagerServer.Core.Models
         public string Email { get; set; }
         public string Phone { get; set; }
 
+        // The office (group) that owns this client. Nullable for clients created before offices were separated.
+        public int? GroupId { get; set; }
+
         public ICollection<Folder> Folders { get; set; } = new List<Folder>();
     }
 }

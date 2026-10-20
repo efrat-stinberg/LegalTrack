@@ -12,7 +12,7 @@ namespace TaxManager.Core.Services
     {
         
         Task AddAsync(Folder folder);
-        Task<Folder> GetByIdAsync(int folderId);
+        Task<Folder?> GetByIdAsync(int folderId);
         Task<List<Folder>> GetAllByGroupAsync(int groupId);
         Task<List<Folder>> GetAllByClientAsync(int clientId);
         Task UpdateAsync(Folder folder);

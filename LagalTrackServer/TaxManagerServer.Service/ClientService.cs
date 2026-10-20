@@ -23,6 +23,16 @@ namespace TaxManagerServer.Service
             return await _repositoryManager.Client.GetAllAsync();
         }
 
+        public async Task<List<Client>> GetAllByGroupAsync(int groupId)
+        {
+            return await _repositoryManager.Client.GetAllByGroupAsync(groupId);
+        }
+
+        public async Task<bool> HasFoldersAsync(int clientId)
+        {
+            return await _repositoryManager.Client.HasFoldersAsync(clientId);
+        }
+
         public async Task<Client?> GetByIdAsync(int id)
         {
             return await _repositoryManager.Client.GetByIdAsync(id);
