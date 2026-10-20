@@ -19,6 +19,10 @@ export interface InviteRequest {
 
 export interface InviteResponse {
   token: string;
+  // Link to send the lawyer; shown to the admin when the email could not be sent
+  inviteLink: string;
+  emailSent: boolean;
+  emailError?: string | null;
 }
 
 export interface Group {
@@ -50,7 +54,7 @@ export class UsersService {
   }
 
   getUserByEmail(email: string): Observable<User> {
-    return this.http.get<User>(`${this.API_URL}/users/email/${email}`)
+    return this.http.get<User>(`${this.API_URL}/users/${encodeURIComponent(email)}`)
       .pipe(
         catchError(this.handleError)
       );
@@ -111,7 +115,7 @@ export class UsersService {
       // Server-side error
       switch (error.status) {
         case 400:
-          errorMessage = error.error?.message || 'נתונים לא תקינים';
+          errorMessage = (typeof error.error === 'string' && error.error) || error.error?.message || 'נתונים לא תקינים';
           break;
         case 401:
           errorMessage = 'אין הרשאה לפעולה זו';

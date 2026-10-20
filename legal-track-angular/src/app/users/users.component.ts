@@ -7,7 +7,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTableModule } from '@angular/material/table';
-import { MatTableDataSource } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
@@ -15,7 +14,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { InviteUserDialogComponent } from './invite-user-dialog/invite-user-dialog.component';
 import { UsersService, User } from '../services/users.service';
-import { MatDivider } from "@angular/material/divider";
 
 @Component({
   selector: 'app-users',
@@ -31,9 +29,8 @@ import { MatDivider } from "@angular/material/divider";
     MatTableModule,
     MatChipsModule,
     MatTooltipModule,
-    MatMenuModule,
-    MatDivider
-],
+    MatMenuModule
+  ],
   template: `
     <div class="users-container">
       <div class="page-header">
@@ -71,10 +68,6 @@ import { MatDivider } from "@angular/material/divider";
                 <div class="stat-info">
                   <h3>{{ totalUsers }}</h3>
                   <p>סך המשתמשים</p>
-                  <div class="stat-badge active">
-                    <mat-icon>trending_up</mat-icon>
-                    <span>+12%</span>
-                  </div>
                 </div>
               </div>
             </mat-card-content>
@@ -89,10 +82,6 @@ import { MatDivider } from "@angular/material/divider";
                 <div class="stat-info">
                   <h3>{{ adminUsers }}</h3>
                   <p>מנהלים</p>
-                  <div class="stat-badge stable">
-                    <mat-icon>horizontal_rule</mat-icon>
-                    <span>יציב</span>
-                  </div>
                 </div>
               </div>
             </mat-card-content>
@@ -107,32 +96,11 @@ import { MatDivider } from "@angular/material/divider";
                 <div class="stat-info">
                   <h3>{{ regularUsers }}</h3>
                   <p>עורכי דין</p>
-                  <div class="stat-badge active">
-                    <mat-icon>trending_up</mat-icon>
-                    <span>+8%</span>
-                  </div>
                 </div>
               </div>
             </mat-card-content>
           </mat-card>
 
-          <mat-card class="stat-card active-users">
-            <mat-card-content>
-              <div class="stat-content">
-                <div class="stat-icon active">
-                  <mat-icon>people_online</mat-icon>
-                </div>
-                <div class="stat-info">
-                  <h3>{{ activeUsers }}</h3>
-                  <p>משתמשים פעילים</p>
-                  <div class="stat-badge active">
-                    <mat-icon>circle</mat-icon>
-                    <span>עכשיו</span>
-                  </div>
-                </div>
-              </div>
-            </mat-card-content>
-          </mat-card>
         </div>
 
         <!-- Users Management Card -->
@@ -154,7 +122,7 @@ import { MatDivider } from "@angular/material/divider";
           </mat-card-header>
           
           <mat-card-content>
-            @if (sampleUsers.length === 0) {
+            @if (otherUsersCount === 0) {
               <div class="no-data">
                 <div class="no-data-icon">
                   <mat-icon>people_outline</mat-icon>
@@ -170,17 +138,16 @@ import { MatDivider } from "@angular/material/divider";
             } @else {
               <!-- User List -->
               <div class="users-list">
-                @for (user of sampleUsers; track user.id) {
+                @for (user of filteredUsers; track user.userId) {
                   <div class="user-item">
                     <div class="user-avatar">
                       <div class="avatar-circle" [class.admin]="user.isAdmin">
-                        {{ getInitials(user.name) }}
+                        {{ getInitials(user.username) }}
                       </div>
-                      <div class="status-indicator" [class.online]="user.isOnline" [class.offline]="!user.isOnline"></div>
                     </div>
                     
                     <div class="user-info">
-                      <h4 class="user-name">{{ user.name }}</h4>
+                      <h4 class="user-name">{{ user.username }}</h4>
                       <p class="user-email">{{ user.email }}</p>
                       <div class="user-meta">
                         <mat-chip-listbox>
@@ -192,47 +159,12 @@ import { MatDivider } from "@angular/material/divider";
                       </div>
                     </div>
 
-                    <div class="user-stats">
-                      <div class="stat-item">
-                        <span class="stat-label">תיקיות</span>
-                        <span class="stat-value">{{ user.folders }}</span>
-                      </div>
-                      <div class="stat-item">
-                        <span class="stat-label">לקוחות</span>
-                        <span class="stat-value">{{ user.clients }}</span>
-                      </div>
-                    </div>
-
                     <div class="user-actions">
-                      <button mat-icon-button [matTooltip]="'פרופיל משתמש'">
-                        <mat-icon>person</mat-icon>
-                      </button>
-                      <button mat-icon-button [matTooltip]="'הגדרות הרשאות'">
-                        <mat-icon>settings</mat-icon>
-                      </button>
-                      <button mat-icon-button [matMenuTriggerFor]="userMenu" [matTooltip]="'פעולות נוספות'">
-                        <mat-icon>more_vert</mat-icon>
-                      </button>
-                      
-                      <mat-menu #userMenu="matMenu">
-                        <button mat-menu-item>
-                          <mat-icon>edit</mat-icon>
-                          <span>ערוך פרטים</span>
-                        </button>
-                        <button mat-menu-item>
-                          <mat-icon>security</mat-icon>
-                          <span>נהל הרשאות</span>
-                        </button>
-                        <button mat-menu-item>
-                          <mat-icon>block</mat-icon>
-                          <span>השבת זמנית</span>
-                        </button>
-                        <mat-divider></mat-divider>
-                        <button mat-menu-item class="danger">
+                      @if (!user.isAdmin) {
+                        <button mat-icon-button color="warn" [matTooltip]="'הסר משתמש'" (click)="removeUser(user)">
                           <mat-icon>delete</mat-icon>
-                          <span>הסר משתמש</span>
                         </button>
-                      </mat-menu>
+                      }
                     </div>
                   </div>
                 }
@@ -241,28 +173,6 @@ import { MatDivider } from "@angular/material/divider";
           </mat-card-content>
         </mat-card>
 
-        <!-- Activity Timeline -->
-        <mat-card class="activity-card">
-          <mat-card-header>
-            <mat-card-title>פעילות אחרונה</mat-card-title>
-            <mat-card-subtitle>עדכונים בניהול המשתמשים</mat-card-subtitle>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="activity-timeline">
-              @for (activity of userActivities; track activity.id) {
-                <div class="activity-item">
-                  <div class="activity-icon" [class]="activity.type">
-                    <mat-icon>{{ activity.icon }}</mat-icon>
-                  </div>
-                  <div class="activity-content">
-                    <p class="activity-message">{{ activity.message }}</p>
-                    <span class="activity-time">{{ activity.time }}</span>
-                  </div>
-                </div>
-              }
-            </div>
-          </mat-card-content>
-        </mat-card>
       }
     </div>
   `,
@@ -677,66 +587,14 @@ import { MatDivider } from "@angular/material/divider";
 })
 export class UsersComponent implements OnInit {
   loading = false;
-  dataSource = new MatTableDataSource<User>();
-  
-  totalUsers = 12;
-  adminUsers = 2;
-  regularUsers = 10;
-  activeUsers = 8;
+  users: User[] = [];
+  filteredUsers: User[] = [];
+  private filterValue = '';
 
-  sampleUsers = [
-    {
-      id: 2,
-      name: 'אדוארד כהן',
-      email: 'edward.cohen@lawfirm.co.il',
-      isAdmin: false,
-      isOnline: true,
-      folders: 8,
-      clients: 15
-    },
-    {
-      id: 3,
-      name: 'רחל לוי',
-      email: 'rachel.levi@lawfirm.co.il',
-      isAdmin: false,
-      isOnline: true,
-      folders: 12,
-      clients: 22
-    },
-    {
-      id: 4,
-      name: 'דוד מזרחי',
-      email: 'david.mizrahi@lawfirm.co.il',
-      isAdmin: false,
-      isOnline: false,
-      folders: 5,
-      clients: 8
-    }
-  ];
-
-  userActivities = [
-    {
-      id: 1,
-      type: 'invite',
-      message: 'הזמנה נשלחה לעורך דין חדש - שרה אברהם',
-      time: 'לפני שעה',
-      icon: 'mail'
-    },
-    {
-      id: 2,
-      type: 'login',
-      message: 'אדוארד כהן התחבר למערכת',
-      time: 'לפני 2 שעות',
-      icon: 'login'
-    },
-    {
-      id: 3,
-      type: 'permission',
-      message: 'הרשאות עודכנו עבור רחל לוי',
-      time: 'לפני 4 שעות',
-      icon: 'security'
-    }
-  ];
+  totalUsers = 0;
+  adminUsers = 0;
+  regularUsers = 0;
+  otherUsersCount = 0;
 
   constructor(
     private dialog: MatDialog,
@@ -748,39 +606,63 @@ export class UsersComponent implements OnInit {
     this.loadUsers();
   }
 
+  // Users of the admin's office, from GET /api/users
   loadUsers(): void {
     this.loading = true;
-    
-    setTimeout(() => {
-      this.loading = false;
-    }, 1000);
-    
-    // Simulate API call
-    // this.usersService.getAllUsers().subscribe({
-    //   next: (users) => {
-    //     this.dataSource.data = users;
-    //     this.updateStatistics(users);
-    //     this.loading = false;
-    //   },
-    //   error: (error) => {
-    //     console.error('Error loading users:', error);
-    //     this.loading = false;
-    //   }
-    // });
+    this.usersService.getAllUsers().subscribe({
+      next: (users) => {
+        this.users = users;
+        this.totalUsers = users.length;
+        this.adminUsers = users.filter(u => u.isAdmin).length;
+        this.regularUsers = this.totalUsers - this.adminUsers;
+        this.otherUsersCount = this.regularUsers;
+        this.applyCurrentFilter();
+        this.loading = false;
+      },
+      error: (error) => {
+        this.loading = false;
+        this.snackBar.open(error.message || 'שגיאה בטעינת המשתמשים', 'סגור', {
+          duration: 5000,
+          panelClass: ['error-snackbar']
+        });
+      }
+    });
   }
 
   applyFilter(event: Event): void {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+    this.filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    this.applyCurrentFilter();
+  }
+
+  private applyCurrentFilter(): void {
+    this.filteredUsers = this.users.filter(u =>
+      !this.filterValue ||
+      (u.username || '').toLowerCase().includes(this.filterValue) ||
+      (u.email || '').toLowerCase().includes(this.filterValue));
   }
 
   getInitials(name: string): string {
-    return name
+    return (name || '?')
       .split(' ')
       .map(n => n[0])
       .join('')
       .toUpperCase()
       .substring(0, 2);
+  }
+
+  removeUser(user: User): void {
+    if (!confirm(`להסיר את ${user.username} (${user.email}) מהמשרד?`)) {
+      return;
+    }
+    this.usersService.deleteUser(user.userId).subscribe({
+      next: () => {
+        this.snackBar.open('המשתמש הוסר', 'סגור', { duration: 3000, panelClass: ['success-snackbar'] });
+        this.loadUsers();
+      },
+      error: (error) => {
+        this.snackBar.open(error.message || 'שגיאה בהסרת המשתמש', 'סגור', { duration: 5000, panelClass: ['error-snackbar'] });
+      }
+    });
   }
 
   openInviteDialog(): void {
@@ -791,12 +673,9 @@ export class UsersComponent implements OnInit {
       panelClass: 'invite-dialog'
     });
 
+    // The dialog shows its own success/failure message; just refresh the list
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.snackBar.open('הזמנה נשלחה בהצלחה!', 'סגור', {
-          duration: 3000,
-          panelClass: ['success-snackbar']
-        });
         this.loadUsers();
       }
     });

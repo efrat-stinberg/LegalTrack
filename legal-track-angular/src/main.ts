@@ -23,6 +23,8 @@ bootstrapApplication(AppComponent, {
       BrowserAnimationsModule,
       HttpClientModule,
       RouterModule.forRoot(routes, {
+        // Hash URLs (/#/dashboard): the static host only serves index.html at "/", so refreshes need no rewrites
+        useHash: true,
         enableTracing: false,
         scrollPositionRestoration: 'top'
       }),

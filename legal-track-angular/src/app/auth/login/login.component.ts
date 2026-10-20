@@ -140,16 +140,16 @@ import { MatDividerModule } from '@angular/material/divider';
             <div class="info-card">
               <mat-icon class="info-icon">trending_up</mat-icon>
               <div class="info-text">
-                <span class="info-title">יעילות מוכחת</span>
-                <span class="info-subtitle">חיסכון של 40% בזמן העבודה</span>
+                <span class="info-title">צ'אט AI על מסמכי התיק</span>
+                <span class="info-subtitle">תשובות מתוך המסמכים שהועלו לתיק</span>
               </div>
             </div>
             
             <div class="info-card">
               <mat-icon class="info-icon">groups</mat-icon>
               <div class="info-text">
-                <span class="info-title">מעל 1,000 לקוחות</span>
-                <span class="info-subtitle">משרדי עורכי דין מובילים</span>
+                <span class="info-title">ניהול משרד במקום אחד</span>
+                <span class="info-subtitle">לקוחות, תיקים, מסמכים ועורכי דין</span>
               </div>
             </div>
           </div>

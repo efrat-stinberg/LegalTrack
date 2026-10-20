@@ -51,11 +51,27 @@ import { UsersService } from '../../services/users.service';
                 <li>המערכת תשלח אימייל הזמנה לכתובת שהוזנה</li>
                 <li>עורך הדין יוכל להירשם באמצעות קישור מיוחד</li>
                 <li>לאחר ההרשמה הוא יתווסף אוטומטית לקבוצה שלך</li>
-                <li>ההזמנה תפוג תוך 24 שעות</li>
+                <li>ההזמנה תקפה לזמן מוגבל ולשימוש חד-פעמי</li>
               </ul>
             </div>
           </div>
         </form>
+
+        @if (inviteLink) {
+          <div class="invite-link-box">
+            <p><strong>ההזמנה נוצרה, אבל המייל לא נשלח.</strong></p>
+            <p>אפשר להעביר לעורך הדין את הקישור הזה (למשל בוואטסאפ):</p>
+            <div class="invite-link-row">
+              <input class="invite-link-input" [value]="inviteLink" readonly (focus)="$any($event.target).select()">
+              <button mat-stroked-button type="button" (click)="copyLink()">
+                <mat-icon>content_copy</mat-icon> העתק
+              </button>
+            </div>
+            @if (emailError) {
+              <p class="email-error">סיבת הכישלון: {{ emailError }}</p>
+            }
+          </div>
+        }
       </mat-dialog-content>
 
       <mat-dialog-actions align="end">
@@ -76,6 +92,31 @@ import { UsersService } from '../../services/users.service';
     </div>
   `,
   styles: [`
+    .invite-link-box {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #fff8e1;
+      border: 1px solid #ffe082;
+    }
+    .invite-link-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .invite-link-input {
+      flex: 1;
+      direction: ltr;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .email-error {
+      color: #b71c1c;
+      font-size: 12px;
+      word-break: break-word;
+    }
     .dialog-container {
       min-width: 400px;
       max-width: 500px;
@@ -181,6 +222,8 @@ import { UsersService } from '../../services/users.service';
 export class InviteUserDialogComponent {
   inviteForm: FormGroup;
   loading = false;
+  inviteLink: string | null = null;
+  emailError: string | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -204,6 +247,16 @@ export class InviteUserDialogComponent {
       this.usersService.inviteLawyer(inviteData).subscribe({
         next: (response) => {
           this.loading = false;
+          if (response.emailSent === false) {
+            // Keep the dialog open so the admin can copy the link and send it another way
+            this.inviteLink = response.inviteLink;
+            this.emailError = response.emailError ?? null;
+            this.snackBar.open('ההזמנה נוצרה אך המייל לא נשלח - העתיקו את הקישור', 'סגור', {
+              duration: 8000,
+              panelClass: ['error-snackbar']
+            });
+            return;
+          }
           this.snackBar.open('ההזמנה נשלחה בהצלחה!', 'סגור', {
             duration: 5000,
             panelClass: ['success-snackbar']
@@ -228,7 +281,16 @@ export class InviteUserDialogComponent {
     }
   }
 
+  copyLink(): void {
+    if (!this.inviteLink) return;
+    navigator.clipboard.writeText(this.inviteLink).then(
+      () => this.snackBar.open('הקישור הועתק', 'סגור', { duration: 3000 }),
+      () => this.snackBar.open('לא ניתן להעתיק - סמנו את הקישור והעתיקו ידנית', 'סגור', { duration: 5000 })
+    );
+  }
+
   onCancel(): void {
-    this.dialogRef.close(false);
+    // After an invite was created (link shown) closing should refresh the users list
+    this.dialogRef.close(!!this.inviteLink);
   }
 }
