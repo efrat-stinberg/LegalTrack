@@ -18,7 +18,9 @@ namespace TaxManagerServer.Core
 
             CreateMap<Document, DocumentDTO>().ReverseMap(); ;
 
-            CreateMap<Folder, FolderDTO>().ReverseMap();
+            CreateMap<Folder, FolderDTO>()
+                .ForMember(d => d.ClientName, o => o.MapFrom(f => f.Client != null ? f.Client.FullName : null))
+                .ReverseMap();
 
             CreateMap<ChatMessage, ChatMessageResponseDto>().ReverseMap(); 
 

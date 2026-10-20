@@ -61,7 +61,17 @@ namespace TaxManagerServer.Tests
 
             await ApiAssert.StatusAsync(HttpStatusCode.NoContent,
                 await admin.Http.PutAsJsonAsync($"/api/folders/{folderId}", new { folderName = "Lease 2024", clientId }));
-            Assert.Equal("Lease 2024", (await admin.GetJsonAsync($"/api/folders/{folderId}")).GetProperty("folderName").GetString());
+            var renamed = await admin.GetJsonAsync($"/api/folders/{folderId}");
+            Assert.Equal("Lease 2024", renamed.GetProperty("folderName").GetString());
+            Assert.Equal("Dana Levi", renamed.GetProperty("clientName").GetString());
+
+            // Move the case to another client of the office
+            var otherClientId = await admin.CreateClientAsync("Other Client");
+            await ApiAssert.StatusAsync(HttpStatusCode.NoContent,
+                await admin.Http.PutAsJsonAsync($"/api/folders/{folderId}", new { folderName = "Lease 2024", clientId = otherClientId }));
+            var moved = await admin.GetJsonAsync($"/api/folders/{folderId}");
+            Assert.Equal(otherClientId, moved.GetProperty("clientId").GetInt32());
+            Assert.Equal("Other Client", moved.GetProperty("clientName").GetString());
 
             await ApiAssert.StatusAsync(HttpStatusCode.BadRequest,
                 await admin.Http.PostAsJsonAsync("/api/folders", new { folderName = "No client", clientId = 999999 }));

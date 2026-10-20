@@ -13,17 +13,32 @@ namespace TaxManager.Service
 {
     public class S3Service : IS3Service
     {
-        private readonly IAmazonS3 _s3Client;
+        private readonly IConfiguration _configuration;
         private readonly string _bucketName;
+        private IAmazonS3? _client;
 
         public S3Service(IConfiguration configuration)
         {
-            var accessKey = configuration["AWS:AccessKey"];
-            var secretKey = configuration["AWS:SecretKey"];
-            var regionName = configuration["AWS:Region"];
-            _bucketName = configuration["AWS:BucketName"];
+            _configuration = configuration;
+            _bucketName = configuration["AWS:BucketName"] ?? "";
+        }
 
-            _s3Client = new AmazonS3Client(accessKey, secretKey, RegionEndpoint.GetBySystemName(regionName));
+        // Created on first use, so a missing AWS setting only breaks file operations,
+        // not every endpoint whose service happens to depend on S3
+        private IAmazonS3 _s3Client
+        {
+            get
+            {
+                if (_client != null)
+                    return _client;
+
+                var regionName = _configuration["AWS:Region"];
+                if (string.IsNullOrWhiteSpace(regionName) || string.IsNullOrWhiteSpace(_bucketName))
+                    throw new InvalidOperationException("AWS S3 is not configured on the server (AWS:Region / AWS:BucketName).");
+
+                _client = new AmazonS3Client(_configuration["AWS:AccessKey"], _configuration["AWS:SecretKey"], RegionEndpoint.GetBySystemName(regionName));
+                return _client;
+            }
         }
 
         public string GeneratePreSignedURL(string objectKey, string contentType, TimeSpan expiryDuration)

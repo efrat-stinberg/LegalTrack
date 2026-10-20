@@ -23,6 +23,7 @@ namespace TaxManagerServer.Data.Repositories
         {
             return await _context.Folders
                 .Include(f => f.Documents)
+                .Include(f => f.Client)
                 .FirstOrDefaultAsync(f => f.FolderId == id);
         }
 
