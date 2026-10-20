@@ -1,438 +1,180 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { AuthResponse, AuthService } from '../../services/auth.service';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatDividerModule } from '@angular/material/divider';
+import { AuthService } from '../../services/auth.service';
 
+// Admin sign-in. Lawyers sign in to the lawyers' app; this one is for office admins only.
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatProgressSpinnerModule,
-    MatIconModule,
-    MatCheckboxModule,
-    MatDividerModule
-  ],
-  styleUrls: [
-    './login.component.css',
-    './login-features.component.css', 
-    './login-form.component.css',
-    './login-responsive.component.css'
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatProgressSpinnerModule, MatIconModule],
   template: `
-    <div class="login-container">
-      
-      <!-- Enhanced Background with Particles -->
-      <div class="background-wrapper">
-        <div class="particle-field">
-          @for (i of particleArray; track i) {
-            <div class="particle" [style.animation-delay.s]="getRandomDelay()"></div>
+    <div class="auth">
+      <aside class="brand-panel">
+        <div class="brand">
+          <span class="brand-mark"><mat-icon aria-hidden="true">balance</mat-icon></span>
+          <span class="brand-name">LegalTrack</span>
+        </div>
+        <div class="pitch">
+          <h2>ניהול המשרד במקום אחד.</h2>
+          <div class="feature">
+            <mat-icon aria-hidden="true">group_add</mat-icon>
+            <div><strong>צירוף עורכי דין</strong><span>הזמנה במייל, או קישור להעתקה.</span></div>
+          </div>
+          <div class="feature">
+            <mat-icon aria-hidden="true">insights</mat-icon>
+            <div><strong>תמונת מצב</strong><span>משתמשים, תיקים ולקוחות של המשרד.</span></div>
+          </div>
+          <div class="feature">
+            <mat-icon aria-hidden="true">shield</mat-icon>
+            <div><strong>הפרדה בין משרדים</strong><span>כל משרד רואה רק את הנתונים שלו.</span></div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="form-panel">
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate class="form">
+          <div>
+            <h1>כניסת מנהל משרד</h1>
+            <p class="lead">ניהול עורכי הדין וההרשאות של המשרד</p>
+          </div>
+
+          @if (errorMessage) {
+            <div class="error" role="alert">{{ errorMessage }}</div>
           }
-        </div>
-        <div class="gradient-orbs">
-          <div class="orb orb-1"></div>
-          <div class="orb orb-2"></div>
-          <div class="orb orb-3"></div>
-          <div class="orb orb-4"></div>
-        </div>
-        <div class="geometric-shapes">
-          <div class="shape shape-triangle"></div>
-          <div class="shape shape-circle"></div>
-          <div class="shape shape-square"></div>
-        </div>
-      </div>
-      
-      <!-- Main Horizontal Content -->
-      <div class="content-wrapper">
-        
-        <!-- Left Side - Branding & Features -->
-        <div class="left-section">
-          
-          <!-- Brand Header -->
-          <div class="brand-header">
-            <div class="logo-section">
-              <div class="logo-container">
-                <div class="logo-background"></div>
-                <div class="logo-icon">
-                  <mat-icon>gavel</mat-icon>
-                  <div class="icon-glow"></div>
-                </div>
-              </div>
-              
-              <div class="brand-info">
-                <h1 class="brand-title">
-                  <span class="title-part">Legal</span>
-                  <span class="title-part accent">Flow</span>
-                </h1>
-                <p class="brand-subtitle">
-                  <span class="subtitle-icon">✨</span>
-                  פאנל ניהול המשרד
-                </p>
-              </div>
-            </div>
-            
-            <div class="welcome-section">
-              <h2 class="welcome-title">ברוכים הבאים!</h2>
-              <p class="welcome-text">
-                התחברו לחוויה מתקדמת של ניהול משרד עורכי דין
-              </p>
-              <div class="header-decoration">
-                <div class="decoration-line"></div>
-                <div class="decoration-diamond"></div>
-                <div class="decoration-line"></div>
-              </div>
-            </div>
+
+          <mat-form-field appearance="outline">
+            <mat-label>אימייל</mat-label>
+            <input matInput type="email" formControlName="email" autocomplete="email" dir="ltr" class="ltr-input">
+            @if (loginForm.get('email')?.touched && loginForm.get('email')?.invalid) {
+              <mat-error>{{ loginForm.get('email')?.hasError('required') ? 'יש להזין אימייל' : 'כתובת האימייל לא תקינה' }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>סיסמה</mat-label>
+            <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" autocomplete="current-password">
+            <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword" [attr.aria-label]="hidePassword ? 'הצגת הסיסמה' : 'הסתרת הסיסמה'">
+              <mat-icon>{{ hidePassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+            </button>
+            @if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
+              <mat-error>יש להזין סיסמה</mat-error>
+            }
+          </mat-form-field>
+
+          <button mat-raised-button color="primary" type="submit" [disabled]="loading" class="submit">
+            @if (loading) { <mat-spinner diameter="20"></mat-spinner> } @else { התחברות }
+          </button>
+
+          <div class="footer">
+            <span>משרד חדש?</span>
+            <button type="button" class="link" (click)="goToRegister()">רישום משרד ומנהל</button>
           </div>
-          
-          <!-- Features Grid - Horizontal Layout -->
-          <div class="features-section">
-            <div class="features-grid">
-              <div class="feature-card">
-                <div class="feature-icon security">
-                  <mat-icon>security</mat-icon>
-                </div>
-                <div class="feature-content">
-                  <h4>התחברות מאובטחת</h4>
-                  <p>סיסמאות מוצפנות וטוקן JWT</p>
-                </div>
-              </div>
-              
-              <div class="feature-card">
-                <div class="feature-icon cloud">
-                  <mat-icon>cloud_done</mat-icon>
-                </div>
-                <div class="feature-content">
-                  <h4>אחסון מסמכים בענן</h4>
-                  <p>הקבצים נשמרים ב-Amazon S3</p>
-                </div>
-              </div>
-              
-              <div class="feature-card">
-                <div class="feature-icon support">
-                  <mat-icon>support_agent</mat-icon>
-                </div>
-                <div class="feature-content">
-                  <h4>הפרדה בין משרדים</h4>
-                  <p>כל משרד רואה רק את הנתונים שלו</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Additional Info Cards -->
-          <div class="info-cards">
-            <div class="info-card">
-              <mat-icon class="info-icon">trending_up</mat-icon>
-              <div class="info-text">
-                <span class="info-title">צ'אט AI על מסמכי התיק</span>
-                <span class="info-subtitle">תשובות מתוך המסמכים שהועלו לתיק</span>
-              </div>
-            </div>
-            
-            <div class="info-card">
-              <mat-icon class="info-icon">groups</mat-icon>
-              <div class="info-text">
-                <span class="info-title">ניהול משרד במקום אחד</span>
-                <span class="info-subtitle">לקוחות, תיקים, מסמכים ועורכי דין</span>
-              </div>
-            </div>
-          </div>
-          
-        </div>
-        
-        <!-- Right Side - Login Form -->
-        <div class="right-section">
-          
-          <!-- Floating Login Card -->
-          <div class="login-card-container">
-            <div class="card-glow"></div>
-            <mat-card class="login-card">
-              
-              <!-- Form Header -->
-              <div class="form-header">
-                <h3 class="form-title">התחברות למערכת</h3>
-                <p class="form-subtitle">הכניסו את פרטי ההתחברות שלכם</p>
-              </div>
-
-              <!-- Enhanced Form Section -->
-              <mat-card-content class="card-content">
-                <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="premium-form">
-                  
-                  <!-- Email Field with Enhanced Design -->
-                  <div class="form-group">
-                    <mat-form-field appearance="outline" class="premium-field">
-                      <mat-label>כתובת אימייל</mat-label>
-                      <input matInput 
-                             type="email" 
-                             formControlName="email" 
-                             autocomplete="email">
-                      <mat-icon matPrefix class="field-icon">alternate_email</mat-icon>
-                      <div class="field-decoration"></div>
-                      @if (loginForm.get('email')?.hasError('required')) {
-                        <mat-error>
-                          <mat-icon>error_outline</mat-icon>
-                          אימייל הוא שדה חובה
-                        </mat-error>
-                      }
-                      @if (loginForm.get('email')?.hasError('email')) {
-                        <mat-error>
-                          <mat-icon>error_outline</mat-icon>
-                          כתובת אימייל לא תקינה
-                        </mat-error>
-                      }
-                    </mat-form-field>
-                  </div>
-
-                  <!-- Password Field with Enhanced Design -->
-                  <div class="form-group">
-                    <mat-form-field appearance="outline" class="premium-field">
-                      <mat-label>סיסמה</mat-label>
-                      <input matInput 
-                             [type]="hidePassword ? 'password' : 'text'" 
-                             formControlName="password" 
-                             placeholder="הכניסו סיסמה מאובטחת"
-                             autocomplete="current-password">
-                      <mat-icon matPrefix class="field-icon">lock</mat-icon>
-                      <button mat-icon-button 
-                              matSuffix 
-                              (click)="hidePassword = !hidePassword"
-                              type="button"
-                              class="password-toggle"
-                              [attr.aria-label]="'הצג סיסמה'"
-                              [attr.aria-pressed]="!hidePassword">
-                        <mat-icon class="toggle-icon">
-                          {{ hidePassword ? 'visibility_off' : 'visibility' }}
-                        </mat-icon>
-                      </button>
-                      <div class="field-decoration"></div>
-                      @if (loginForm.get('password')?.hasError('required')) {
-                        <mat-error>
-                          <mat-icon>error_outline</mat-icon>
-                          סיסמה היא שדה חובה
-                        </mat-error>
-                      }
-                      @if (loginForm.get('password')?.hasError('minlength')) {
-                        <mat-error>
-                          <mat-icon>error_outline</mat-icon>
-                          סיסמה חייבת להכיל לפחות 5 תווים
-                        </mat-error>
-                      }
-                    </mat-form-field>
-                  </div>
-
-                  <!-- Enhanced Options Section -->
-                  <div class="form-options">
-                    <mat-checkbox formControlName="rememberMe" class="premium-checkbox">
-                      <span class="checkbox-text">
-                        <mat-icon class="checkbox-icon">memory</mat-icon>
-                        זכור אותי למשך 30 יום
-                      </span>
-                    </mat-checkbox>
-                    <button type="button" mat-button class="forgot-password" disabled>
-                      <mat-icon>help_outline</mat-icon>
-                      שכחתם סיסמה?
-                    </button>
-                  </div>
-
-                  <!-- Premium Submit Button -->
-                  <button mat-raised-button 
-                          color="primary" 
-                          type="submit" 
-                          class="premium-submit-button"
-                          [disabled]="loginForm.invalid || loading">
-                    <div class="button-content">
-                      @if (loading) {
-                        <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
-                        <span class="button-text">מתחבר...</span>
-                        <div class="loading-dots">
-                          <span class="dot"></span>
-                          <span class="dot"></span>
-                          <span class="dot"></span>
-                        </div>
-                      } @else {
-                        <mat-icon class="button-icon">login</mat-icon>
-                        <span class="button-text">התחבר למערכת</span>
-                        <mat-icon class="button-arrow">arrow_back</mat-icon>
-                      }
-                      <div class="button-glow"></div>
-                    </div>
-                  </button>
-
-                </form>
-              </mat-card-content>
-
-              <!-- Enhanced Footer -->
-              <mat-divider class="premium-divider"></mat-divider>
-              
-              <mat-card-actions class="card-footer">
-                <div class="footer-content">
-                  <div class="footer-text">
-                    <mat-icon class="footer-icon">admin_panel_settings</mat-icon>
-                    <span>אין לכם חשבון מנהל עדיין?</span>
-                  </div>
-                  <button mat-raised-button 
-                          color="accent" 
-                          (click)="goToRegister()"
-                          class="premium-register-button">
-                    <div class="button-shine"></div>
-                    <mat-icon>person_add</mat-icon>
-                    <span>צרו חשבון מנהל</span>
-                    <mat-icon class="button-arrow">arrow_back</mat-icon>
-                  </button>
-                </div>
-              </mat-card-actions>
-
-            </mat-card>
-          </div>
-          
-        </div>
-        
-      </div>
-      
+        </form>
+      </main>
     </div>
-  `
+  `,
+  styles: [`
+    .auth { min-height: 100vh; display: flex; flex-wrap: wrap; background: var(--ground); }
+    .brand-panel {
+      flex: 1 1 420px;
+      background: var(--navy-900);
+      color: #C9D3E1;
+      padding: 56px;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      width: 40px; height: 40px; border-radius: 6px;
+      background: var(--navy-700); border: 1px solid var(--navy-500);
+      display: flex; align-items: center; justify-content: center; color: #FFFFFF;
+    }
+    .brand-name { font-family: var(--font-display); font-size: 26px; font-weight: 600; color: #FFFFFF; }
+    .pitch { margin: auto 0; max-width: 440px; display: flex; flex-direction: column; gap: 22px; }
+    .pitch h2 { font-family: var(--font-display); font-size: 32px; color: #FFFFFF; line-height: 1.3; }
+    .feature { display: flex; gap: 14px; }
+    .feature mat-icon { color: var(--steel); }
+    .feature div { display: flex; flex-direction: column; }
+    .feature strong { color: #FFFFFF; font-weight: 600; }
+    .feature span { color: #A8B6C9; font-size: 14px; }
+    .form-panel { flex: 1 1 480px; display: flex; align-items: center; justify-content: center; padding: 48px 24px; }
+    .form { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 8px; }
+    .form h1 { font-size: 28px; margin-bottom: 4px; }
+    .lead { color: var(--slate); margin-bottom: 16px; }
+    .error {
+      padding: 10px 14px; margin-bottom: 8px;
+      border: 1px solid var(--border); border-radius: 6px;
+      box-shadow: inset -3px 0 0 var(--ink); background: #FFFFFF;
+    }
+    .ltr-input { text-align: right; }
+    .submit { width: 100%; height: 44px !important; margin-top: 4px; }
+    .submit mat-spinner { margin: 0 auto; }
+    .footer { display: flex; gap: 6px; align-items: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--slate); font-size: 13px; }
+    .link { all: unset; cursor: pointer; color: var(--link); font-weight: 500; }
+    .link:hover { text-decoration: underline; }
+    .link:focus-visible { outline: 2px solid var(--link); }
+    @media (max-width: 900px) {
+      .brand-panel { padding: 28px 24px; gap: 0; }
+      .pitch { display: none; }
+    }
+  `]
 })
 export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   loading = false;
   hidePassword = true;
-  particleArray = Array(30).fill(0); // For particle effect
+  errorMessage = '';
 
-  constructor(
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private router: Router,
-    private snackBar: MatSnackBar
-  ) {
+  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(5)]],
-      rememberMe: [false]
+      password: ['', [Validators.required]],
     });
   }
 
   ngOnInit(): void {
-    // Check if already authenticated
-    if (this.authService.isAuthenticated()) {
+    if (this.authService.isAuthenticated() && this.authService.isAdmin()) {
       this.router.navigate(['/dashboard']);
-      return;
     }
-
-    // // Add demo data for development
-    // this.loginForm.patchValue({
-    //   email: 'admin@legal-flow.com',
-    //   password: 'admin123'
-    // });
-
-    // Randomly position particles
-    this.initializeParticles();
-  }
-
-  private initializeParticles(): void {
-    setTimeout(() => {
-      const particles = document.querySelectorAll('.particle');
-      particles.forEach((particle, index) => {
-        const element = particle as HTMLElement;
-        element.style.left = Math.random() * 100 + '%';
-        element.style.animationDelay = Math.random() * 15 + 's';
-        element.style.animationDuration = (15 + Math.random() * 10) + 's';
-      });
-    }, 100);
-  }
-
-  getRandomDelay(): number {
-    return Math.random() * 15;
   }
 
   onSubmit(): void {
-    if (this.loginForm.valid && !this.loading) {
-      this.loading = true;
-      
-      const loginData = {
-        email: this.loginForm.value.email,
-        password: this.loginForm.value.password
-      };
-      
-      this.authService.login(loginData).subscribe({
-        next: (response: AuthResponse) => {
-          this.loading = false;
-          this.showSuccess('התחברת בהצלחה! מעביר לדשבורד...');
-          
-          setTimeout(() => {
-            this.router.navigate(['/dashboard']);
-          }, 1000);
-        },
-        error: (error: any) => {
-          this.loading = false;
-          this.handleLoginError(error);
-        }
-      });
-    } else {
-      this.markFormGroupTouched();
+    if (this.loginForm.invalid || this.loading) {
+      this.loginForm.markAllAsTouched();
+      return;
     }
+    this.loading = true;
+    this.errorMessage = '';
+
+    this.authService.login({ email: this.loginForm.value.email, password: this.loginForm.value.password }).subscribe({
+      next: () => {
+        this.loading = false;
+        // Lawyers can't use the admin app; without this they bounced between login and dashboard
+        if (!this.authService.isAdmin()) {
+          this.authService.logout(false);
+          this.errorMessage = 'החשבון הזה אינו חשבון מנהל. עורכי דין נכנסים דרך אפליקציית עורכי הדין.';
+          return;
+        }
+        this.router.navigate(['/dashboard']);
+      },
+      error: (error: any) => {
+        this.loading = false;
+        if (error.status === 401 || error.message === 'פרטי התחברות שגויים') this.errorMessage = 'האימייל או הסיסמה שגויים.';
+        else if (error.status === 0) this.errorMessage = 'אין חיבור לשרת. בדקו את החיבור ונסו שוב.';
+        else this.errorMessage = error.message || 'ההתחברות נכשלה. נסו שוב.';
+      },
+    });
   }
 
   goToRegister(): void {
     this.router.navigate(['/register-admin']);
-  }
-
-  private handleLoginError(error: any): void {
-    let errorMessage = 'שגיאה בהתחברות';
-    
-    if (error.status === 401) {
-      errorMessage = 'אימייל או סיסמה שגויים';
-    } else if (error.status === 403) {
-      errorMessage = 'אין לך הרשאות מנהל';
-    } else if (error.status === 429) {
-      errorMessage = 'יותר מדי ניסיונות התחברות. נסה שוב מאוחר יותר';
-    } else if (error.status === 0) {
-      errorMessage = 'שגיאת רשת. בדוק את החיבור לאינטרנט';
-    } else if (error.error?.message) {
-      errorMessage = error.error.message;
-    }
-    
-    this.showError(errorMessage);
-  }
-
-  private showSuccess(message: string): void {
-    this.snackBar.open(message, 'סגור', {
-      duration: 4000,
-      panelClass: ['success-snackbar'],
-      horizontalPosition: 'center',
-      verticalPosition: 'top'
-    });
-  }
-
-  private showError(message: string): void {
-    this.snackBar.open(message, 'סגור', {
-      duration: 6000,
-      panelClass: ['error-snackbar'],
-      horizontalPosition: 'center',
-      verticalPosition: 'top'
-    });
-  }
-
-  private markFormGroupTouched(): void {
-    Object.keys(this.loginForm.controls).forEach(key => {
-      const control = this.loginForm.get(key);
-      if (control) {
-        control.markAsTouched();
-      }
-    });
   }
 }

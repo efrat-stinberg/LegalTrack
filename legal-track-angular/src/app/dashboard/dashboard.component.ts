@@ -108,26 +108,25 @@ import { DashboardService, DashboardStats } from '../services/dashboard.service'
   `,
   styles: [`
     .dashboard-container {
-      padding: 20px;
       max-width: 1200px;
-      margin: 0 auto;
     }
 
     .dashboard-header {
-      margin-bottom: 30px;
-      text-align: center;
+      margin-bottom: 24px;
     }
 
     .dashboard-header h1 {
-      font-size: 28px;
-      font-weight: 300;
-      color: #333;
-      margin-bottom: 8px;
+      font-family: var(--font-display);
+      font-size: 30px;
+      font-weight: 600;
+      color: var(--navy-900);
+      margin-bottom: 4px;
     }
 
     .dashboard-header p {
-      color: #666;
-      font-size: 16px;
+      color: var(--slate);
+      font-size: 14px;
+      margin: 0;
     }
 
     .loading-container {
@@ -150,39 +149,42 @@ import { DashboardService, DashboardStats } from '../services/dashboard.service'
       margin-bottom: 30px;
     }
 
-    .stat-card {
-      height: 120px;
-    }
-
     .stat-content {
       display: flex;
       align-items: center;
-      height: 100%;
+      gap: 14px;
+      padding: 4px 0;
     }
 
     .stat-icon {
-      font-size: 48px;
-      width: 48px;
-      height: 48px;
-      margin-left: 16px;
-      color: #2196F3;
+      font-size: 22px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      background: var(--ground);
+      border: 1px solid var(--border);
+      color: var(--navy-700);
     }
 
     .stat-info h3 {
-      font-size: 32px;
+      font-size: 28px;
       font-weight: 600;
       margin: 0;
-      color: #333;
+      color: var(--navy-900);
+      font-variant-numeric: tabular-nums;
     }
 
     .stat-info p {
-      margin: 4px 0 0 0;
-      color: #666;
-      font-size: 14px;
+      margin: 2px 0 0 0;
+      color: var(--slate);
+      font-size: 13px;
     }
 
     .error {
-      color: #b71c1c;
+      color: #1A1F2B;
     }
 
     .recent-list {

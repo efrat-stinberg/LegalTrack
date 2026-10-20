@@ -181,35 +181,30 @@ import { UsersService, User } from '../services/users.service';
       padding: 24px;
       max-width: 1400px;
       margin: 0 auto;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      background: #F6F7F9;
       min-height: calc(100vh - 64px);
     }
 
     .page-header {
       display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 32px;
-      padding: 24px;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      align-items: flex-end;
+      margin-bottom: 24px;
     }
 
     .header-content h1 {
-      font-size: 32px;
+      font-family: var(--font-display);
+      font-size: 30px;
       font-weight: 600;
-      color: #1a237e;
-      margin: 0 0 8px 0;
-      background: linear-gradient(45deg, #1a237e, #3949ab);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: var(--navy-900);
+      margin: 0 0 4px 0;
     }
 
     .header-content p {
-      color: #666;
-      font-size: 16px;
+      color: var(--slate);
+      font-size: 14px;
       margin: 0;
     }
 
@@ -219,7 +214,7 @@ import { UsersService, User } from '../services/users.service';
     }
 
     .header-actions button {
-      border-radius: 12px;
+      border-radius: 8px;
       padding: 12px 24px;
       font-weight: 500;
     }
@@ -231,7 +226,7 @@ import { UsersService, User } from '../services/users.service';
       justify-content: center;
       padding: 80px;
       background: white;
-      border-radius: 16px;
+      border-radius: 8px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     }
 
@@ -249,14 +244,13 @@ import { UsersService, User } from '../services/users.service';
     }
 
     .stat-card {
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      transition: transform 0.3s ease;
-      border: 1px solid rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+      box-shadow: none;
+      border: 1px solid var(--border);
     }
 
     .stat-card:hover {
-      transform: translateY(-4px);
+      transform: translateY(0);
     }
 
     .stat-content {
@@ -266,26 +260,19 @@ import { UsersService, User } from '../services/users.service';
     }
 
     .stat-icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 16px;
+      width: 40px;
+      height: 40px;
+      border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
-      background: linear-gradient(45deg, #3f51b5, #7986cb);
-    }
-
-    .stat-icon.admin {
-      background: linear-gradient(45deg, #9c27b0, #ba68c8);
-    }
-
-    .stat-icon.lawyer {
-      background: linear-gradient(45deg, #4caf50, #81c784);
+      color: var(--navy-700);
+      background: var(--ground);
+      border: 1px solid var(--border);
     }
 
     .stat-icon.active {
-      background: linear-gradient(45deg, #ff9800, #ffb74d);
+      background: #4A5363;
     }
 
     .stat-info {
@@ -312,24 +299,24 @@ import { UsersService, User } from '../services/users.service';
       font-size: 12px;
       font-weight: 600;
       padding: 4px 8px;
-      border-radius: 12px;
+      border-radius: 8px;
       width: fit-content;
     }
 
     .stat-badge.active {
-      color: #4caf50;
+      color: #1B3355;
       background: rgba(76, 175, 80, 0.1);
     }
 
     .stat-badge.stable {
-      color: #ff9800;
+      color: #4A5363;
       background: rgba(255, 152, 0, 0.1);
     }
 
     .users-card,
     .activity-card {
       margin-bottom: 24px;
-      border-radius: 16px;
+      border-radius: 8px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     }
 
@@ -354,7 +341,7 @@ import { UsersService, User } from '../services/users.service';
       font-size: 72px;
       width: 72px;
       height: 72px;
-      color: #e0e0e0;
+      color: #E3E6EB;
       margin-bottom: 24px;
     }
 
@@ -373,7 +360,7 @@ import { UsersService, User } from '../services/users.service';
     .cta-button {
       margin-top: 24px;
       padding: 12px 32px;
-      border-radius: 12px;
+      border-radius: 8px;
     }
 
     .users-list {
@@ -388,15 +375,15 @@ import { UsersService, User } from '../services/users.service';
       gap: 20px;
       padding: 20px;
       border: 1px solid rgba(0, 0, 0, 0.08);
-      border-radius: 12px;
+      border-radius: 8px;
       transition: all 0.3s ease;
-      background: #fafafa;
+      background: #F6F7F9;
     }
 
     .user-item:hover {
       background: white;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      transform: translateY(-2px);
+      transform: translateY(0);
     }
 
     .user-avatar {
@@ -407,7 +394,7 @@ import { UsersService, User } from '../services/users.service';
       width: 56px;
       height: 56px;
       border-radius: 50%;
-      background: linear-gradient(45deg, #3f51b5, #7986cb);
+      background: #1B3355;
       color: white;
       display: flex;
       align-items: center;
@@ -418,7 +405,7 @@ import { UsersService, User } from '../services/users.service';
     }
 
     .avatar-circle.admin {
-      background: linear-gradient(45deg, #9c27b0, #ba68c8);
+      background: #2A4870;
     }
 
     .status-indicator {
@@ -432,7 +419,7 @@ import { UsersService, User } from '../services/users.service';
     }
 
     .status-indicator.online {
-      background: #4caf50;
+      background: #1B3355;
     }
 
     .status-indicator.offline {
@@ -485,7 +472,7 @@ import { UsersService, User } from '../services/users.service';
     }
 
     .danger {
-      color: #f44336;
+      color: #1A1F2B;
     }
 
     .activity-timeline {
@@ -516,15 +503,15 @@ import { UsersService, User } from '../services/users.service';
     }
 
     .activity-icon.invite {
-      background: linear-gradient(45deg, #4caf50, #81c784);
+      background: #1B3355;
     }
 
     .activity-icon.login {
-      background: linear-gradient(45deg, #2196f3, #64b5f6);
+      background: #1F4E8C;
     }
 
     .activity-icon.permission {
-      background: linear-gradient(45deg, #ff9800, #ffb74d);
+      background: #4A5363;
     }
 
     .activity-message {

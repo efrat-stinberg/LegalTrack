@@ -3,7 +3,9 @@ export const environment = {
   production: false,
   // 🔥 כתובת מלאה עם https:// - זה יפתור את הבעיה!
   apiUrl: 'https://legaltrack-server.onrender.com/api',
-  appName: 'Legal Flow Admin',
+  appName: 'LegalTrack',
+  // The lawyers' app, linked from the admin sidebar
+  lawyersAppUrl: 'https://legaltrack.onrender.com',
   version: '1.0.0',
   
   // Feature flags

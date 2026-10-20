@@ -96,8 +96,8 @@ import { UsersService } from '../../services/users.service';
       margin-top: 16px;
       padding: 12px;
       border-radius: 8px;
-      background: #fff8e1;
-      border: 1px solid #ffe082;
+      background: #F6F7F9;
+      border: 1px solid #E3E6EB;
     }
     .invite-link-row {
       display: flex;
@@ -113,7 +113,7 @@ import { UsersService } from '../../services/users.service';
       font-size: 12px;
     }
     .email-error {
-      color: #b71c1c;
+      color: #1A1F2B;
       font-size: 12px;
       word-break: break-word;
     }
@@ -140,11 +140,11 @@ import { UsersService } from '../../services/users.service';
       padding: 16px;
       background-color: #f5f5f5;
       border-radius: 8px;
-      border-right: 4px solid #2196F3;
+      border-right: 4px solid #1F4E8C;
     }
 
     .info-icon {
-      color: #2196F3;
+      color: #1F4E8C;
       margin-top: 2px;
       flex-shrink: 0;
     }
@@ -184,7 +184,7 @@ import { UsersService } from '../../services/users.service';
     }
 
     .error {
-      border-color: #f44336 !important;
+      border-color: #1A1F2B !important;
     }
 
     button[mat-raised-button] {
