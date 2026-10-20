@@ -43,7 +43,7 @@ import { UsersService, User } from '../services/users.service';
             <mat-icon>person_add</mat-icon>
             הזמן עורך דין
           </button>
-          <button mat-stroked-button>
+          <button mat-stroked-button (click)="exportCsv()" [disabled]="users.length === 0">
             <mat-icon>download</mat-icon>
             ייצא רשימה
           </button>
@@ -663,6 +663,22 @@ export class UsersComponent implements OnInit {
         this.snackBar.open(error.message || 'שגיאה בהסרת המשתמש', 'סגור', { duration: 5000, panelClass: ['error-snackbar'] });
       }
     });
+  }
+
+  // Downloads the office's users as a CSV file (opens in Excel; BOM keeps Hebrew readable)
+  exportCsv(): void {
+    const escape = (value: string) => `"${(value ?? '').replace(/"/g, '""')}"`;
+    const rows = [
+      ['שם', 'אימייל', 'תפקיד'],
+      ...this.users.map(u => [u.username, u.email, u.isAdmin ? 'מנהל' : 'עורך דין'])
+    ];
+    const csv = '﻿' + rows.map(r => r.map(escape).join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'users.csv';
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   openInviteDialog(): void {

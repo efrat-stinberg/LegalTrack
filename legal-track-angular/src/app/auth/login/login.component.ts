@@ -81,8 +81,7 @@ import { MatDividerModule } from '@angular/material/divider';
                 </h1>
                 <p class="brand-subtitle">
                   <span class="subtitle-icon">✨</span>
-                  Admin Panel Premium
-                  <span class="subtitle-badge">Pro</span>
+                  פאנל ניהול המשרד
                 </p>
               </div>
             </div>
@@ -108,8 +107,8 @@ import { MatDividerModule } from '@angular/material/divider';
                   <mat-icon>security</mat-icon>
                 </div>
                 <div class="feature-content">
-                  <h4>אבטחה מתקדמת</h4>
-                  <p>הצפנה ברמה בנקאית</p>
+                  <h4>התחברות מאובטחת</h4>
+                  <p>סיסמאות מוצפנות וטוקן JWT</p>
                 </div>
               </div>
               
@@ -118,8 +117,8 @@ import { MatDividerModule } from '@angular/material/divider';
                   <mat-icon>cloud_done</mat-icon>
                 </div>
                 <div class="feature-content">
-                  <h4>גיבוי אוטומטי</h4>
-                  <p>נתונים מאובטחים בענן</p>
+                  <h4>אחסון מסמכים בענן</h4>
+                  <p>הקבצים נשמרים ב-Amazon S3</p>
                 </div>
               </div>
               
@@ -128,8 +127,8 @@ import { MatDividerModule } from '@angular/material/divider';
                   <mat-icon>support_agent</mat-icon>
                 </div>
                 <div class="feature-content">
-                  <h4>תמיכה 24/6</h4>
-                  <p>צוות מומחים זמין תמיד</p>
+                  <h4>הפרדה בין משרדים</h4>
+                  <p>כל משרד רואה רק את הנתונים שלו</p>
                 </div>
               </div>
             </div>

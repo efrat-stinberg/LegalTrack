@@ -263,6 +263,11 @@ export class AppComponent implements OnInit {
 
   private authPages = ['/login', '/register-admin'];
 
+  private isAuthUrlInAddressBar(): boolean {
+    const path = window.location.hash.replace(/^#/, '').split('?')[0];
+    return this.authPages.includes(path);
+  }
+
   constructor(
     private router: Router,
     private authService: AuthService
@@ -289,7 +294,8 @@ export class AppComponent implements OnInit {
         this.isAuthenticated = !!user;
         
         // Redirect logic
-        if (!user && !this.isAuthPage) {
+        // On first load router.url is still "/" before routing finishes, so also check the address bar
+        if (!user && !this.isAuthPage && !this.isAuthUrlInAddressBar()) {
           this.router.navigate(['/login']);
         }
       });

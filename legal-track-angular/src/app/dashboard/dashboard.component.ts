@@ -4,7 +4,10 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { AuthService, User } from '../services/auth.service';
+import { DashboardService, DashboardStats } from '../services/dashboard.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -14,7 +17,8 @@ import { AuthService, User } from '../services/auth.service';
     MatCardModule,
     MatIconModule,
     MatButtonModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    RouterLink
   ],
   template: `
     <div class="dashboard-container">
@@ -32,38 +36,64 @@ import { AuthService, User } from '../services/auth.service';
         </div>
       } @else {
         <div class="dashboard-content">
+          @if (error) {
+            <p class="error">{{ error }}</p>
+          }
           <div class="stats-grid">
             <mat-card class="stat-card">
               <mat-card-content>
                 <div class="stat-content">
                   <mat-icon class="stat-icon">people</mat-icon>
                   <div class="stat-info">
-                    <h3>0</h3>
-                    <p>משתמשים פעילים</p>
+                    <h3>{{ stats?.totalUsers ?? 0 }}</h3>
+                    <p>משתמשים במשרד</p>
                   </div>
                 </div>
               </mat-card-content>
             </mat-card>
-            
+
             <mat-card class="stat-card">
               <mat-card-content>
                 <div class="stat-content">
                   <mat-icon class="stat-icon">folder</mat-icon>
                   <div class="stat-info">
-                    <h3>0</h3>
-                    <p>תיקיות פעילות</p>
+                    <h3>{{ stats?.totalFolders ?? 0 }}</h3>
+                    <p>תיקים</p>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="stat-card">
+              <mat-card-content>
+                <div class="stat-content">
+                  <mat-icon class="stat-icon">business_center</mat-icon>
+                  <div class="stat-info">
+                    <h3>{{ stats?.totalClients ?? 0 }}</h3>
+                    <p>לקוחות</p>
                   </div>
                 </div>
               </mat-card-content>
             </mat-card>
           </div>
-          
+
           <mat-card>
             <mat-card-header>
-              <mat-card-title>ברוך הבא למערכת</mat-card-title>
+              <mat-card-title>תיקים אחרונים</mat-card-title>
             </mat-card-header>
             <mat-card-content>
-              <p>המערכת מוכנה לשימוש! כעת תוכל לנהל משתמשים ולקוחות.</p>
+              @if (recentFolders.length === 0) {
+                <p>עדיין אין תיקים במשרד. עורכי הדין פותחים תיקים באפליקציית עורכי הדין.</p>
+              } @else {
+                <ul class="recent-list">
+                  @for (folder of recentFolders; track folder.folderId) {
+                    <li>
+                      <strong>{{ folder.folderName }}</strong>
+                      <span> · {{ folder.clientName }} · {{ folder.documentCount }} מסמכים · {{ folder.createdDate | date:'dd/MM/yyyy' }}</span>
+                    </li>
+                  }
+                </ul>
+              }
               <div class="actions">
                 <button mat-raised-button color="primary" routerLink="/users">
                   <mat-icon>people</mat-icon>
@@ -151,6 +181,15 @@ import { AuthService, User } from '../services/auth.service';
       font-size: 14px;
     }
 
+    .error {
+      color: #b71c1c;
+    }
+
+    .recent-list {
+      padding-right: 20px;
+      line-height: 2;
+    }
+
     .actions {
       margin-top: 20px;
     }
@@ -162,11 +201,41 @@ import { AuthService, User } from '../services/auth.service';
 })
 export class DashboardComponent implements OnInit {
   currentUser: User | null = null;
-  loading = false;
+  loading = true;
+  error: string | null = null;
+  stats: DashboardStats | null = null;
+  recentFolders: { folderId: number; folderName: string; clientName: string; documentCount: number; createdDate: Date }[] = [];
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService, private dashboardService: DashboardService) {}
 
   ngOnInit(): void {
     this.currentUser = this.authService.currentUserValue;
+
+    // Counts and recent cases of the admin's office
+    forkJoin({
+      stats: this.dashboardService.getDashboardStats(),
+      folders: this.dashboardService.getAllFolders(),
+      clients: this.dashboardService.getAllClients()
+    }).subscribe({
+      next: ({ stats, folders, clients }) => {
+        this.stats = stats;
+        const clientNames = new Map(clients.map(c => [c.id, c.fullName]));
+        this.recentFolders = [...folders]
+          .sort((a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime())
+          .slice(0, 5)
+          .map(f => ({
+            folderId: f.folderId,
+            folderName: f.folderName,
+            clientName: clientNames.get(f.clientId) ?? '',
+            documentCount: f.documents?.length ?? 0,
+            createdDate: f.createdDate
+          }));
+        this.loading = false;
+      },
+      error: () => {
+        this.error = 'שגיאה בטעינת נתוני המשרד';
+        this.loading = false;
+      }
+    });
   }
 }
