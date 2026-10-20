@@ -52,13 +52,13 @@ try {
         text-align: center;
         font-family: Arial, sans-serif;
       ">
-        <h1 style="color: #f44336; margin-bottom: 20px;">שגיאה בטעינת האפליקציה</h1>
+        <h1 style="color: #1A1F2B; margin-bottom: 20px;">שגיאה בטעינת האפליקציה</h1>
         <p style="color: #666; margin-bottom: 20px;">אירעה שגיאה בעת טעינת האפליקציה. אנא רענן את הדף.</p>
         <button 
           onclick="window.location.reload()" 
           style="
             padding: 10px 20px;
-            background: #2196f3;
+            background: #1F4E8C;
             color: white;
             border: none;
             border-radius: 4px;

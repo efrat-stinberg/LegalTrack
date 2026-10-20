@@ -8,8 +8,6 @@ export { default as ClientAutocomplete } from './ClientAutocomplete';
 export { default as Register } from './Register';
 export { default as ProtectedRoute } from './ProtectedRoute';
 export { default as ProtectedLayout } from './ProtectedLayout';
-export { default as Header } from './Header';
-export { default as Footer } from './Footer';
 export { default as UserAvatar } from './UserAvatar';
 export { default as DocumentList } from './DocumentList';
 export { default as FileUpload } from './FileUpload';

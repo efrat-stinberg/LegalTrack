@@ -16,10 +16,10 @@ import { Client } from '../models/Client';
 
 const ContentSection = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
-  borderRadius: 20,
+  borderRadius: 8,
   marginBottom: theme.spacing(3),
   border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-  background: `linear-gradient(145deg, ${theme.palette.background.paper}, ${alpha(theme.palette.primary.main, 0.02)})`,
+  background: `${theme.palette.background.paper}`,
   position: 'relative',
   overflow: 'hidden',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -31,7 +31,7 @@ const ContentSection = styled(Paper)(({ theme }) => ({
     left: 0,
     right: 0,
     height: 4,
-    background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+    background: `${theme.palette.primary.main}`,
   }
 }));
 
@@ -49,22 +49,22 @@ const HeaderSection = styled(Box)(({ theme }) => ({
 }));
 
 const AnimatedFab = styled(Fab)(({ theme }) => ({
-  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+  background: `${theme.palette.primary.main}`,
   color: 'white',
   boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.4)}`,
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   
   '&:hover': {
-    transform: 'translateY(-4px) scale(1.05)',
+    transform: 'translateY(0) scale(1)',
     boxShadow: `0 12px 32px ${alpha(theme.palette.primary.main, 0.6)}`,
-    background: `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`,
+    background: `${theme.palette.primary.dark}`,
   },
   
   '&.expanded': {
-    background: `linear-gradient(135deg, ${theme.palette.error.main}, ${theme.palette.error.dark})`,
+    background: `${theme.palette.error.main}`,
     
     '&:hover': {
-      background: `linear-gradient(135deg, ${theme.palette.error.dark}, ${theme.palette.error.main})`,
+      background: `${theme.palette.error.dark}`,
     }
   }
 }));
@@ -72,9 +72,9 @@ const AnimatedFab = styled(Fab)(({ theme }) => ({
 const EmptyState = styled(Box)(({ theme }) => ({
   textAlign: 'center',
   padding: theme.spacing(6),
-  borderRadius: 16,
+  borderRadius: 8,
   border: `2px dashed ${alpha(theme.palette.primary.main, 0.3)}`,
-  background: `linear-gradient(145deg, ${alpha(theme.palette.primary.main, 0.05)}, transparent)`,
+  background: `${alpha(theme.palette.primary.main, 0.05)}`,
   transition: 'all 0.3s ease',
   
   '&:hover': {
@@ -89,7 +89,7 @@ const IconWrapper = styled(Box)(({ theme }) => ({
   margin: '0 auto',
   marginBottom: theme.spacing(2),
   borderRadius: '50%',
-  background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.1)}, ${alpha(theme.palette.secondary.main, 0.1)})`,
+  background: `${alpha(theme.palette.primary.main, 0.1)}`,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',

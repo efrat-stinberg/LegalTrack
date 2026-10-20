@@ -50,15 +50,15 @@ interface AdvancedStatsCardProps {
 
 const StatsCard = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
-  borderRadius: 16,
-  background: `linear-gradient(145deg, ${theme.palette.background.paper}, ${alpha(theme.palette.primary.main, 0.02)})`,
+  borderRadius: 8,
+  background: `${theme.palette.background.paper}`,
   border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
   position: 'relative',
   overflow: 'hidden',
   transition: 'all 0.3s ease',
   
   '&:hover': {
-    transform: 'translateY(-4px)',
+    transform: 'translateY(0)',
     boxShadow: `0 12px 32px ${alpha(theme.palette.primary.main, 0.15)}`,
   },
   
@@ -69,7 +69,7 @@ const StatsCard = styled(Paper)(({ theme }) => ({
     left: 0,
     right: 0,
     height: 4,
-    background: 'var(--card-color, linear-gradient(90deg, #667eea, #764ba2))',
+    background: 'var(--card-color, #1B3355)',
   }
 }));
 
@@ -78,7 +78,7 @@ const AdvancedStatsCard: React.FC<AdvancedStatsCardProps> = ({
   value,
   previousValue,
   format = 'number',
-  color = '#667eea',
+  color = '#1B3355',
   icon
 }) => {
   
@@ -158,9 +158,9 @@ const InfoPopup = styled(Paper)(({ theme }) => ({
   transform: 'translate(-50%, -50%)',
   width: '90%',
   maxWidth: 500,
-  borderRadius: 20,
+  borderRadius: 8,
   padding: theme.spacing(4),
-  background: `linear-gradient(145deg, ${theme.palette.background.paper}, ${alpha(theme.palette.primary.main, 0.02)})`,
+  background: `${theme.palette.background.paper}`,
   border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
   boxShadow: `0 32px 64px ${alpha(theme.palette.common.black, 0.2)}`,
   zIndex: 1300,
@@ -169,8 +169,8 @@ const InfoPopup = styled(Paper)(({ theme }) => ({
 // 3. קומפוננט לחיפוש מתקדם
 const AdvancedSearchBox = styled(Box)(({ theme }) => ({
   padding: theme.spacing(3),
-  background: `linear-gradient(145deg, ${theme.palette.background.paper}, ${alpha(theme.palette.primary.main, 0.02)})`,
-  borderRadius: 16,
+  background: `${theme.palette.background.paper}`,
+  borderRadius: 8,
   border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
   marginBottom: theme.spacing(3),
 }));
@@ -199,7 +199,7 @@ const animations = {
       },
       '50%': {
         opacity: 1,
-        transform: 'scale(1.05)',
+        transform: 'scale(1)',
       },
       '70%': {
         transform: 'scale(0.9)',
@@ -404,7 +404,7 @@ export {
 const StyledContainer = styled(Container)(({ theme }) => ({
   padding: theme.spacing(3),
   minHeight: "100vh",
-  backgroundColor: "#f8fafc",
+  backgroundColor: "#F6F7F9",
   
   [theme.breakpoints.down('md')]: {
     padding: theme.spacing(2),
@@ -784,7 +784,7 @@ const FolderManagementPage: React.FC = () => {
               textAlign="center" 
               py={8}
               sx={{
-                background: `linear-gradient(145deg, ${alpha(theme.palette.primary.main, 0.05)}, transparent)`,
+                background: `${alpha(theme.palette.primary.main, 0.05)}`,
                 borderRadius: 4,
                 border: `2px dashed ${alpha(theme.palette.primary.main, 0.3)}`,
               }}

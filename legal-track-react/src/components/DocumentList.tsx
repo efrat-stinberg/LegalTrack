@@ -1,423 +1,367 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Box,
+  Button,
   Dialog,
+  DialogActions,
   DialogContent,
   DialogTitle,
   IconButton,
+  InputBase,
+  ListItemIcon,
   Menu,
   MenuItem,
+  Snackbar,
+  Alert,
+  TextField,
   Tooltip,
   Typography,
-  Avatar,
-  Chip,
-  Card,
-  CardContent,
-  CardActions,
-  Button,
-  useTheme,
-  alpha,
-  Zoom,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
-import {
-  Delete,
-  Download,
-  FileText,
-  Calendar,
-  ExternalLink,
-  Share2,
-  Edit3,
-  Copy
-} from "lucide-react";
-import { deleteDocument, getDownloadUrl } from "../api/api";
+import { ArrowDownUp, Copy, Download, Edit3, MoreVertical, Search, Trash2 } from "lucide-react";
+import { deleteDocument, getDownloadUrl, updateDocument } from "../api/api";
 import MyDocument from "../models/Document";
-import { MoreVert, Visibility } from "@mui/icons-material";
+import { tokens } from "../theme";
 
 interface DocumentListProps {
   documents: MyDocument[];
   onDelete?: (deletedId: number) => void;
+  onRenamed?: (documentId: number, newName: string) => void;
 }
 
-const DocumentCard = styled(Card)(({ theme }) => ({
-  borderRadius: 16,
-  border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  position: 'relative',
-  overflow: 'hidden',
-  height: '100%',
-  display: 'flex',
-  flexDirection: 'column',
-  background: `linear-gradient(145deg, ${theme.palette.background.paper}, ${alpha(theme.palette.primary.main, 0.02)})`,
+type SortKey = "name" | "date";
 
-  '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: `0 12px 32px ${alpha(theme.palette.primary.main, 0.15)}`,
-    border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+const fileType = (name: string) => (name.split(".").pop() || "").toUpperCase().slice(0, 5);
+const formatDate = (value: string) =>
+  new Date(value).toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit", year: "numeric" });
 
-    '& .document-actions': {
-      opacity: 1,
-      transform: 'translateY(0)',
-    },
-  },
+// The case's documents as a sortable, filterable table with consistent row actions.
+const DocumentList: React.FC<DocumentListProps> = ({ documents, onDelete, onRenamed }) => {
+  const [filter, setFilter] = useState("");
+  const [sort, setSort] = useState<{ key: SortKey; desc: boolean }>({ key: "date", desc: true });
+  const [menu, setMenu] = useState<{ anchor: HTMLElement; doc: MyDocument } | null>(null);
+  const [toDelete, setToDelete] = useState<MyDocument | null>(null);
+  const [toRename, setToRename] = useState<{ doc: MyDocument; name: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<{ text: string; error?: boolean } | null>(null);
 
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 4,
-    background: '#e0e0e0', // Light gray top bar
-  }
-}));
-
-const DocumentIcon = styled(Avatar)(({ theme }) => ({
-  width: 56,
-  height: 56,
-  borderRadius: 12,
-  background: '#e0e0e0', // Light gray icon background
-  color: 'white',
-  boxShadow: `0 8px 24px ${alpha('#000000', 0.1)}`,
-  marginBottom: theme.spacing(2),
-}));
-
-const ActionButtons = styled(Box)(({ theme }) => ({
-  position: 'absolute',
-  top: theme.spacing(1),
-  right: theme.spacing(1),
-  opacity: 0,
-  transform: 'translateY(-10px)',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  zIndex: 2,
-}));
-
-const DocumentGrid = styled(Box)(({ theme }) => ({
-  display: 'grid',
-  gap: theme.spacing(2),
-  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-
-  [theme.breakpoints.down('md')]: {
-    gridTemplateColumns: '1fr',
-  },
-}));
-
-const MetaChip = styled(Chip)(({ theme }) => ({
-  height: 24,
-  fontSize: '0.75rem',
-  background: alpha(theme.palette.info.main, 0.1),
-  color: theme.palette.info.main,
-  border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
-}));
-
-const DocumentList: React.FC<DocumentListProps> = ({ documents, onDelete }) => {
-  const theme = useTheme();
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedDoc, setSelectedDoc] = useState<MyDocument | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('he-IL', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+  const rows = useMemo(() => {
+    const q = filter.trim().toLowerCase();
+    const list = q ? documents.filter((d) => d.documentName.toLowerCase().includes(q)) : [...documents];
+    list.sort((a, b) => {
+      const cmp =
+        sort.key === "name"
+          ? a.documentName.localeCompare(b.documentName, "he")
+          : new Date(a.uploadDate).getTime() - new Date(b.uploadDate).getTime();
+      return sort.desc ? -cmp : cmp;
     });
-  };
+    return list;
+  }, [documents, filter, sort]);
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, doc: MyDocument) => {
-    event.stopPropagation();
-    setAnchorEl(event.currentTarget);
-    setSelectedDoc(doc);
-  };
+  const toggleSort = (key: SortKey) =>
+    setSort((s) => (s.key === key ? { key, desc: !s.desc } : { key, desc: key === "date" }));
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setSelectedDoc(null);
-  };
+  const urlFor = (doc: MyDocument) => getDownloadUrl(doc.filePath.split("/").pop() || doc.documentName);
 
-  const handlePreview = async () => {
-    if (!selectedDoc) return;
-
+  const open = async (doc: MyDocument) => {
     try {
-      const fileName = selectedDoc.filePath.split('/').pop() || selectedDoc.documentName;
-      const url = await getDownloadUrl(fileName);
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } catch (error) {
-      console.error('Error getting download URL:', error);
-      alert('שגיאה בפתיחת המסמך');
+      window.open(await urlFor(doc), "_blank", "noopener,noreferrer");
+    } catch {
+      setNotice({ text: "לא ניתן לפתוח את המסמך", error: true });
     }
-    handleMenuClose();
   };
 
-  const handleDownload = async () => {
-    if (!selectedDoc) return;
-
+  const download = async (doc: MyDocument) => {
     try {
-      const fileName = selectedDoc.filePath.split('/').pop() || selectedDoc.documentName;
-      const url = await getDownloadUrl(fileName);
-
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = selectedDoc.documentName;
+      const link = document.createElement("a");
+      link.href = await urlFor(doc);
+      link.download = doc.documentName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (error) {
-      console.error('Error downloading file:', error);
-      alert('שגיאה בהורדת הקובץ');
+    } catch {
+      setNotice({ text: "לא ניתן להוריד את המסמך", error: true });
     }
-    handleMenuClose();
   };
 
-  const handleDelete = async () => {
-    if (!selectedDoc) return;
-    if (!window.confirm(`האם אתה בטוח שברצונך למחוק את "${selectedDoc.documentName}"?`)) {
-      handleMenuClose();
-      return;
-    }
-
+  const copyLink = async (doc: MyDocument) => {
     try {
-      await deleteDocument(selectedDoc.filePath);
-      onDelete?.(selectedDoc.documentId);
-      alert('הקובץ נמחק בהצלחה');
-    } catch (error) {
-      console.error('Error deleting file:', error);
-      alert('שגיאה במחיקת הקובץ');
+      await navigator.clipboard.writeText(await urlFor(doc));
+      setNotice({ text: "הקישור הועתק. הוא תקף ל-5 דקות." });
+    } catch {
+      setNotice({ text: "לא ניתן להעתיק את הקישור", error: true });
     }
-    handleMenuClose();
   };
 
-  const handleCopyLink = async () => {
-    if (!selectedDoc) return;
-
+  const confirmDelete = async () => {
+    if (!toDelete) return;
+    setBusy(true);
     try {
-      const fileName = selectedDoc.filePath.split('/').pop() || selectedDoc.documentName;
-      const url = await getDownloadUrl(fileName);
-
-      await navigator.clipboard.writeText(url);
-      alert('הקישור הועתק ללוח');
-    } catch (error) {
-      console.error('Error copying link:', error);
-      alert('שגיאה בהעתקת הקישור');
+      await deleteDocument(toDelete.filePath);
+      onDelete?.(toDelete.documentId);
+      setNotice({ text: `המסמך "${toDelete.documentName}" נמחק` });
+      setToDelete(null);
+    } catch {
+      setNotice({ text: "מחיקת המסמך נכשלה", error: true });
+    } finally {
+      setBusy(false);
     }
-    handleMenuClose();
   };
 
-  if (documents.length === 0) {
-    return (
-      <Box textAlign="center" py={4}>
-        <FileText size={48} color={theme.palette.text.secondary} />
-        <Typography variant="h6" color="text.secondary" sx={{ mt: 2 }}>
-          אין מסמכים להצגה
-        </Typography>
+  const confirmRename = async () => {
+    if (!toRename) return;
+    const name = toRename.name.trim();
+    if (!name) return;
+    setBusy(true);
+    try {
+      await updateDocument(toRename.doc.documentId, {
+        DocumentName: name,
+        FilePath: toRename.doc.filePath,
+        FolderId: toRename.doc.folderId,
+      });
+      onRenamed?.(toRename.doc.documentId, name);
+      setNotice({ text: "שם המסמך עודכן" });
+      setToRename(null);
+    } catch {
+      setNotice({ text: "עדכון השם נכשל", error: true });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const headerCell = (label: string, key?: SortKey) =>
+    key ? (
+      <Box
+        component="button"
+        type="button"
+        onClick={() => toggleSort(key)}
+        aria-label={`מיון לפי ${label}`}
+        sx={{ all: "unset", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 0.5, "&:focus-visible": { outline: `2px solid ${tokens.blue600}` } }}
+      >
+        {label}
+        <ArrowDownUp size={12} aria-hidden="true" color={sort.key === key ? tokens.ink : tokens.borderStrong} />
       </Box>
+    ) : (
+      <span>{label}</span>
     );
-  }
+
+  const grid = "minmax(0, 1fr) 64px 104px 132px";
 
   return (
-    <Box sx={{ maxHeight: '75vh', overflowY: 'auto', pr: 1 }}>
-      <DocumentGrid>
-        {documents.map((doc, index) => (
-          <Zoom in={true} timeout={300 + index * 100} key={doc.documentId}>
-            <DocumentCard className="document-card">
-              <ActionButtons className="document-actions">
-                <Tooltip title="אפשרויות">
-                  <IconButton
-                    size="small"
-                    onClick={(e) => handleMenuOpen(e, doc)}
-                    sx={{
-                      backgroundColor: alpha(theme.palette.background.paper, 0.9),
-                      backdropFilter: 'blur(10px)',
-                      border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-                      '&:hover': {
-                        backgroundColor: theme.palette.background.paper,
-                        transform: 'scale(1.1)',
-                      }
-                    }}
-                  >
-                    <MoreVert fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-              </ActionButtons>
+    <Box>
+      <Box sx={{ px: 2.5, py: 1.5, borderBottom: `1px solid ${tokens.border}` }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            height: 34,
+            px: 1.25,
+            maxWidth: 280,
+            border: `1px solid ${tokens.border}`,
+            borderRadius: `${tokens.radius}px`,
+            color: tokens.muted,
+            "&:focus-within": { borderColor: tokens.blue600 },
+          }}
+        >
+          <Search size={15} aria-hidden="true" />
+          <InputBase
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            placeholder="סינון לפי שם"
+            inputProps={{ "aria-label": "סינון מסמכים לפי שם" }}
+            sx={{ flex: 1, fontSize: 13 }}
+          />
+        </Box>
+      </Box>
 
-              <CardContent sx={{ p: 3, flex: 1, textAlign: 'center' }}>
-                <DocumentIcon>
-                  <FileText size={24} />
-                </DocumentIcon>
+      <Box sx={{ overflowX: "auto" }}>
+        <Box role="table" aria-label="מסמכי התיק" sx={{ minWidth: 420 }}>
+          <Box
+            role="row"
+            sx={{
+              display: "grid",
+              gridTemplateColumns: grid,
+              gap: 1.5,
+              px: 2.5,
+              py: 1.25,
+              background: tokens.ground,
+              borderBottom: `1px solid ${tokens.border}`,
+              fontSize: 12,
+              fontWeight: 600,
+              color: tokens.slate,
+            }}
+          >
+            <Box role="columnheader">{headerCell("שם המסמך", "name")}</Box>
+            <Box role="columnheader">{headerCell("סוג")}</Box>
+            <Box role="columnheader">{headerCell("הועלה", "date")}</Box>
+            <Box role="columnheader">
+              <span className="sr-only">פעולות</span>
+            </Box>
+          </Box>
 
-                <Typography
-                  variant="h6"
-                  fontWeight={600}
-                  gutterBottom
-                  sx={{
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                    minHeight: '3em',
-                    textAlign: 'center'
-                  }}
+          {rows.length === 0 && (
+            <Typography sx={{ px: 2.5, py: 3, color: tokens.slate }}>אין מסמכים שמתאימים לסינון.</Typography>
+          )}
+
+          {rows.map((doc) => (
+            <Box
+              role="row"
+              key={doc.documentId}
+              sx={{
+                display: "grid",
+                gridTemplateColumns: grid,
+                gap: 1.5,
+                alignItems: "center",
+                px: 2.5,
+                py: 1,
+                minHeight: 52,
+                borderBottom: `1px solid ${tokens.borderSoft}`,
+                "&:hover": { background: tokens.hover },
+              }}
+            >
+              <Box role="cell" sx={{ minWidth: 0 }}>
+                <Box
+                  component="button"
+                  type="button"
+                  onClick={() => open(doc)}
                   title={doc.documentName}
+                  sx={{
+                    all: "unset",
+                    cursor: "pointer",
+                    display: "block",
+                    maxWidth: "100%",
+                    fontWeight: 500,
+                    color: tokens.ink,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    "&:hover": { color: tokens.blue600, textDecoration: "underline" },
+                    "&:focus-visible": { outline: `2px solid ${tokens.blue600}` },
+                  }}
                 >
                   {doc.documentName}
-                </Typography>
-
-                <Box display="flex" justifyContent="center" gap={1} mb={2}>
-                  <MetaChip label="קובץ" size="small" />
-                  <MetaChip label={formatFileSize(1024 * 1024)} size="small" />
                 </Box>
-
-                <Box display="flex" alignItems="center" justifyContent="center" gap={1} mb={2}>
-                  <Calendar size={14} color={theme.palette.text.secondary} />
-                  <Typography variant="caption" color="text.secondary">
-                    {formatDate(doc.uploadDate)}
-                  </Typography>
+              </Box>
+              <Box role="cell">
+                <Box component="span" sx={{ px: 1, py: 0.25, borderRadius: `${tokens.radiusSm}px`, background: tokens.borderSoft, color: tokens.slate, fontSize: 12, fontWeight: 600 }}>
+                  {fileType(doc.documentName) || "קובץ"}
                 </Box>
-              </CardContent>
-
-              <CardActions sx={{ p: 2, pt: 0, justifyContent: 'center' }}>
-                <Button
-                  size="small"
-                  startIcon={<ExternalLink size={16} />}
-                  onClick={() => {
-                    setSelectedDoc(doc);
-                    handlePreview();
-                  }}
-                  variant="contained"
-                  sx={{
-                    backgroundColor: '#9e9e9e',
-                    color: 'white',
-                    borderRadius: 2,
-                    '&:hover': {
-                      backgroundColor: '#757575',
-                      transform: 'translateY(-2px)',
-                    }
-                  }}
-                >
-                  פתח
+              </Box>
+              <Box role="cell" sx={{ color: tokens.slate, fontVariantNumeric: "tabular-nums" }}>
+                {formatDate(doc.uploadDate)}
+              </Box>
+              <Box role="cell" sx={{ display: "flex", gap: 0.5, justifyContent: "flex-end" }}>
+                <Button size="small" variant="text" onClick={() => open(doc)}>
+                  פתיחה
                 </Button>
+                <Tooltip title="הורדה">
+                  <IconButton size="small" aria-label={`הורדת ${doc.documentName}`} onClick={() => download(doc)} sx={{ border: `1px solid ${tokens.border}` }}>
+                    <Download size={15} />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="פעולות נוספות">
+                  <IconButton
+                    size="small"
+                    aria-label={`פעולות נוספות עבור ${doc.documentName}`}
+                    aria-haspopup="menu"
+                    onClick={(e) => setMenu({ anchor: e.currentTarget, doc })}
+                    sx={{ border: `1px solid ${tokens.border}` }}
+                  >
+                    <MoreVertical size={15} />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            </Box>
+          ))}
+        </Box>
+      </Box>
 
-                <Button
-                  size="small"
-                  startIcon={<Download size={16} />}
-                  onClick={() => {
-                    setSelectedDoc(doc);
-                    handleDownload();
-                  }}
-                  variant="outlined"
-                  sx={{
-                    borderColor: '#bdbdbd',
-                    color: '#424242',
-                    borderRadius: 2,
-                    '&:hover': {
-                      borderColor: '#9e9e9e',
-                      background: alpha('#9e9e9e', 0.1),
-                    }
-                  }}
-                >
-                  הורד
-                </Button>
-              </CardActions>
-            </DocumentCard>
-          </Zoom>
-        ))}
-      </DocumentGrid>
-
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            minWidth: 200,
-            boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.12)}`,
-          }
-        }}
-      >
-        <MenuItem onClick={handlePreview}>
-          <ExternalLink size={16} style={{ marginRight: 8 }} />
-          פתח בטאב חדש
+      <Menu anchorEl={menu?.anchor} open={Boolean(menu)} onClose={() => setMenu(null)}>
+        <MenuItem
+          onClick={() => {
+            if (menu) copyLink(menu.doc);
+            setMenu(null);
+          }}
+        >
+          <ListItemIcon>
+            <Copy size={16} />
+          </ListItemIcon>
+          העתקת קישור
         </MenuItem>
-        <MenuItem onClick={() => selectedDoc && handlePreview()}>
-          <Visibility fontSize="small" style={{ marginRight: 8 }} />
-          תצוגה מקדימה
+        <MenuItem
+          onClick={() => {
+            if (menu) setToRename({ doc: menu.doc, name: menu.doc.documentName });
+            setMenu(null);
+          }}
+        >
+          <ListItemIcon>
+            <Edit3 size={16} />
+          </ListItemIcon>
+          שינוי שם
         </MenuItem>
-        <MenuItem onClick={handleDownload}>
-          <Download size={16} style={{ marginRight: 8 }} />
-          הורד קובץ
-        </MenuItem>
-        <MenuItem onClick={handleCopyLink}>
-          <Copy size={16} style={{ marginRight: 8 }} />
-          העתק קישור
-        </MenuItem>
-        <MenuItem>
-          <Share2 size={16} style={{ marginRight: 8 }} />
-          שתף
-        </MenuItem>
-        <MenuItem>
-          <Edit3 size={16} style={{ marginRight: 8 }} />
-          שנה שם
-        </MenuItem>
-        <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
-          <Delete size={16} style={{ marginRight: 8 }} />
-          מחק
+        <MenuItem
+          onClick={() => {
+            if (menu) setToDelete(menu.doc);
+            setMenu(null);
+          }}
+        >
+          <ListItemIcon>
+            <Trash2 size={16} />
+          </ListItemIcon>
+          מחיקה
         </MenuItem>
       </Menu>
 
-      <Dialog
-        open={!!previewUrl}
-        onClose={() => setPreviewUrl(null)}
-        fullWidth
-        maxWidth="lg"
-        PaperProps={{
-          sx: { borderRadius: 3 }
-        }}
-      >
-        <DialogTitle>
-          <Box display="flex" alignItems="center" justifyContent="between">
-            <Typography variant="h6" fontWeight={600}>
-              תצוגה מקדימה - {selectedDoc?.documentName}
-            </Typography>
-            <IconButton onClick={() => setPreviewUrl(null)}>×</IconButton>
-          </Box>
-        </DialogTitle>
+      <Dialog open={Boolean(toDelete)} onClose={() => !busy && setToDelete(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>מחיקת מסמך</DialogTitle>
         <DialogContent>
-          {previewUrl ? (
-            <iframe
-              src={previewUrl}
-              title="Document Preview"
-              style={{
-                width: "100%",
-                height: "600px",
-                border: "none",
-                borderRadius: '8px'
-              }}
-            />
-          ) : (
-            <Box
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              height={400}
-            >
-              <Typography color="text.secondary">
-                לא ניתן להציג תצוגה מקדימה לקובץ זה
-              </Typography>
-            </Box>
-          )}
+          <Typography>
+            המסמך <strong>{toDelete?.documentName}</strong> יימחק לצמיתות מהתיק ומהאחסון. לא ניתן לשחזר אותו.
+          </Typography>
         </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button variant="outlined" onClick={() => setToDelete(null)} disabled={busy}>
+            ביטול
+          </Button>
+          <Button variant="contained" onClick={confirmDelete} disabled={busy} startIcon={<Trash2 size={16} />}>
+            מחיקה
+          </Button>
+        </DialogActions>
       </Dialog>
+
+      <Dialog open={Boolean(toRename)} onClose={() => !busy && setToRename(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>שינוי שם המסמך</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            fullWidth
+            label="שם המסמך"
+            value={toRename?.name ?? ""}
+            onChange={(e) => setToRename((r) => (r ? { ...r, name: e.target.value } : r))}
+            onKeyDown={(e) => e.key === "Enter" && confirmRename()}
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button variant="outlined" onClick={() => setToRename(null)} disabled={busy}>
+            ביטול
+          </Button>
+          <Button variant="contained" onClick={confirmRename} disabled={busy || !toRename?.name.trim()}>
+            שמירה
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={Boolean(notice)}
+        autoHideDuration={notice?.error ? null : 5000}
+        onClose={() => setNotice(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+      >
+        <Alert severity={notice?.error ? "error" : "success"} onClose={() => setNotice(null)} sx={{ minWidth: 280 }}>
+          {notice?.text}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

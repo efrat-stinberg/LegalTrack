@@ -1,82 +1,32 @@
-// src/pages/DocumentsPage.tsx
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+// All documents of the office, with the case each belongs to. Uploading happens inside a case.
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Alert, Box, Button, IconButton, InputBase, Link, Skeleton, Snackbar, Tooltip, Typography } from '@mui/material';
+import { Download, Search, Upload } from 'lucide-react';
 import { getAllDocuments } from '../api/documentApi';
 import { getAllFolders } from '../api/folderApi';
 import { getDownloadUrl } from '../api/s3Api';
-import {
-  Container,
-  Box,
-  Typography,
-  Paper,
-  TextField,
-  InputAdornment,
-  Button,
-  Card,
-  CardContent,
-  Chip,
-  useTheme,
-  alpha,
-  Fade,
-  Avatar
-} from '@mui/material';
-import { styled } from '@mui/material/styles';
-import { ResponsiveGrid } from '../utils/GridHelpers';
-import {
-  Search,
-  FileText,
-  Download,
-  Eye,
-  Upload,
-  Calendar,
-  FolderOpen
-} from 'lucide-react';
+import PageTitle from '../components/layout/PageTitle';
+import { tokens } from '../theme';
 
-const PageContainer = styled(Container)(({ theme }) => ({
-  padding: theme.spacing(4, 3),
-  minHeight: '100vh',
-  background: `linear-gradient(145deg, #f8fafc 0%, ${alpha(theme.palette.primary.main, 0.02)} 100%)`,
-}));
-
-const HeaderSection = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(4),
-  borderRadius: 20,
-  marginBottom: theme.spacing(4),
-  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-  color: 'white',
-}));
-
-const DocumentCard = styled(Card)(({ theme }) => ({
-  borderRadius: 16,
-  transition: 'all 0.3s ease',
-  border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-  
-  '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: `0 16px 32px ${alpha(theme.palette.primary.main, 0.15)}`,
-  }
-}));
+interface Row {
+  id: number;
+  name: string;
+  type: string;
+  filePath: string;
+  uploadDate: string;
+  folder: string;
+  folderId: number;
+}
 
 const DocumentsPage: React.FC = () => {
-  const theme = useTheme();
-  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
-  interface Document {
-    id: number;
-    name: string;
-    type: string;
-    filePath: string;
-    uploadDate: string;
-    folder: string;
-    folderId: number;
-  }
-
-  const [documents, setDocuments] = useState<Document[]>([]);
+  const [documents, setDocuments] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // All documents of the office, with the name of the case each belongs to
     Promise.all([getAllDocuments(), getAllFolders()])
       .then(([docs, folders]) => {
         const folderNames = new Map(folders.map((f) => [f.folderId, f.folderName]));
@@ -84,7 +34,7 @@ const DocumentsPage: React.FC = () => {
           docs.map((d) => ({
             id: d.documentId,
             name: d.documentName,
-            type: (d.documentName.split('.').pop() || '').toUpperCase(),
+            type: (d.documentName.split('.').pop() || '').toUpperCase().slice(0, 5),
             filePath: d.filePath,
             uploadDate: d.uploadDate,
             folder: folderNames.get(d.folderId) ?? '',
@@ -92,155 +42,130 @@ const DocumentsPage: React.FC = () => {
           }))
         );
       })
-      .catch(() => setError('שגיאה בטעינת המסמכים'))
+      .catch(() => setError('לא ניתן לטעון את המסמכים'))
       .finally(() => setLoading(false));
   }, []);
 
-  const openDocument = async (doc: Document) => {
+  const rows = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const list = q ? documents.filter((d) => d.name.toLowerCase().includes(q) || d.folder.toLowerCase().includes(q)) : [...documents];
+    return list.sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime());
+  }, [documents, search]);
+
+  const openDocument = async (doc: Row, asDownload = false) => {
     try {
-      const url = await getDownloadUrl(doc.filePath);
-      window.open(url, '_blank', 'noopener');
+      const url = await getDownloadUrl(doc.filePath.split('/').pop() || doc.name);
+      if (asDownload) {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = doc.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        window.open(url, '_blank', 'noopener');
+      }
     } catch {
       setError('לא ניתן לפתוח את המסמך');
     }
   };
 
-  const filteredDocuments = documents.filter(doc =>
-    doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    doc.folder.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const grid = 'minmax(0, 2fr) minmax(0, 1.3fr) 64px 104px 120px';
 
   return (
-    <PageContainer maxWidth="xl">
-      <Fade in={true} timeout={600}>
-        <div>
-          <HeaderSection elevation={0}>
-            <Typography variant="h3" fontWeight={700} gutterBottom>
-              ניהול מסמכים 📄
-            </Typography>
-            <Typography variant="h6" sx={{ opacity: 0.9, mb: 3 }}>
-              כל המסמכים שלך במקום אחד מאובטח ונגיש
-            </Typography>
-            
-            <Box display="flex" gap={2} alignItems="center">
-              <TextField
-                placeholder="חפש מסמכים..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                sx={{
-                  flex: 1,
-                  '& .MuiOutlinedInput-root': {
-                    background: alpha('#ffffff', 0.2),
-                    color: 'white',
-                    '& fieldset': { borderColor: alpha('#ffffff', 0.3) },
-                    '&:hover fieldset': { borderColor: alpha('#ffffff', 0.5) },
-                  }
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Search size={20} color="white" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-              <Button
-                variant="contained"
-                startIcon={<Upload size={20} />}
-                onClick={() => navigate("/folders")}
-                sx={{
-                  background: alpha('#ffffff', 0.2),
-                  '&:hover': { background: alpha('#ffffff', 0.3) }
-                }}
-              >
-                העלה מסמך
-              </Button>
-            </Box>
-          </HeaderSection>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+      <PageTitle
+        title="מסמכים"
+        subtitle="כל מסמכי המשרד. העלאה נעשית מתוך התיק."
+        actions={
+          <Button variant="contained" startIcon={<Upload size={16} />} onClick={() => navigate('/folders')}>
+            העלאה לתיק
+          </Button>
+        }
+      />
 
-          {error && (
-            <Typography color="error" mb={2}>{error}</Typography>
-          )}
+      <Box sx={{ background: tokens.white, border: `1px solid ${tokens.border}`, borderRadius: `${tokens.radiusLg}px` }}>
+        <Box sx={{ px: 2, py: 1.75, borderBottom: `1px solid ${tokens.border}` }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: 40, px: 1.5, maxWidth: 420, border: `1px solid ${tokens.border}`, borderRadius: `${tokens.radius}px`, color: tokens.muted, '&:focus-within': { borderColor: tokens.blue600 } }}>
+            <Search size={16} aria-hidden="true" />
+            <InputBase value={search} onChange={(e) => setSearch(e.target.value)} placeholder="חיפוש לפי שם מסמך או תיק" inputProps={{ 'aria-label': 'חיפוש מסמכים' }} sx={{ flex: 1, fontSize: 14 }} />
+          </Box>
+        </Box>
 
-          {loading ? (
-            <Box display="flex" justifyContent="center" py={8}>
-              <Typography>טוען מסמכים...</Typography>
+        <Box sx={{ overflowX: 'auto' }}>
+          <Box role="table" aria-label="מסמכים" sx={{ minWidth: 680 }}>
+            <Box role="row" sx={{ display: 'grid', gridTemplateColumns: grid, gap: 1.5, px: 2, py: 1.25, background: tokens.ground, borderBottom: `1px solid ${tokens.border}`, fontSize: 12, fontWeight: 600, color: tokens.slate }}>
+              <span role="columnheader">שם המסמך</span>
+              <span role="columnheader">תיק</span>
+              <span role="columnheader">סוג</span>
+              <span role="columnheader">הועלה</span>
+              <span role="columnheader" className="sr-only">
+                פעולות
+              </span>
             </Box>
-          ) : (
-            <ResponsiveGrid>
-              {filteredDocuments.map((doc) => (
-                <DocumentCard key={doc.id}>
-                  <CardContent sx={{ p: 3 }}>
-                    <Box display="flex" alignItems="center" gap={2} mb={2}>
-                      <Avatar
-                        sx={{
-                          background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                        }}
-                      >
-                        <FileText size={20} />
-                      </Avatar>
-                      <Box flex={1}>
-                        <Typography variant="subtitle1" fontWeight={600} noWrap>
-                          {doc.name}
-                        </Typography>
-                        <Box display="flex" gap={1} mt={1}>
-                          <Chip label={doc.type} size="small" color="primary" />
-                        </Box>
-                      </Box>
-                    </Box>
-                    
-                    <Box display="flex" alignItems="center" gap={1} mb={1}>
-                      <FolderOpen size={14} color={theme.palette.text.secondary} />
-                      <Typography variant="caption" color="primary" sx={{ cursor: "pointer" }} onClick={() => navigate(`/folders/${doc.folderId}`)}>
-                        {doc.folder}
-                      </Typography>
-                    </Box>
-                    
-                    <Box display="flex" alignItems="center" gap={1} mb={2}>
-                      <Calendar size={14} color={theme.palette.text.secondary} />
-                      <Typography variant="caption" color="text.secondary">
-                        {new Date(doc.uploadDate).toLocaleDateString('he-IL')}
-                      </Typography>
-                    </Box>
-                    
-                    <Box display="flex" gap={1}>
-                      <Button size="small" startIcon={<Eye size={16} />} variant="outlined" onClick={() => openDocument(doc)}>
-                        צפה
-                      </Button>
-                      <Button size="small" startIcon={<Download size={16} />} variant="contained" onClick={() => openDocument(doc)}>
-                        הורד
-                      </Button>
-                    </Box>
-                  </CardContent>
-                </DocumentCard>
+
+            {loading &&
+              [0, 1, 2].map((i) => (
+                <Box key={i} sx={{ px: 2, py: 1.75, borderBottom: `1px solid ${tokens.borderSoft}` }}>
+                  <Skeleton width="45%" />
+                </Box>
               ))}
-            </ResponsiveGrid>
-          )}
 
-          {!loading && filteredDocuments.length === 0 && (
-            <Box 
-              display="flex" 
-              flexDirection="column" 
-              alignItems="center" 
-              justifyContent="center" 
-              py={8}
-              textAlign="center"
-            >
-              <FileText size={64} color={theme.palette.text.secondary} />
-              <Typography variant="h6" color="text.secondary" mt={2}>
-                לא נמצאו מסמכים
-              </Typography>
-              <Typography variant="body2" color="text.secondary" mb={3}>
-                {searchQuery ? 'נסה לשנות את מונחי החיפוש' : 'התחל על ידי העלאת המסמך הראשון שלך'}
-              </Typography>
-              <Button variant="contained" startIcon={<Upload size={20} />} onClick={() => navigate("/folders")}>
-                העלה מסמך ראשון
-              </Button>
-            </Box>
-          )}
-        </div>
-      </Fade>
-    </PageContainer>
+            {!loading && rows.length === 0 && (
+              <Box sx={{ px: 2, py: 5, display: 'flex', flexDirection: 'column', gap: 1.5, alignItems: 'center', textAlign: 'center' }}>
+                <Typography sx={{ fontWeight: 600 }}>{documents.length === 0 ? 'עדיין אין מסמכים במשרד' : 'לא נמצאו מסמכים שמתאימים לחיפוש'}</Typography>
+                {documents.length === 0 && <Typography sx={{ color: tokens.slate }}>מעלים מסמכים מתוך דף התיק.</Typography>}
+              </Box>
+            )}
+
+            {!loading &&
+              rows.map((d) => (
+                <Box role="row" key={d.id} sx={{ display: 'grid', gridTemplateColumns: grid, gap: 1.5, alignItems: 'center', px: 2, minHeight: 52, borderBottom: `1px solid ${tokens.borderSoft}`, '&:hover': { background: tokens.hover } }}>
+                  <Box role="cell" sx={{ minWidth: 0 }}>
+                    <Box component="button" type="button" onClick={() => openDocument(d)} title={d.name} sx={{ all: 'unset', cursor: 'pointer', display: 'block', maxWidth: '100%', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', '&:hover': { color: tokens.blue600, textDecoration: 'underline' }, '&:focus-visible': { outline: `2px solid ${tokens.blue600}` } }}>
+                      {d.name}
+                    </Box>
+                  </Box>
+                  <Box role="cell" sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <Link component={RouterLink} to={`/folders/${d.folderId}`} underline="hover" sx={{ color: tokens.slate }}>
+                      {d.folder || '—'}
+                    </Link>
+                  </Box>
+                  <Box role="cell">
+                    <Box component="span" sx={{ px: 1, py: 0.25, borderRadius: `${tokens.radiusSm}px`, background: tokens.borderSoft, color: tokens.slate, fontSize: 12, fontWeight: 600 }}>
+                      {d.type || 'קובץ'}
+                    </Box>
+                  </Box>
+                  <Box role="cell" sx={{ color: tokens.slate, fontVariantNumeric: 'tabular-nums' }}>
+                    {new Date(d.uploadDate).toLocaleDateString('he-IL')}
+                  </Box>
+                  <Box role="cell" sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end' }}>
+                    <Button size="small" variant="text" onClick={() => openDocument(d)}>
+                      פתיחה
+                    </Button>
+                    <Tooltip title="הורדה">
+                      <IconButton size="small" aria-label={`הורדת ${d.name}`} onClick={() => openDocument(d, true)} sx={{ border: `1px solid ${tokens.border}` }}>
+                        <Download size={15} />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                </Box>
+              ))}
+          </Box>
+        </Box>
+        {!loading && documents.length > 0 && (
+          <Typography sx={{ px: 2, py: 1.5, fontSize: 13, color: tokens.slate }}>
+            {rows.length === documents.length ? `${documents.length} מסמכים` : `מוצגים ${rows.length} מתוך ${documents.length} מסמכים`}
+          </Typography>
+        )}
+      </Box>
+
+      <Snackbar open={Boolean(error)} onClose={() => setError(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}>
+        <Alert severity="error" onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
 

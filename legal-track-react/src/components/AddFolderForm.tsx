@@ -34,7 +34,7 @@ interface AddFolderFormProps {
 
 const FormContainer = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
-  borderRadius: 16,
+  borderRadius: 8,
   background: theme.palette.background.paper, // רקע לא שקוף
   border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
   boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.1)}`,
@@ -257,9 +257,9 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
                 borderRadius: 3,
                 px: 4,
                 py: 1.5,
-                background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                background: `${theme.palette.primary.main}`,
                 '&:hover': {
-                  background: `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`,
+                  background: `${theme.palette.primary.dark}`,
                 }
               }}
             >

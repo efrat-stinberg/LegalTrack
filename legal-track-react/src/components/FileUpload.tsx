@@ -20,7 +20,7 @@ import {
   ListItemSecondaryAction,
   Collapse
 } from "@mui/material";
-import { styled, keyframes } from "@mui/material/styles";
+import { styled } from "@mui/material/styles";
 import {
   Upload,
   X,
@@ -53,207 +53,100 @@ interface FileWithProgress {
   error?: string;
 }
 
-const bounce = keyframes`
-  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-10px); }
-  60% { transform: translateY(-5px); }
-`;
-
-const pulse = keyframes`
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.05); opacity: 0.8; }
-  100% { transform: scale(1); opacity: 1; }
-`;
-
-const uploadAnimation = keyframes`
-  0% { transform: translateY(100%); opacity: 0; }
-  100% { transform: translateY(0); opacity: 1; }
-`;
-
+// Calm, flat styles matching the design system (navy, grays, 6–8px radii, no motion)
 const UploadContainer = styled(Paper)(({ theme }) => ({
-  borderRadius: 20,
-  padding: theme.spacing(4),
-  background: `linear-gradient(145deg, ${theme.palette.background.paper}, ${alpha(theme.palette.primary.main, 0.02)})`,
-  border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-  boxShadow: `0 20px 40px ${alpha(theme.palette.common.black, 0.1)}`,
+  borderRadius: 8,
+  padding: theme.spacing(3),
+  background: theme.palette.background.paper,
+  border: 'none',
+  boxShadow: 'none',
   position: 'relative',
-  overflow: 'hidden',
-  animation: `${uploadAnimation} 0.5s ease-out`,
-  maxWidth: 700,
   width: '100%',
   maxHeight: '90vh',
   display: 'flex',
   flexDirection: 'column',
-  
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 4,
-    background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-  }
 }));
 
 const HeaderSection = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  marginBottom: theme.spacing(3),
+  marginBottom: theme.spacing(2.5),
 }));
 
 const CloseButton = styled(IconButton)(({ theme }) => ({
-  background: alpha(theme.palette.error.main, 0.1),
-  color: theme.palette.error.main,
-  borderRadius: 12,
-  transition: 'all 0.3s ease',
-  
-  '&:hover': {
-    background: alpha(theme.palette.error.main, 0.2),
-    transform: 'scale(1.1)',
-  }
+  color: theme.palette.text.secondary,
+  borderRadius: 6,
 }));
 
-const DropZone = styled(Box)<{ isDragActive: boolean; hasFiles: boolean }>(({ theme, isDragActive, hasFiles }) => ({
-  border: `2px dashed ${
-    hasFiles 
-      ? theme.palette.success.main
-      : isDragActive 
-        ? theme.palette.primary.main 
-        : alpha(theme.palette.primary.main, 0.3)
-  }`,
-  borderRadius: 16,
-  padding: theme.spacing(6),
+const DropZone = styled(Box)<{ isDragActive: boolean; hasFiles: boolean }>(({ theme, isDragActive }) => ({
+  border: `1px dashed ${isDragActive ? theme.palette.info.main : '#C9CFD8'}`,
+  borderRadius: 8,
+  padding: theme.spacing(5, 3),
   textAlign: 'center',
-  background: hasFiles
-    ? alpha(theme.palette.success.main, 0.05)
-    : isDragActive
-      ? alpha(theme.palette.primary.main, 0.1)
-      : alpha(theme.palette.primary.main, 0.02),
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  background: isDragActive ? '#F3F6FA' : '#F6F7F9',
   cursor: 'pointer',
-  position: 'relative',
-  overflow: 'hidden',
-  
   '&:hover': {
-    borderColor: theme.palette.primary.main,
-    background: alpha(theme.palette.primary.main, 0.08),
-    transform: 'translateY(-2px)',
-    boxShadow: `0 8px 32px ${alpha(theme.palette.primary.main, 0.15)}`,
+    borderColor: theme.palette.info.main,
+    background: '#F3F6FA',
   },
-  
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: -50,
-    left: -50,
-    width: 100,
-    height: 100,
-    background: `radial-gradient(circle, ${alpha(theme.palette.primary.main, 0.1)} 0%, transparent 70%)`,
-    borderRadius: '50%',
-    opacity: isDragActive ? 1 : 0,
-    transition: 'opacity 0.3s ease',
-  }
 }));
 
-const UploadIcon = styled(Box)<{ isDragActive: boolean; hasFiles: boolean }>(({ theme, isDragActive, hasFiles }) => ({
-  width: 80,
-  height: 80,
-  borderRadius: '50%',
-  background: hasFiles
-    ? `linear-gradient(135deg, ${theme.palette.success.main}, ${theme.palette.success.dark})`
-    : `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+const UploadIcon = styled(Box)<{ isDragActive: boolean; hasFiles: boolean }>(({ theme }) => ({
+  width: 48,
+  height: 48,
+  borderRadius: 8,
+  background: '#FFFFFF',
+  border: '1px solid #E3E6EB',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   margin: '0 auto',
-  marginBottom: theme.spacing(3),
-  boxShadow: `0 8px 24px ${alpha(hasFiles ? theme.palette.success.main : theme.palette.primary.main, 0.3)}`,
-  transition: 'all 0.3s ease',
-  animation: isDragActive ? `${pulse} 1s infinite` : hasFiles ? `${bounce} 0.6s ease-out` : 'none',
-  
+  marginBottom: theme.spacing(2),
   '& svg': {
-    color: 'white',
-  }
+    color: theme.palette.primary.main,
+  },
 }));
 
 const FilesList = styled(Box)(({ theme }) => ({
   maxHeight: 300,
   overflowY: 'auto',
   marginTop: theme.spacing(2),
-  border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-  borderRadius: 12,
-  background: alpha(theme.palette.background.paper, 0.5),
-  
-  '&::-webkit-scrollbar': {
-    width: 6,
-  },
-  
-  '&::-webkit-scrollbar-track': {
-    background: alpha(theme.palette.action.hover, 0.1),
-    borderRadius: 3,
-  },
-  
-  '&::-webkit-scrollbar-thumb': {
-    background: alpha(theme.palette.primary.main, 0.3),
-    borderRadius: 3,
-    
-    '&:hover': {
-      background: alpha(theme.palette.primary.main, 0.5),
-    }
-  }
+  border: '1px solid #E3E6EB',
+  borderRadius: 8,
+  background: '#FFFFFF',
 }));
 
-const FileItem = styled(ListItem)(({ theme }) => ({
-  borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-  transition: 'all 0.2s ease',
-  
-  '&:hover': {
-    background: alpha(theme.palette.primary.main, 0.05),
-  },
-  
+const FileItem = styled(ListItem)(() => ({
+  borderBottom: '1px solid #EEF0F3',
   '&:last-child': {
     borderBottom: 'none',
-  }
+  },
 }));
 
 const ProgressContainer = styled(Box)(({ theme }) => ({
   marginTop: theme.spacing(2),
   padding: theme.spacing(2),
-  background: alpha(theme.palette.info.main, 0.05),
-  borderRadius: 12,
-  border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
+  background: '#F6F7F9',
+  borderRadius: 8,
+  border: '1px solid #E3E6EB',
 }));
 
-const ActionButton = styled(Button)(({ theme }) => ({
-  borderRadius: 12,
-  padding: theme.spacing(1.5, 3),
-  textTransform: 'none',
+const ActionButton = styled(Button)(() => ({
+  borderRadius: 6,
   fontWeight: 600,
-  transition: 'all 0.3s ease',
-  
-  '&:hover': {
-    transform: 'translateY(-2px)',
-  }
 }));
 
 const UploadButton = styled(ActionButton)(({ theme }) => ({
-  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+  background: theme.palette.primary.main,
   color: 'white',
-  boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.3)}`,
-  
   '&:hover': {
-    boxShadow: `0 12px 32px ${alpha(theme.palette.primary.main, 0.4)}`,
-    background: `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`,
+    background: theme.palette.primary.dark,
   },
-  
   '&:disabled': {
-    background: alpha(theme.palette.action.disabled, 0.12),
-    color: theme.palette.action.disabled,
-    transform: 'none',
-    boxShadow: 'none',
-  }
+    background: '#EEF0F3',
+    color: '#8A919C',
+  },
 }));
 
 const getFileIcon = (fileType: string) => {
@@ -430,7 +323,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ folderId, onClose, onUploadSucc
               width: 48,
               height: 48,
               borderRadius: 2,
-              background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+              background: theme.palette.primary.main,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -526,13 +419,13 @@ const FileUpload: React.FC<FileUploadProps> = ({ folderId, onClose, onUploadSucc
         <Typography variant="body2" color="text.secondary" gutterBottom>
           {files.length > 0 
             ? 'לחץ "העלה הכל" כדי להתחיל, או הוסף עוד קבצים'
-            : 'תמיכה בקבצים מרובים - PDF, DOC, תמונות ועוד'
+            : 'אפשר לבחור כמה קבצים יחד. העוזר (AI) קורא קובצי PDF בלבד.'
           }
         </Typography>
         
         <Box display="flex" gap={1} justifyContent="center" flexWrap="wrap" mt={2}>
           <Chip label="קבצים מרובים" size="small" variant="outlined" />
-          <Chip label="עד 10MB" size="small" variant="outlined" />
+          <Chip label="עד 50MB לקובץ" size="small" variant="outlined" />
           <Chip label="גרירה ושחרור" size="small" variant="outlined" />
         </Box>
       </DropZone>
@@ -651,7 +544,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ folderId, onClose, onUploadSucc
                 background: alpha(theme.palette.info.main, 0.1),
                 '& .MuiLinearProgress-bar': {
                   borderRadius: 2,
-                  background: `linear-gradient(90deg, ${theme.palette.info.main}, ${theme.palette.info.dark})`,
+                  background: theme.palette.primary.main,
                 }
               }}
             />
@@ -705,13 +598,13 @@ const FileUpload: React.FC<FileUploadProps> = ({ folderId, onClose, onUploadSucc
         border={`1px solid ${alpha(theme.palette.info.main, 0.2)}`}
       >
         <Typography variant="body2" color="info.main" fontWeight={600} gutterBottom>
-          💡 טיפים להעלאת קבצים
+          טיפים להעלאת קבצים
         </Typography>
         <Typography variant="body2" color="text.secondary" component="div">
           • ניתן לבחור מספר קבצים בו-זמנית (Ctrl/Cmd + Click)<br/>
           • גרירה ושחרור של קבצים מרובים נתמכת<br/>
-          • גודל מקסימלי לקובץ: 10MB<br/>
-          • סוגי קבצים נתמכים: PDF, DOC, DOCX, TXT, תמונות, ארכיונים
+          • גודל מקסימלי לקובץ: 50MB<br/>
+          • נשמרים כל סוגי הקבצים; העוזר (AI) קורא רק קובצי PDF עם טקסט
         </Typography>
       </Box>
 

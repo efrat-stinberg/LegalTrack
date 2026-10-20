@@ -13,8 +13,8 @@ const RegisterContainer = styled(Paper)(({ theme }) => ({
   margin: '0 auto',
   marginTop: theme.spacing(8),
   padding: theme.spacing(4),
-  borderRadius: 20,
-  background: `linear-gradient(145deg, ${theme.palette.background.paper}, ${theme.palette.primary.main}08)`,
+  borderRadius: 8,
+  background: `${theme.palette.background.paper}`,
   border: `1px solid ${theme.palette.primary.main}20`,
 }));
 
@@ -23,7 +23,7 @@ const StyledAvatar = styled(Avatar)(({ theme }) => ({
   height: 64,
   margin: '0 auto',
   marginBottom: theme.spacing(3),
-  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+  background: `${theme.palette.primary.main}`,
 }));
 
 const Register = () => {

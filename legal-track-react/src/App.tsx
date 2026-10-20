@@ -4,8 +4,8 @@ import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Provider } from 'react-redux';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { createTheme } from '@mui/material/styles';
 import Store from './store/store';
+import theme from './theme';
 
 // Import components
 import AuthPage from './pages/AuthPage';
@@ -21,21 +21,6 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import SupportPage from './pages/SupportPage';
 import FolderManagementPage from './pages/FolderManagementPage';
 import ErrorBoundary from './components/ErrorBoundary';
-
-const theme = createTheme({
-  direction: 'rtl',
-  palette: {
-    primary: {
-      main: '#667eea',
-    },
-    secondary: {
-      main: '#764ba2',
-    },
-  },
-  typography: {
-    fontFamily: 'Heebo, Inter, -apple-system, BlinkMacSystemFont, sans-serif',
-  },
-});
 
 function App() {
   return (

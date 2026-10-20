@@ -1,865 +1,314 @@
-import React, { useState, useEffect, useMemo } from 'react';
+// Clients: searchable table with each client's cases, plus add / edit / delete.
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import {
-  Container,
+  Alert,
   Box,
-  Typography,
-  Paper,
-  TextField,
-  InputAdornment,
   Button,
-  Card,
-  CardContent,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
-  Avatar,
-  Chip,
-  useTheme,
-  alpha,
-  Fade,
-  Tooltip,
+  InputBase,
+  Link,
+  ListItemIcon,
   Menu,
   MenuItem,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Skeleton,
   Snackbar,
-  Alert,
-  Fab,
-  Divider
+  TextField,
+  Tooltip,
+  Typography,
 } from '@mui/material';
-import { styled } from '@mui/material/styles';
-import {
-  Search,
-  Plus,
-  MoreVertical,
-  Edit,
-  Trash2,
-  Phone,
-  Mail,
-  User,
-  Users,
-  TrendingUp,
-  Filter,
-  Download,
-  Upload,
-  Calendar,
-  FolderOpen,
-  Eye,
-  Star,
-  X
-} from 'lucide-react';
-
-// Import existing utilities and components
-import { StatsGrid } from '../utils/GridHelpers';
+import { Edit3, FolderOpen, MoreVertical, Plus, Search, Trash2 } from 'lucide-react';
 import { getClients, createClient, updateClient, deleteClient } from '../api/clientApi';
 import { getAllFolders } from '../api/folderApi';
 import { MyFolder } from '../models/Folder';
 import { Client } from '../models/Client';
+import PageTitle from '../components/layout/PageTitle';
+import { tokens } from '../theme';
 
-const PageContainer = styled(Container)(({ theme }) => ({
-  padding: theme.spacing(4, 3),
-  minHeight: '100vh',
-  background: `linear-gradient(145deg, #f8fafc 0%, ${alpha(theme.palette.primary.main, 0.02)} 100%)`,
-}));
-
-const HeaderSection = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(4),
-  borderRadius: 20,
-  marginBottom: theme.spacing(4),
-  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-  color: 'white',
-  position: 'relative',
-  overflow: 'hidden',
-
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: -50,
-    right: -50,
-    width: 150,
-    height: 150,
-    background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
-    borderRadius: '50%',
-  },
-}));
-
-const SearchSection = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  gap: theme.spacing(2),
-  alignItems: 'center',
-  marginBottom: theme.spacing(4),
-  flexWrap: 'wrap',
-
-  [theme.breakpoints.down('md')]: {
-    flexDirection: 'column',
-    alignItems: 'stretch',
-  },
-}));
-
-const StyledSearchField = styled(TextField)(({ theme }) => ({
-  flex: 1,
-  minWidth: 300,
-
-  '& .MuiOutlinedInput-root': {
-    borderRadius: 16,
-    background: theme.palette.background.paper,
-    transition: 'all 0.3s ease',
-
-    '&:hover': {
-      boxShadow: `0 4px 16px ${alpha(theme.palette.primary.main, 0.1)}`,
-    },
-
-    '&.Mui-focused': {
-      boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.2)}`,
-    },
-  },
-}));
-
-const ActionButton = styled(IconButton)(({ theme }) => ({
-  width: 48,
-  height: 48,
-  borderRadius: 12,
-  background: theme.palette.background.paper,
-  border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-  transition: 'all 0.3s ease',
-
-  '&:hover': {
-    background: alpha(theme.palette.primary.main, 0.1),
-    transform: 'translateY(-2px)',
-    boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.2)}`,
-  },
-}));
-
-const ClientCard = styled(Card)(({ theme }) => ({
-  borderRadius: 20,
-  background: `linear-gradient(145deg, ${theme.palette.background.paper}, ${alpha(theme.palette.primary.main, 0.02)})`,
-  border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  cursor: 'pointer',
-  position: 'relative',
-  overflow: 'hidden',
-
-  '&:hover': {
-    transform: 'translateY(-8px)',
-    boxShadow: `0 20px 40px ${alpha(theme.palette.primary.main, 0.15)}`,
-    border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-
-    '& .client-actions': {
-      opacity: 1,
-      transform: 'translateY(0)',
-    },
-  },
-
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 4,
-    background: 'linear-gradient(90deg, #667eea, #764ba2)',
-  },
-}));
-
-const ClientAvatar = styled(Avatar)(({ theme }) => ({
-  width: 64,
-  height: 64,
-  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-  fontSize: '1.5rem',
-  fontWeight: 700,
-  margin: '0 auto',
-  marginBottom: theme.spacing(2),
-  boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.3)}`,
-}));
-
-const ActionButtons = styled(Box)(({ theme }) => ({
-  position: 'absolute',
-  top: theme.spacing(1),
-  right: theme.spacing(1),
-  opacity: 0,
-  transform: 'translateY(-10px)',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  zIndex: 2,
-}));
-
-const StyledFab = styled(Fab)(({ theme }) => ({
-  position: 'fixed',
-  bottom: theme.spacing(3),
-  right: theme.spacing(3),
-  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-  color: 'white',
-  boxShadow: `0 8px 32px ${alpha(theme.palette.primary.main, 0.4)}`,
-  zIndex: 1000,
-
-  '&:hover': {
-    transform: 'scale(1.1) translateY(-4px)',
-    boxShadow: `0 16px 48px ${alpha(theme.palette.primary.main, 0.6)}`,
-  },
-}));
-
-const ClientsGrid = styled(Box)(({ theme }) => ({
-  display: 'grid',
-  gap: theme.spacing(3),
-  gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-
-  [theme.breakpoints.down('sm')]: {
-    gridTemplateColumns: '1fr',
-  },
-}));
-
-const StatsCard = styled(Card)(({ theme }) => ({
-  borderRadius: 16,
-  background: `linear-gradient(145deg, ${theme.palette.background.paper}, ${alpha(theme.palette.primary.main, 0.02)})`,
-  border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-  transition: 'all 0.3s ease',
-  position: 'relative',
-  overflow: 'hidden',
-
-  '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: `0 16px 32px ${alpha(theme.palette.primary.main, 0.15)}`,
-  },
-
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 4,
-    background: 'var(--card-color, linear-gradient(90deg, #667eea, #764ba2))',
-  },
-}));
-
-const StyledDialog = styled(Dialog)(({ theme }) => ({
-  '& .MuiDialog-paper': {
-    borderRadius: 20,
-    padding: theme.spacing(2),
-    minWidth: 500,
-    background: `linear-gradient(145deg, ${theme.palette.background.paper}, ${alpha(theme.palette.primary.main, 0.02)})`,
-  },
-}));
-
-interface NotificationState {
-  open: boolean;
-  message: string;
-  severity: 'success' | 'error' | 'warning' | 'info';
-}
+const emptyForm = { fullName: '', email: '', phone: '' };
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const ClientsPage: React.FC = () => {
-  const theme = useTheme();
-
-  // State Management
   const [clients, setClients] = useState<Client[]>([]);
   const [folders, setFolders] = useState<MyFolder[]>([]);
-
-  useEffect(() => {
-    getAllFolders().then(setFolders).catch(() => setFolders([]));
-  }, []);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [formMode, setFormMode] = useState<'create' | 'edit' | 'view'>('create');
-  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
-  const [notification, setNotification] = useState<NotificationState>({
-    open: false,
-    message: '',
-    severity: 'info',
-  });
+  const [search, setSearch] = useState('');
 
-  // Form Data
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    address: '',
-    company: '',
-    notes: '',
-  });
+  const [dialog, setDialog] = useState<{ mode: 'create' | 'edit'; client?: Client } | null>(null);
+  const [form, setForm] = useState(emptyForm);
+  const [touched, setTouched] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [menu, setMenu] = useState<{ anchor: HTMLElement; client: Client } | null>(null);
+  const [toDelete, setToDelete] = useState<Client | null>(null);
+  const [notice, setNotice] = useState<{ text: string; error?: boolean } | null>(null);
 
-  // Load clients on component mount
   useEffect(() => {
-    loadClients();
+    Promise.all([getClients(), getAllFolders().catch(() => [] as MyFolder[])])
+      .then(([c, f]) => {
+        setClients(c?.data ?? []);
+        setFolders(f || []);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  const loadClients = async () => {
+  const caseCount = useMemo(() => {
+    const counts = new Map<number, number>();
+    folders.forEach((f) => counts.set(f.clientId, (counts.get(f.clientId) ?? 0) + 1));
+    return counts;
+  }, [folders]);
+
+  const rows = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const list = q
+      ? clients.filter((c) => [c.fullName, c.email, c.phone].some((v) => (v ?? '').toLowerCase().includes(q)))
+      : [...clients];
+    return list.sort((a, b) => a.fullName.localeCompare(b.fullName, 'he'));
+  }, [clients, search]);
+
+  const openCreate = () => {
+    setForm(emptyForm);
+    setTouched(false);
+    setDialog({ mode: 'create' });
+  };
+
+  const openEdit = (client: Client) => {
+    setForm({ fullName: client.fullName || '', email: client.email || '', phone: client.phone || '' });
+    setTouched(false);
+    setDialog({ mode: 'edit', client });
+  };
+
+  const nameError = !form.fullName.trim() ? 'יש להזין את שם הלקוח' : '';
+  const emailError = form.email.trim() && !emailPattern.test(form.email.trim()) ? 'כתובת האימייל לא תקינה' : '';
+
+  const submit = async () => {
+    setTouched(true);
+    if (nameError || emailError || !dialog) return;
+    setSaving(true);
+    const data = { fullName: form.fullName.trim(), email: form.email.trim(), phone: form.phone.trim() };
     try {
-      setLoading(true);
-      const response = await getClients();
-      const clientsData = response?.data || [];
-      setClients(clientsData);
-    } catch (error) {
-      console.error('Failed to load clients:', error);
-      showNotification('שגיאה בטעינת לקוחות', 'error');
+      if (dialog.mode === 'create') {
+        const created = await createClient(data);
+        setClients((prev) => [...prev, created]);
+        setNotice({ text: `הלקוח "${created.fullName}" נוסף` });
+      } else if (dialog.client?.id) {
+        const updated = await updateClient(dialog.client.id, data);
+        setClients((prev) => prev.map((c) => (c.id === dialog.client!.id ? updated : c)));
+        setNotice({ text: 'פרטי הלקוח עודכנו' });
+      }
+      setDialog(null);
+    } catch {
+      setNotice({ text: 'שמירת הלקוח נכשלה', error: true });
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  const showNotification = (message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
-    setNotification({ open: true, message, severity });
-  };
-
-  const hideNotification = () => {
-    setNotification(prev => ({ ...prev, open: false }));
-  };
-
-  // Filter clients based on search
-  const filteredClients = useMemo(() => {
-    if (!searchQuery.trim()) return clients;
-    
-    const query = searchQuery.toLowerCase();
-    return clients.filter(client =>
-      client.fullName?.toLowerCase().includes(query) ||
-      client.email?.toLowerCase().includes(query) ||
-      client.phone?.toLowerCase().includes(query) ||
-      client.company?.toLowerCase().includes(query)
-    );
-  }, [clients, searchQuery]);
-
-  // Statistics
-  // Real numbers only: counts from the office's clients and cases
-  const stats = useMemo(() => {
-    const clientsWithCases = new Set(folders.map((f) => f.clientId));
-    return [
-      { title: 'סה"כ לקוחות', value: clients.length, icon: <Users size={24} />, color: '#667eea' },
-      { title: 'לקוחות עם תיקים', value: clients.filter((c) => c.id !== undefined && clientsWithCases.has(c.id)).length, icon: <User size={24} />, color: '#10b981' },
-      { title: 'סה"כ תיקים', value: folders.length, icon: <TrendingUp size={24} />, color: '#f59e0b' },
-      { title: 'לקוחות עם אימייל', value: clients.filter((c) => !!c.email).length, icon: <Star size={24} />, color: '#ef4444' },
-    ];
-  }, [clients, folders]);
-
-  const handleCreateClient = () => {
-    setFormMode('create');
-    setFormData({
-      fullName: '',
-      email: '',
-      phone: '',
-      address: '',
-      company: '',
-      notes: '',
-    });
-    setDialogOpen(true);
-  };
-
-  const handleEditClient = (client: Client) => {
-    setFormMode('edit');
-    setSelectedClient(client);
-    setFormData({
-      fullName: client.fullName || '',
-      email: client.email || '',
-      phone: client.phone || '',
-      address: client.address || '',
-      company: client.company || '',
-      notes: client.notes || '',
-    });
-    setDialogOpen(true);
-    setMenuAnchor(null);
-  };
-
-  const handleViewClient = (client: Client) => {
-    setFormMode('view');
-    setSelectedClient(client);
-    setFormData({
-      fullName: client.fullName || '',
-      email: client.email || '',
-      phone: client.phone || '',
-      address: client.address || '',
-      company: client.company || '',
-      notes: client.notes || '',
-    });
-    setDialogOpen(true);
-  };
-
-  const handleDeleteClient = async (client: Client) => {
-    if (!client.id) return;
-    
-    if (window.confirm(`האם אתה בטוח שברצונך למחוק את הלקוח "${client.fullName}"?`)) {
-      try {
-        await deleteClient(client.id);
-        setClients(prev => prev.filter(c => c.id !== client.id));
-        showNotification('הלקוח נמחק בהצלחה', 'success');
-      } catch (error: any) {
-        const serverMessage = typeof error?.response?.data === 'string' ? error.response.data : null;
-        showNotification(serverMessage || 'שגיאה במחיקת הלקוח', 'error');
-      }
-    }
-    setMenuAnchor(null);
-  };
-
-  const handleSubmit = async () => {
+  const confirmDelete = async () => {
+    if (!toDelete?.id) return;
+    setSaving(true);
     try {
-      if (formMode === 'create') {
-        const newClient = await createClient(formData);
-        setClients(prev => [...prev, newClient]);
-        showNotification('לקוח נוסף בהצלחה', 'success');
-      } else if (formMode === 'edit' && selectedClient?.id) {
-        const updatedClient = await updateClient(selectedClient.id, formData);
-        setClients(prev => prev.map(c => c.id === selectedClient.id ? updatedClient : c));
-        showNotification('פרטי הלקוח עודכנו בהצלחה', 'success');
-      }
-      setDialogOpen(false);
-    } catch (error) {
-      showNotification('שגיאה בשמירת הלקוח', 'error');
+      await deleteClient(toDelete.id);
+      setClients((prev) => prev.filter((c) => c.id !== toDelete.id));
+      setNotice({ text: `הלקוח "${toDelete.fullName}" נמחק` });
+      setToDelete(null);
+    } catch (error: any) {
+      const serverMessage = typeof error?.response?.data === 'string' ? error.response.data : null;
+      setNotice({ text: serverMessage || 'מחיקת הלקוח נכשלה', error: true });
+      setToDelete(null);
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, client: Client) => {
-    event.stopPropagation();
-    setMenuAnchor(event.currentTarget);
-    setSelectedClient(client);
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  if (loading) {
-    return (
-      <PageContainer maxWidth="xl">
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-          <Typography>טוען לקוחות...</Typography>
-        </Box>
-      </PageContainer>
-    );
-  }
+  const grid = 'minmax(0, 1.4fr) minmax(0, 1.4fr) minmax(0, 1fr) 80px 132px';
 
   return (
-    <PageContainer maxWidth="xl">
-      <Fade in={true} timeout={600}>
-        <div>
-          {/* Header */}
-          <HeaderSection elevation={0}>
-            <Box 
-              display="flex" 
-              justifyContent="space-between" 
-              alignItems="flex-start" 
-              flexWrap="wrap" 
-              gap={3}
-            >
-              <Box flex={1} minWidth="300px">
-                <Box display="flex" alignItems="center" gap={2} mb={2}>
-                  <Avatar
-                    sx={{
-                      width: 56,
-                      height: 56,
-                      background: alpha('#ffffff', 0.2),
-                      backdropFilter: 'blur(10px)',
-                      border: `2px solid ${alpha('#ffffff', 0.3)}`,
-                    }}
-                  >
-                    <Users size={28} color="white" />
-                  </Avatar>
-                  <Box>
-                    <Typography variant="h3" fontWeight={700} sx={{ lineHeight: 1.2 }}>
-                      ניהול לקוחות
-                    </Typography>
-                    <Typography variant="h6" sx={{ opacity: 0.9, mt: 0.5 }}>
-                      נהל את קשרי הלקוחות שלך במקום אחד מרכזי
-                    </Typography>
-                  </Box>
-                </Box>
-                
-                <Box display="flex" gap={2} flexWrap="wrap" mt={3}>
-                  <Chip 
-                    icon={<User size={16} />}
-                    label="ניהול מתקדם" 
-                    sx={{ 
-                      background: alpha('#ffffff', 0.2), 
-                      color: 'white',
-                      border: `1px solid ${alpha('#ffffff', 0.3)}`,
-                      height: 32
-                    }} 
-                  />
-                  <Chip 
-                    icon={<Phone size={16} />}
-                    label="יצירת קשר מהירה" 
-                    sx={{ 
-                      background: alpha('#ffffff', 0.2), 
-                      color: 'white',
-                      border: `1px solid ${alpha('#ffffff', 0.3)}`,
-                      height: 32
-                    }} 
-                  />
-                </Box>
-              </Box>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+      <PageTitle
+        title="לקוחות"
+        subtitle="פרטי הלקוחות של המשרד והתיקים שלהם"
+        actions={
+          <Button variant="contained" startIcon={<Plus size={16} />} onClick={openCreate}>
+            לקוח חדש
+          </Button>
+        }
+      />
 
-              <Box display="flex" flexDirection="column" gap={2} alignItems="flex-end">
-                <Box display="flex" gap={2}>
-                  <Tooltip title="ייצא לקוחות ל-Excel" arrow>
-                    <ActionButton 
-                      sx={{ 
-                        background: alpha('#ffffff', 0.2), 
-                        color: 'white',
-                        border: `1px solid ${alpha('#ffffff', 0.3)}`,
-                        '&:hover': {
-                          background: alpha('#ffffff', 0.3),
-                          transform: 'translateY(-2px)',
-                        }
-                      }}
-                    >
-                      <Download size={20} />
-                    </ActionButton>
-                  </Tooltip>
-                  <Tooltip title="ייבא לקוחות מ-CSV" arrow>
-                    <ActionButton 
-                      sx={{ 
-                        background: alpha('#ffffff', 0.2), 
-                        color: 'white',
-                        border: `1px solid ${alpha('#ffffff', 0.3)}`,
-                        '&:hover': {
-                          background: alpha('#ffffff', 0.3),
-                          transform: 'translateY(-2px)',
-                        }
-                      }}
-                    >
-                      <Upload size={20} />
-                    </ActionButton>
-                  </Tooltip>
-                </Box>
-                
-                <Button
-                  variant="contained"
-                  startIcon={<Plus size={20} />}
-                  onClick={handleCreateClient}
-                  sx={{
-                    background: alpha('#ffffff', 0.2),
-                    backdropFilter: 'blur(10px)',
-                    border: `1px solid ${alpha('#ffffff', 0.3)}`,
-                    color: 'white',
-                    fontWeight: 600,
-                    px: 3,
-                    py: 1,
-                    '&:hover': {
-                      background: alpha('#ffffff', 0.3),
-                      transform: 'translateY(-2px)',
-                      boxShadow: `0 8px 24px ${alpha('#000000', 0.2)}`,
-                    }
-                  }}
-                >
-                  לקוח חדש
-                </Button>
-              </Box>
+      <Box sx={{ background: tokens.white, border: `1px solid ${tokens.border}`, borderRadius: `${tokens.radiusLg}px` }}>
+        <Box sx={{ px: 2, py: 1.75, borderBottom: `1px solid ${tokens.border}` }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: 40, px: 1.5, maxWidth: 420, border: `1px solid ${tokens.border}`, borderRadius: `${tokens.radius}px`, color: tokens.muted, '&:focus-within': { borderColor: tokens.blue600 } }}>
+            <Search size={16} aria-hidden="true" />
+            <InputBase value={search} onChange={(e) => setSearch(e.target.value)} placeholder="חיפוש לפי שם, אימייל או טלפון" inputProps={{ 'aria-label': 'חיפוש לקוחות' }} sx={{ flex: 1, fontSize: 14 }} />
+          </Box>
+        </Box>
+
+        <Box sx={{ overflowX: 'auto' }}>
+          <Box role="table" aria-label="לקוחות" sx={{ minWidth: 680 }}>
+            <Box role="row" sx={{ display: 'grid', gridTemplateColumns: grid, gap: 1.5, px: 2, py: 1.25, background: tokens.ground, borderBottom: `1px solid ${tokens.border}`, fontSize: 12, fontWeight: 600, color: tokens.slate }}>
+              <span role="columnheader">שם הלקוח</span>
+              <span role="columnheader">אימייל</span>
+              <span role="columnheader">טלפון</span>
+              <span role="columnheader">תיקים</span>
+              <span role="columnheader" className="sr-only">
+                פעולות
+              </span>
             </Box>
-          </HeaderSection>
 
-          {/* Statistics */}
-          <StatsGrid sx={{ mb: 4 }}>
-            {stats.map((stat, index) => (
-              <StatsCard key={index} sx={{ '--card-color': stat.color }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Box display="flex" alignItems="flex-start" justifyContent="space-between" mb={2}>
-                    <Box>
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
-                        {stat.title}
-                      </Typography>
-                      <Typography variant="h3" fontWeight={700} color="primary">
-                        {stat.value}
-                      </Typography>
-                    </Box>
-                    <Avatar
-                      sx={{
-                        background: `linear-gradient(135deg, ${stat.color}, ${alpha(stat.color, 0.8)})`,
-                        color: '#ffffff'
-                      }}
-                    >
-                      {stat.icon}
-                    </Avatar>
-                  </Box>
-                </CardContent>
-              </StatsCard>
-            ))}
-          </StatsGrid>
-
-          {/* Search and Actions */}
-          <SearchSection>
-            <StyledSearchField
-              placeholder="חפש לקוחות לפי שם, אימייל או טלפון..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Search size={20} />
-                  </InputAdornment>
-                ),
-              }}
-            />
-
-            <Box display="flex" gap={1} alignItems="center">
-              <Tooltip title="מסנן מתקדם">
-                <ActionButton>
-                  <Filter size={20} />
-                </ActionButton>
-              </Tooltip>
-            </Box>
-          </SearchSection>
-
-          {/* Clients Grid */}
-          {filteredClients.length > 0 ? (
-            <ClientsGrid>
-              {filteredClients.map((client, index) => (
-                <ClientCard key={client.id || index} onClick={() => handleViewClient(client)}>
-                  <ActionButtons className="client-actions">
-                    <Tooltip title="פעולות">
-                      <IconButton
-                        size="small"
-                        onClick={(e) => handleMenuOpen(e, client)}
-                        sx={{
-                          backgroundColor: alpha(theme.palette.background.paper, 0.9),
-                          backdropFilter: 'blur(10px)',
-                          '&:hover': {
-                            backgroundColor: theme.palette.background.paper,
-                          }
-                        }}
-                      >
-                        <MoreVertical size={16} />
-                      </IconButton>
-                    </Tooltip>
-                  </ActionButtons>
-
-                  <CardContent sx={{ p: 3, textAlign: 'center' }}>
-                    <ClientAvatar>
-                      {getInitials(client.fullName || 'לקוח')}
-                    </ClientAvatar>
-
-                    <Typography variant="h6" fontWeight={700} gutterBottom>
-                      {client.fullName}
-                    </Typography>
-
-                    {client.company && (
-                      <Chip
-                        label={client.company}
-                        size="small"
-                        sx={{ mb: 2, backgroundColor: alpha(theme.palette.primary.main, 0.1) }}
-                      />
-                    )}
-
-                    <Box display="flex" alignItems="center" justifyContent="center" gap={1} mb={1}>
-                      <Mail size={14} color={theme.palette.text.secondary} />
-                      <Typography variant="body2" color="text.secondary" noWrap>
-                        {client.email}
-                      </Typography>
-                    </Box>
-
-                    <Box display="flex" alignItems="center" justifyContent="center" gap={1} mb={2}>
-                      <Phone size={14} color={theme.palette.text.secondary} />
-                      <Typography variant="body2" color="text.secondary">
-                        {client.phone}
-                      </Typography>
-                    </Box>
-
-                    <Box display="flex" gap={1} justifyContent="center" mt={2}>
-                      <Tooltip title="צפייה בפרטים">
-                        <IconButton size="small" color="primary">
-                          <Eye size={16} />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="צפייה בתיקים">
-                        <IconButton size="small" color="primary">
-                          <FolderOpen size={16} />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
-                  </CardContent>
-                </ClientCard>
+            {loading &&
+              [0, 1, 2].map((i) => (
+                <Box key={i} sx={{ px: 2, py: 1.75, borderBottom: `1px solid ${tokens.borderSoft}` }}>
+                  <Skeleton width="40%" />
+                </Box>
               ))}
-            </ClientsGrid>
-          ) : (
-            <Box
-              textAlign="center"
-              py={8}
-              sx={{
-                background: alpha(theme.palette.primary.main, 0.05),
-                borderRadius: 4,
-                border: `2px dashed ${alpha(theme.palette.primary.main, 0.3)}`,
-              }}
-            >
-              <Users size={64} color={alpha(theme.palette.primary.main, 0.5)} />
-              <Typography variant="h6" color="text.secondary" gutterBottom sx={{ mt: 2 }}>
-                {searchQuery ? 'לא נמצאו לקוחות' : 'עדיין אין לקוחות במערכת'}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                {searchQuery
-                  ? 'נסה לשנות את מונחי החיפוש'
-                  : 'התחל על ידי הוספת הלקוח הראשון שלך'}
-              </Typography>
-              {!searchQuery && (
-                <Button
-                  variant="contained"
-                  startIcon={<Plus size={20} />}
-                  onClick={handleCreateClient}
-                >
-                  הוסף לקוח ראשון
-                </Button>
-              )}
-            </Box>
-          )}
 
-          {/* Floating Action Button */}
-          <StyledFab onClick={handleCreateClient}>
-            <Plus size={24} />
-          </StyledFab>
-
-          {/* Context Menu */}
-          <Menu
-            anchorEl={menuAnchor}
-            open={Boolean(menuAnchor)}
-            onClose={() => setMenuAnchor(null)}
-            PaperProps={{
-              sx: { borderRadius: 2, minWidth: 180 }
-            }}
-          >
-            <MenuItem onClick={() => selectedClient && handleViewClient(selectedClient)}>
-              <Eye size={16} style={{ marginRight: 8 }} />
-              צפה בפרטים
-            </MenuItem>
-            <MenuItem onClick={() => selectedClient && handleEditClient(selectedClient)}>
-              <Edit size={16} style={{ marginRight: 8 }} />
-              ערוך
-            </MenuItem>
-            <Divider />
-            <MenuItem 
-              onClick={() => selectedClient && handleDeleteClient(selectedClient)}
-              sx={{ color: 'error.main' }}
-            >
-              <Trash2 size={16} style={{ marginRight: 8 }} />
-              מחק
-            </MenuItem>
-          </Menu>
-
-          {/* Client Dialog */}
-          <StyledDialog
-            open={dialogOpen}
-            onClose={() => setDialogOpen(false)}
-            maxWidth="md"
-            fullWidth
-          >
-            <DialogTitle>
-              <Box display="flex" alignItems="center" justifyContent="space-between">
-                <Box display="flex" alignItems="center" gap={2}>
-                  <Avatar sx={{ background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})` }}>
-                    {formMode === 'create' ? <Plus size={20} /> : <User size={20} />}
-                  </Avatar>
-                  <Typography variant="h6" fontWeight={700}>
-                    {formMode === 'create' ? 'הוספת לקוח חדש' : 
-                     formMode === 'edit' ? 'עריכת לקוח' : 'פרטי לקוח'}
-                  </Typography>
-                </Box>
-                <IconButton onClick={() => setDialogOpen(false)}>
-                  <X size={20} />
-                </IconButton>
-              </Box>
-            </DialogTitle>
-
-            <DialogContent>
-              <Box display="flex" flexDirection="column" gap={3} pt={2}>
-                <Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap={3}>
-                  <TextField
-                    label="שם מלא"
-                    value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    fullWidth
-                    required
-                    disabled={formMode === 'view'}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <User size={16} />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Box>
-
-                <Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap={3}>
-                  <TextField
-                    label="אימייל"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    fullWidth
-                    required
-                    disabled={formMode === 'view'}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Mail size={16} />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                  <TextField
-                    label="טלפון"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    fullWidth
-                    required
-                    disabled={formMode === 'view'}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Phone size={16} />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Box>
-
-                {formMode === 'view' && selectedClient?.createdDate && (
-                  <Box p={2} bgcolor={alpha(theme.palette.info.main, 0.1)} borderRadius={2}>
-                    <Typography variant="body2" color="text.secondary">
-                      <Calendar size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} />
-                      נוצר: {new Date(selectedClient.createdDate).toLocaleDateString('he-IL')}
-                    </Typography>
-                  </Box>
+            {!loading && rows.length === 0 && (
+              <Box sx={{ px: 2, py: 5, display: 'flex', flexDirection: 'column', gap: 1.5, alignItems: 'center' }}>
+                <Typography sx={{ fontWeight: 600 }}>{clients.length === 0 ? 'עדיין אין לקוחות במשרד' : 'לא נמצאו לקוחות שמתאימים לחיפוש'}</Typography>
+                {clients.length === 0 && (
+                  <Button variant="contained" startIcon={<Plus size={16} />} onClick={openCreate}>
+                    הוספת לקוח ראשון
+                  </Button>
                 )}
               </Box>
-            </DialogContent>
-
-            {formMode !== 'view' && (
-              <DialogActions sx={{ p: 3, gap: 2 }}>
-                <Button onClick={() => setDialogOpen(false)} variant="outlined">
-                  ביטול
-                </Button>
-                <Button
-                  onClick={handleSubmit}
-                  variant="contained"
-                  disabled={!formData.fullName || !formData.email || !formData.phone}
-                >
-                  {formMode === 'create' ? 'הוסף לקוח' : 'שמור שינויים'}
-                </Button>
-              </DialogActions>
             )}
-          </StyledDialog>
 
-          {/* Notification */}
-          <Snackbar
-            open={notification.open}
-            autoHideDuration={4000}
-            onClose={hideNotification}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          >
-            <Alert
-              onClose={hideNotification}
-              severity={notification.severity}
-              sx={{
-                borderRadius: 2,
-                boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.12)}`
-              }}
-            >
-              {notification.message}
-            </Alert>
-          </Snackbar>
-        </div>
-      </Fade>
-    </PageContainer>
+            {!loading &&
+              rows.map((c) => {
+                const count = c.id ? caseCount.get(c.id) ?? 0 : 0;
+                return (
+                  <Box role="row" key={c.id} sx={{ display: 'grid', gridTemplateColumns: grid, gap: 1.5, alignItems: 'center', px: 2, minHeight: 52, borderBottom: `1px solid ${tokens.borderSoft}`, '&:hover': { background: tokens.hover } }}>
+                    <Typography role="cell" sx={{ fontWeight: 600, color: tokens.navy900, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {c.fullName}
+                    </Typography>
+                    <Box role="cell" sx={{ color: tokens.slate, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', direction: 'ltr', textAlign: 'right' }}>
+                      {c.email ? <Link href={`mailto:${c.email}`} underline="hover" sx={{ color: 'inherit' }}>{c.email}</Link> : '—'}
+                    </Box>
+                    <Box role="cell" sx={{ color: tokens.slate, direction: 'ltr', textAlign: 'right' }}>
+                      {c.phone ? <Link href={`tel:${c.phone}`} underline="hover" sx={{ color: 'inherit' }}>{c.phone}</Link> : '—'}
+                    </Box>
+                    <Box role="cell" sx={{ color: tokens.slate, fontVariantNumeric: 'tabular-nums' }}>
+                      {count}
+                    </Box>
+                    <Box role="cell" sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end' }}>
+                      <Button size="small" variant="text" component={RouterLink} to={`/folders?client=${c.id}`} disabled={count === 0}>
+                        תיקים
+                      </Button>
+                      <Tooltip title="פעולות נוספות">
+                        <IconButton size="small" aria-label={`פעולות עבור ${c.fullName}`} aria-haspopup="menu" onClick={(e) => setMenu({ anchor: e.currentTarget, client: c })} sx={{ border: `1px solid ${tokens.border}` }}>
+                          <MoreVertical size={15} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </Box>
+                );
+              })}
+          </Box>
+        </Box>
+        {!loading && clients.length > 0 && (
+          <Typography sx={{ px: 2, py: 1.5, fontSize: 13, color: tokens.slate }}>
+            {rows.length === clients.length ? `${clients.length} לקוחות` : `מוצגים ${rows.length} מתוך ${clients.length} לקוחות`}
+          </Typography>
+        )}
+      </Box>
+
+      <Menu anchorEl={menu?.anchor} open={Boolean(menu)} onClose={() => setMenu(null)}>
+        <MenuItem component={RouterLink} to={`/folders?client=${menu?.client.id}`} onClick={() => setMenu(null)}>
+          <ListItemIcon>
+            <FolderOpen size={16} />
+          </ListItemIcon>
+          תיקי הלקוח
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (menu) openEdit(menu.client);
+            setMenu(null);
+          }}
+        >
+          <ListItemIcon>
+            <Edit3 size={16} />
+          </ListItemIcon>
+          עריכת פרטים
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (menu) setToDelete(menu.client);
+            setMenu(null);
+          }}
+        >
+          <ListItemIcon>
+            <Trash2 size={16} />
+          </ListItemIcon>
+          מחיקת לקוח
+        </MenuItem>
+      </Menu>
+
+      <Dialog open={Boolean(dialog)} onClose={() => !saving && setDialog(null)} maxWidth="sm" fullWidth>
+        <DialogTitle>{dialog?.mode === 'create' ? 'לקוח חדש' : 'עריכת פרטי לקוח'}</DialogTitle>
+        <DialogContent sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, pt: '8px !important' }}>
+          <TextField
+            autoFocus
+            required
+            label="שם מלא"
+            value={form.fullName}
+            onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))}
+            error={touched && Boolean(nameError)}
+            helperText={touched && nameError ? nameError : ' '}
+            sx={{ gridColumn: { sm: '1 / -1' } }}
+          />
+          <TextField
+            label="אימייל (רשות)"
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+            error={touched && Boolean(emailError)}
+            helperText={touched && emailError ? emailError : ' '}
+            inputProps={{ dir: 'ltr', style: { textAlign: 'right' } }}
+          />
+          <TextField
+            label="טלפון (רשות)"
+            value={form.phone}
+            onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+            helperText=" "
+            inputProps={{ dir: 'ltr', style: { textAlign: 'right' } }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button variant="outlined" onClick={() => setDialog(null)} disabled={saving}>
+            ביטול
+          </Button>
+          <Button variant="contained" onClick={submit} disabled={saving}>
+            {dialog?.mode === 'create' ? 'הוספת הלקוח' : 'שמירה'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(toDelete)} onClose={() => !saving && setToDelete(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>מחיקת לקוח</DialogTitle>
+        <DialogContent>
+          <Typography>
+            הלקוח <strong>{toDelete?.fullName}</strong> יימחק לצמיתות. לקוח שיש לו תיקים לא ניתן למחוק עד שהתיקים יימחקו או יועברו.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button variant="outlined" onClick={() => setToDelete(null)} disabled={saving}>
+            ביטול
+          </Button>
+          <Button variant="contained" onClick={confirmDelete} disabled={saving} startIcon={<Trash2 size={16} />}>
+            מחיקת הלקוח
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar open={Boolean(notice)} autoHideDuration={notice?.error ? null : 5000} onClose={() => setNotice(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}>
+        <Alert severity={notice?.error ? 'error' : 'success'} onClose={() => setNotice(null)}>
+          {notice?.text}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
 

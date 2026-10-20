@@ -70,16 +70,16 @@ interface FolderGridViewProps {
 
 const FolderCard = styled(Card)(({ theme }) => ({
   height: '100%',
-  borderRadius: 20,
+  borderRadius: 8,
   border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   position: 'relative',
   overflow: 'hidden',
   cursor: 'pointer',
-  background: `linear-gradient(145deg, ${theme.palette.background.paper}, ${alpha(theme.palette.primary.main, 0.02)})`,
+  background: `${theme.palette.background.paper}`,
   
   '&:hover': {
-    transform: 'translateY(-8px)',
+    transform: 'translateY(0)',
     boxShadow: `0 20px 40px ${alpha(theme.palette.primary.main, 0.15)}`,
     border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
     
@@ -89,7 +89,7 @@ const FolderCard = styled(Card)(({ theme }) => ({
     },
     
     '& .folder-icon': {
-      transform: 'scale(1.1) rotate(5deg)',
+      transform: 'scale(1) rotate(5deg)',
     }
   },
   
@@ -100,17 +100,17 @@ const FolderCard = styled(Card)(({ theme }) => ({
     left: 0,
     right: 0,
     height: 4,
-    background: 'var(--folder-color, linear-gradient(90deg, #667eea, #764ba2))',
+    background: 'var(--folder-color, #1B3355)',
   }
 }));
 
 const FolderIcon = styled(Avatar)(({ theme }) => ({
   width: 64,
   height: 64,
-  background: 'var(--folder-color, linear-gradient(135deg, #667eea, #764ba2))',
+  background: 'var(--folder-color, #1B3355)',
   margin: '0 auto',
   marginBottom: theme.spacing(2),
-  boxShadow: `0 8px 24px ${alpha('#667eea', 0.3)}`,
+  boxShadow: `0 8px 24px ${alpha('#1B3355', 0.3)}`,
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   
   '& svg': {
@@ -123,7 +123,7 @@ const ActionButtons = styled(Box)(({ theme }) => ({
   top: theme.spacing(1),
   right: theme.spacing(1),
   opacity: 0,
-  transform: 'translateY(-10px)',
+  transform: 'translateY(0)',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   zIndex: 2,
 }));
@@ -156,7 +156,7 @@ const MetaInfo = styled(Box)(({ theme }) => ({
 
 const EditDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
-    borderRadius: 16,
+    borderRadius: 8,
     padding: theme.spacing(2),
     minWidth: 400,
   }
@@ -177,14 +177,14 @@ const FolderGridView: React.FC<FolderGridViewProps> = ({
   const [newFolderName, setNewFolderName] = useState('');
 
   const folderColors = [
-    'linear-gradient(135deg, #667eea, #764ba2)',
-    'linear-gradient(135deg, #f093fb, #f5576c)',
-    'linear-gradient(135deg, #4facfe, #00f2fe)',
-    'linear-gradient(135deg, #43e97b, #38f9d7)',
-    'linear-gradient(135deg, #fa709a, #fee140)',
-    'linear-gradient(135deg, #a8edea, #fed6e3)',
-    'linear-gradient(135deg, #ff9a9e, #fecfef)',
-    'linear-gradient(135deg, #fecfef, #fecfef)',
+    '#1B3355',
+    '#2A4870',
+    '#2A4870',
+    '#2A4870',
+    '#2A4870',
+    '#a8edea',
+    '#2A4870',
+    '#E3E6EB',
   ];
 
   const handleCardClick = (folder: Folder) => {

@@ -33,17 +33,17 @@ interface UserEditDialogProps {
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
-    borderRadius: 20,
+    borderRadius: 8,
     overflow: 'hidden',
     minWidth: 450,
-    background: `linear-gradient(145deg, ${theme.palette.background.paper}, ${alpha(theme.palette.primary.main, 0.02)})`,
+    background: `${theme.palette.background.paper}`,
     border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
   }
 }));
 
 const DialogHeader = styled(Box)(({ theme }) => ({
   padding: theme.spacing(3),
-  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+  background: `${theme.palette.primary.main}`,
   color: 'white',
   position: 'relative',
   textAlign: 'center',
@@ -75,7 +75,7 @@ const UserAvatar = styled(Avatar)(({ theme }) => ({
   transition: 'all 0.3s ease',
   
   '&:hover': {
-    transform: 'scale(1.05)',
+    transform: 'scale(1)',
     '& .camera-overlay': {
       opacity: 1,
     }
@@ -108,24 +108,24 @@ const CloseButton = styled(IconButton)(({ theme }) => ({
   
   '&:hover': {
     background: alpha(theme.palette.common.white, 0.3),
-    transform: 'scale(1.1)',
+    transform: 'scale(1)',
   }
 }));
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
-    borderRadius: 12,
+    borderRadius: 8,
     background: alpha(theme.palette.background.paper, 0.8),
     backdropFilter: 'blur(10px)',
     transition: 'all 0.3s ease',
     
     '&:hover': {
-      transform: 'translateY(-2px)',
+      transform: 'translateY(0)',
       boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.15)}`,
     },
     
     '&.Mui-focused': {
-      transform: 'translateY(-2px)',
+      transform: 'translateY(0)',
       boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.2)}`,
     }
   },
@@ -145,9 +145,9 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
 }));
 
 const SaveButton = styled(Button)(({ theme }) => ({
-  borderRadius: 12,
+  borderRadius: 8,
   padding: theme.spacing(1.5, 3),
-  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+  background: `${theme.palette.primary.main}`,
   color: 'white',
   fontWeight: 700,
   textTransform: 'none',
@@ -155,9 +155,9 @@ const SaveButton = styled(Button)(({ theme }) => ({
   transition: 'all 0.3s ease',
   
   '&:hover': {
-    transform: 'translateY(-2px)',
+    transform: 'translateY(0)',
     boxShadow: `0 12px 32px ${alpha(theme.palette.primary.main, 0.4)}`,
-    background: `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`,
+    background: `${theme.palette.primary.dark}`,
   },
   
   '&:disabled': {
@@ -169,7 +169,7 @@ const SaveButton = styled(Button)(({ theme }) => ({
 }));
 
 const CancelButton = styled(Button)(({ theme }) => ({
-  borderRadius: 12,
+  borderRadius: 8,
   padding: theme.spacing(1.5, 3),
   textTransform: 'none',
   fontWeight: 600,
@@ -178,7 +178,7 @@ const CancelButton = styled(Button)(({ theme }) => ({
   transition: 'all 0.3s ease',
   
   '&:hover': {
-    transform: 'translateY(-2px)',
+    transform: 'translateY(0)',
     borderColor: alpha(theme.palette.text.secondary, 0.4),
     background: alpha(theme.palette.text.secondary, 0.05),
   }
@@ -343,7 +343,7 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
           border={`1px solid ${alpha(theme.palette.info.main, 0.2)}`}
         >
           <Typography variant="body2" color="info.main" fontWeight={600} gutterBottom>
-            💡 טיפ
+            טיפ
           </Typography>
           <Typography variant="body2" color="text.secondary">
             שימוש באימייל תקין חיוני לקבלת התראות ועדכונים במערכת

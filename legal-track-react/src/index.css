@@ -1,36 +1,36 @@
-/* Enhanced Global Styles for Legal Manager Pro */
+/* LegalTrack global styles. Tokens match src/theme.ts: navy, steel blue and neutral grays only. */
 
-/* Import fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap');
+/* Fonts: Heebo for the interface, Frank Ruhl Libre for page titles */
+@import url('https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;600&family=Heebo:wght@400;500;600;700&display=swap');
 
-/* CSS Variables for consistent theming */
 :root {
-  /* Primary Colors */
-  --primary-main: #667eea;
-  --primary-light: #8fa5f3;
-  --primary-dark: #4a5bc4;
-  --secondary-main: #764ba2;
-  --secondary-light: #9575cd;
-  --secondary-dark: #512e5f;
-  
-  /* Status Colors */
-  --success-main: #10b981;
-  --error-main: #ef4444;
-  --warning-main: #f59e0b;
-  --info-main: #3b82f6;
-  
-  /* Neutral Colors */
-  --gray-50: #f9fafb;
-  --gray-100: #f3f4f6;
-  --gray-200: #e5e7eb;
-  --gray-300: #d1d5db;
-  --gray-400: #9ca3af;
-  --gray-500: #6b7280;
-  --gray-600: #4b5563;
-  --gray-700: #374151;
-  --gray-800: #1f2937;
-  --gray-900: #111827;
+  /* Brand */
+  --primary-main: #1B3355;
+  --primary-light: #2A4870;
+  --primary-dark: #0F1E33;
+  --secondary-main: #0F1E33;
+  --secondary-light: #1B3355;
+  --secondary-dark: #09152A;
+  --accent: #6F8FB8;
+  --link: #1F4E8C;
+
+  /* Statuses use the same restrained palette; icons and wording tell them apart */
+  --success-main: #1B3355;
+  --error-main: #1A1F2B;
+  --warning-main: #4A5363;
+  --info-main: #1F4E8C;
+
+  /* Neutrals */
+  --gray-50: #F6F7F9;
+  --gray-100: #EEF0F3;
+  --gray-200: #E3E6EB;
+  --gray-300: #C9CFD8;
+  --gray-400: #8A919C;
+  --gray-500: #5B6472;
+  --gray-600: #4A5363;
+  --gray-700: #343B48;
+  --gray-800: #1A1F2B;
+  --gray-900: #0F1E33;
   
   /* Spacing */
   --spacing-xs: 0.25rem;
@@ -84,9 +84,9 @@ html {
 }
 
 body {
-  font-family: 'Heebo', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 
-              'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-  line-height: 1.6;
+  font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
   color: var(--gray-800);
   background-color: var(--gray-50);
   -webkit-font-smoothing: antialiased;
@@ -107,7 +107,7 @@ body {
 
 /* Typography improvements */
 h1, h2, h3, h4, h5, h6 {
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.2;
   margin: 0;
   color: var(--gray-900);
@@ -155,8 +155,17 @@ input, textarea, select {
 }
 
 *:focus-visible {
-  outline: 2px solid var(--primary-main);
+  outline: 2px solid var(--link);
   outline-offset: 2px;
+}
+
+/* Calm motion: no bouncing or floating; respect reduced-motion settings */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Custom scrollbar */
@@ -182,7 +191,7 @@ input, textarea, select {
 
 /* Selection styles */
 ::selection {
-  background-color: rgba(102, 126, 234, 0.2);
+  background-color: rgba(31, 78, 140, 0.18);
   color: var(--gray-900);
 }
 

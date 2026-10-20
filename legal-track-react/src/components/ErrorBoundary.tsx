@@ -65,7 +65,7 @@ class ErrorBoundary extends Component<Props, State> {
             <Box mb={3}>
               <AlertTriangle 
                 size={64} 
-                color="#f44336" 
+                color="#1A1F2B" 
                 style={{ marginBottom: 16 }}
               />
               <Typography variant="h4" gutterBottom color="error">
