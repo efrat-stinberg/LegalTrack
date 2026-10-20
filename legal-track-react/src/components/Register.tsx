@@ -1,134 +1,73 @@
-// src/components/Register.tsx - FIXED VERSION
+// Registration from an invite link (/#/register?token=...). Same layout as the sign-in screen.
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { TextField, Button, Snackbar, Box, Alert, Typography, Paper, Avatar, CircularProgress } from "@mui/material";
-import { styled } from "@mui/material/styles";
-import { UserPlus, Shield, CheckCircle } from "lucide-react";
+import { Alert, Box, Button, CircularProgress, IconButton, InputAdornment, TextField, Typography } from "@mui/material";
+import { Eye, EyeOff, MailCheck } from "lucide-react";
+import { useDispatch } from "react-redux";
 import { getUserByEmail, apiClient } from "../api/api";
 import { login } from "../store/slices/userSlice";
-import { useDispatch } from "react-redux";
-
-const RegisterContainer = styled(Paper)(({ theme }) => ({
-  maxWidth: 500,
-  margin: '0 auto',
-  marginTop: theme.spacing(8),
-  padding: theme.spacing(4),
-  borderRadius: 8,
-  background: `${theme.palette.background.paper}`,
-  border: `1px solid ${theme.palette.primary.main}20`,
-}));
-
-const StyledAvatar = styled(Avatar)(({ theme }) => ({
-  width: 64,
-  height: 64,
-  margin: '0 auto',
-  marginBottom: theme.spacing(3),
-  background: `${theme.palette.primary.main}`,
-}));
+import { tokens } from "../theme";
+import AuthShell from "./AuthShell";
 
 const Register = () => {
-  console.log('=== REGISTER COMPONENT MOUNTED ===');
-  
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
-  
-  // Only get token from query parameters - this is the fix!
   const token = searchParams.get("token");
-  
-  console.log('Register component rendered');
-  console.log('Search params:', Object.fromEntries(searchParams.entries()));
-  console.log('Token from query params:', token);
-  console.log('Current URL:', window.location.href);
-  
-  const [groupId, setGroupId] = useState<number | null>(null);
+
   const [status, setStatus] = useState<"loading" | "valid" | "invalid">("loading");
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [openSnackbar, setOpenSnackbar] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    console.log('=== TOKEN VALIDATION USEEFFECT ===');
-    console.log('Token value:', token);
-    console.log('Is token present?', !!token);
-    
     const validateToken = async () => {
       if (!token) {
-        console.error('No token provided in URL');
-        console.log('Current URL:', window.location.href);
-        console.log('Search params:', Object.fromEntries(searchParams.entries()));
         setStatus("invalid");
-        setErrorMessage("לא נמצא טוקן בקישור");
+        setErrorMessage("בקישור חסר קוד הזמנה.");
         return;
       }
 
       try {
-        console.log('Validating token:', token);
-        console.log('Full URL:', window.location.href);
-        
-        // Call API with the token
         const response = await apiClient.post("/invite/validate", { token });
-        
-        console.log('Token validation response:', response.data);
-        
-        setGroupId(response.data.groupId);
         setEmail(response.data.email);
         setStatus("valid");
-        
       } catch (error: any) {
-        console.error('Token validation failed:', error);
-        
-        let errorMsg = "הטוקן לא תקין או שפג תוקפו";
-        
+        let errorMsg = "ההזמנה לא תקינה או שפג תוקפה.";
         if (error.response) {
-          console.error('API Error Response:', error.response.data);
-          console.error('API Error Status:', error.response.status);
-          
-          if (error.response.status === 400) {
-            errorMsg = error.response.data?.message || "הטוקן לא תקין";
-          } else if (error.response.status === 404) {
-            errorMsg = "הטוקן לא נמצא במערכת";
-          } else if (error.response.status === 410) {
-            errorMsg = "הטוקן פג תוקף";
-          } else {
-            errorMsg = error.response.data?.message || error.response.data || errorMsg;
-          }
+          if (error.response.status === 400) errorMsg = error.response.data?.message || errorMsg;
+          else if (error.response.status === 404) errorMsg = "ההזמנה לא נמצאה במערכת.";
+          else if (error.response.status === 410) errorMsg = "פג תוקף ההזמנה.";
+          else if (typeof error.response.data?.message === "string") errorMsg = error.response.data.message;
         } else if (error.request) {
-          console.error('Network Error:', error.request);
-          errorMsg = "שגיאת חיבור לשרת. אנא בדוק את החיבור לאינטרנט.";
+          errorMsg = "אין חיבור לשרת. בדקו את החיבור לאינטרנט ונסו שוב.";
         }
-        
         setErrorMessage(errorMsg);
         setStatus("invalid");
       }
     };
 
     validateToken();
-  }, [token, searchParams]); // Removed pathToken from dependencies
+  }, [token]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!name.trim()) {
-      setErrorMessage("שם הוא שדה חובה");
-      setOpenSnackbar(true);
-      return;
-    }
-    
-    if (password !== confirmPassword) {
-      setErrorMessage("הסיסמאות אינן תואמות");
-      setOpenSnackbar(true);
-      return;
-    }
 
+    if (!name.trim()) {
+      setErrorMessage("יש להזין שם מלא.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setErrorMessage("הסיסמאות אינן זהות.");
+      return;
+    }
     // Same rule as the server: at least 5 characters, with letters and digits
     if (password.length < 5 || !/[a-zA-Zא-ת]/.test(password) || !/[0-9]/.test(password)) {
-      setErrorMessage("הסיסמה חייבת להכיל לפחות 5 תווים, כולל אותיות ומספרים");
-      setOpenSnackbar(true);
+      setErrorMessage("הסיסמה חייבת להכיל לפחות 5 תווים, כולל אותיות ומספרים.");
       return;
     }
 
@@ -136,278 +75,140 @@ const Register = () => {
     setErrorMessage("");
 
     try {
-      console.log('Submitting registration:', { token, name, password: '***' });
-      
-      const response = await apiClient.post("/register", { 
-        token, 
-        name, 
-        password 
-      });
-      
-      console.log('Registration response:', response.data);
-      
-      const tokenValue = response.data.token;
-
-      // Save token to localStorage
-      localStorage.setItem("token", JSON.stringify(tokenValue));
-
-      // Fetch user and dispatch login
+      const response = await apiClient.post("/register", { token, name, password });
+      localStorage.setItem("token", JSON.stringify(response.data.token));
       const user = await getUserByEmail(email);
       dispatch(login(user));
-
       navigate("/home", { replace: true });
-      
     } catch (error: any) {
-      console.error("Registration error:", error);
-      
-      let errorMsg = "נכשלה ההרשמה. אנא נסה שוב.";
-      
+      let errorMsg = "ההרשמה נכשלה. נסו שוב.";
       if (error.response) {
-        console.error('Registration API Error:', error.response.data);
-        console.error('Registration API Status:', error.response.status);
-        
-        if (error.response.status === 400) {
-          errorMsg = error.response.data?.message || "שגיאה בנתונים שנשלחו";
-        } else if (error.response.status === 409) {
-          errorMsg = "משתמש עם אימייל זה כבר קיים";
-        } else {
-          errorMsg = error.response.data?.message || error.response.data || errorMsg;
-        }
+        if (error.response.status === 409) errorMsg = "כבר קיים משתמש עם האימייל הזה.";
+        else if (typeof error.response.data?.message === "string") errorMsg = error.response.data.message;
+        else if (typeof error.response.data === "string" && error.response.data) errorMsg = error.response.data;
       } else if (error.request) {
-        errorMsg = "שגיאת חיבור לשרת. אנא נסה שוב.";
+        errorMsg = "אין חיבור לשרת. נסו שוב.";
       }
-      
       setErrorMessage(errorMsg);
-      setOpenSnackbar(true);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCloseSnackbar = () => {
-    setOpenSnackbar(false);
-  };
-
-  // Debug info for development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('=== REGISTER COMPONENT STATE ===');
-    console.log('Status:', status);
-    console.log('Token:', token);
-    console.log('Email:', email);
-    console.log('GroupId:', groupId);
-    console.log('Error:', errorMessage);
-  }
-
   if (status === "loading") {
     return (
-      <Box 
-        display="flex" 
-        flexDirection="column" 
-        alignItems="center" 
-        justifyContent="center" 
-        minHeight="100vh"
-        gap={2}
-      >
-        <CircularProgress size={40} />
-        <Typography variant="body1" color="text.secondary">
-          בודק טוקן הזמנה...
-        </Typography>
-        
-        {/* Debug info in loading state */}
-        {process.env.NODE_ENV === 'development' && (
-          <Box mt={2} p={2} bgcolor="background.paper" borderRadius={2}>
-            <Typography variant="caption" component="div">
-              Debug: Token = {token || 'NULL'}
-            </Typography>
-            <Typography variant="caption" component="div">
-              URL = {window.location.href}
-            </Typography>
-          </Box>
-        )}
-      </Box>
+      <AuthShell>
+        <Box role="status" sx={{ display: "flex", alignItems: "center", gap: 1.5, color: tokens.slate }}>
+          <CircularProgress size={22} />
+          <Typography>בודקים את ההזמנה...</Typography>
+        </Box>
+      </AuthShell>
     );
   }
-  
+
   if (status === "invalid") {
     return (
-      <RegisterContainer elevation={3}>
-        <Box textAlign="center">
-          <StyledAvatar>
-            <Shield size={32} />
-          </StyledAvatar>
-          
-          <Typography variant="h5" fontWeight={700} gutterBottom color="error">
-            טוקן לא תקין
+      <AuthShell>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+          <Box>
+            <Typography variant="h1" sx={{ fontSize: 28, mb: 0.5 }}>
+              לא ניתן להשתמש בהזמנה
+            </Typography>
+            <Typography sx={{ color: tokens.slate }}>{errorMessage}</Typography>
+          </Box>
+          <Typography sx={{ fontSize: 14, color: tokens.slate }}>
+            בקשו ממנהל המשרד לשלוח הזמנה חדשה. אם כבר נרשמתם, אפשר פשוט להתחבר.
           </Typography>
-          
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            {errorMessage || "הטוקן לא תקין או שפג תוקפו"}
-          </Typography>
-          
-          <Button 
-            variant="outlined" 
-            onClick={() => navigate('/login')}
-            fullWidth
-          >
-            חזור לעמוד הכניסה
+          <Button variant="contained" size="large" sx={{ minHeight: 44 }} onClick={() => navigate("/login")}>
+            למסך ההתחברות
           </Button>
-          
-          {/* Debug info for invalid token */}
-          {process.env.NODE_ENV === 'development' && (
-            <Box mt={3} p={2} bgcolor="error.light" borderRadius={2}>
-              <Typography variant="caption" component="div" color="error.dark">
-                Debug Info:
-              </Typography>
-              <Typography variant="caption" component="div" color="error.dark">
-                Token: {token || 'NULL'}
-              </Typography>
-              <Typography variant="caption" component="div" color="error.dark">
-                Error: {errorMessage}
-              </Typography>
-              <Typography variant="caption" component="div" color="error.dark">
-                Status: {status}
-              </Typography>
-            </Box>
-          )}
         </Box>
-      </RegisterContainer>
+      </AuthShell>
     );
   }
 
   return (
-    <RegisterContainer elevation={3}>
-      <Box textAlign="center" mb={4}>
-        <StyledAvatar>
-          <UserPlus size={32} />
-        </StyledAvatar>
-        
-        <Typography variant="h4" fontWeight={700} gutterBottom>
-          השלמת רישום
-        </Typography>
-        
-        <Typography variant="body1" color="text.secondary">
-          ברוכים הבאים! אנא השלימו את פרטי הרישום
-        </Typography>
-        
-        <Box display="flex" alignItems="center" justifyContent="center" gap={1} mt={2}>
-          <CheckCircle size={16} color="green" />
-          <Typography variant="body2" color="success.main">
-            הזמנה תקפה עבור: {email}
+    <AuthShell>
+      <Box component="form" noValidate onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+        <Box>
+          <Typography variant="h1" sx={{ fontSize: 28, mb: 0.5 }}>
+            השלמת הרשמה
           </Typography>
+          <Typography sx={{ color: tokens.slate }}>הוזמנת להצטרף למשרד ב-LegalTrack</Typography>
         </Box>
-      </Box>
 
-      <Box component="form" onSubmit={handleSubmit}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.25,
+            px: 1.75,
+            py: 1.25,
+            border: `1px solid ${tokens.border}`,
+            borderRadius: `${tokens.radius}px`,
+            background: tokens.white,
+          }}
+        >
+          <Box sx={{ color: tokens.navy700, display: "flex" }} aria-hidden="true">
+            <MailCheck size={18} />
+          </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontSize: 12, color: tokens.slate }}>הזמנה תקפה עבור</Typography>
+            <Typography dir="ltr" sx={{ fontWeight: 600, textAlign: "right", overflowWrap: "anywhere" }}>
+              {email}
+            </Typography>
+          </Box>
+        </Box>
+
+        {errorMessage && (
+          <Alert severity="error" role="alert">
+            {errorMessage}
+          </Alert>
+        )}
+
+        <TextField label="שם מלא" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} required disabled={isLoading} />
         <TextField
-          label="שם מלא"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          fullWidth
-          margin="normal"
-          variant="outlined"
-          disabled={isLoading}
-          sx={{ mb: 2 }}
-        />
-        
-        <TextField
-          label="אימייל"
-          value={email}
-          disabled
-          fullWidth
-          margin="normal"
-          variant="outlined"
-          sx={{ mb: 2 }}
-        />
-        
-        <TextField
-          type="password"
+          type={showPassword ? "text" : "password"}
           label="סיסמה"
+          autoComplete="new-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          fullWidth
-          margin="normal"
-          variant="outlined"
           disabled={isLoading}
-          sx={{ mb: 2 }}
           helperText="לפחות 5 תווים, אותיות ומספרים"
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={() => setShowPassword((s) => !s)} aria-label={showPassword ? "הסתרת הסיסמה" : "הצגת הסיסמה"} edge="end" size="small">
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
         />
-        
         <TextField
-          type="password"
+          type={showPassword ? "text" : "password"}
           label="אישור סיסמה"
+          autoComplete="new-password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
-          fullWidth
-          margin="normal"
-          variant="outlined"
           disabled={isLoading}
-          sx={{ mb: 3 }}
+          error={Boolean(confirmPassword) && confirmPassword !== password}
+          helperText={confirmPassword && confirmPassword !== password ? "הסיסמאות אינן זהות" : " "}
         />
-        
+
         <Button
           type="submit"
           variant="contained"
-          fullWidth
           size="large"
           disabled={isLoading || !name || !password || !confirmPassword}
-          sx={{
-            py: 1.5,
-            fontSize: "1.1rem",
-            fontWeight: 600,
-            textTransform: "none",
-            borderRadius: 2,
-          }}
+          sx={{ minHeight: 44 }}
         >
-          {isLoading ? (
-            <Box display="flex" alignItems="center" gap={1}>
-              <CircularProgress size={20} color="inherit" />
-              רושם...
-            </Box>
-          ) : (
-            "השלם רישום"
-          )}
+          {isLoading ? <CircularProgress size={20} sx={{ color: "#FFFFFF" }} /> : "השלמת הרשמה"}
         </Button>
       </Box>
-
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity="error"
-          sx={{ width: "100%" }}
-        >
-          {errorMessage}
-        </Alert>
-      </Snackbar>
-      
-      {/* Debug panel for development */}
-      {process.env.NODE_ENV === 'development' && (
-        <Box mt={3} p={2} bgcolor="info.light" borderRadius={2}>
-          <Typography variant="subtitle2" color="info.dark" gutterBottom>
-            Debug Info:
-          </Typography>
-          <Typography variant="caption" component="div" color="info.dark">
-            Token: {token}
-          </Typography>
-          <Typography variant="caption" component="div" color="info.dark">
-            Email: {email}
-          </Typography>
-          <Typography variant="caption" component="div" color="info.dark">
-            GroupId: {groupId}
-          </Typography>
-          <Typography variant="caption" component="div" color="info.dark">
-            Status: {status}
-          </Typography>
-        </Box>
-      )}
-    </RegisterContainer>
+    </AuthShell>
   );
 };
 

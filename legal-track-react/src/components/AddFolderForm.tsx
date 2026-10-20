@@ -1,17 +1,8 @@
+// Form for a new folder: name + client. Sends only what the server expects.
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Box,
-  TextField,
-  Button,
-  Paper,
-  Typography,
-  Autocomplete,
-  useTheme,
-  alpha
-} from '@mui/material';
-import { styled } from '@mui/material/styles';
-import { FolderPlus} from 'lucide-react';
+import { Alert, Autocomplete, Box, Button, CircularProgress, TextField, Typography } from '@mui/material';
 import { Client } from '../models/Client';
+import { tokens } from '../theme';
 
 // טיפוס נתוני הטופס (רק השדות הפעילים)
 interface FormData {
@@ -32,31 +23,12 @@ interface AddFolderFormProps {
   onSelectClient: (clientId: number | null) => void;
 }
 
-const FormContainer = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(4),
-  borderRadius: 8,
-  background: theme.palette.background.paper, // רקע לא שקוף
-  border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-  boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.1)}`,
-}));
-
-const SectionTitle = styled(Typography)(({ theme }) => ({
-  fontWeight: 600,
-  marginBottom: theme.spacing(2),
-  display: 'flex',
-  alignItems: 'center',
-  gap: theme.spacing(1),
-  color: theme.palette.text.primary,
-}));
-
 const AddFolderForm: React.FC<AddFolderFormProps> = ({
   onAddFolder,
   clients,
   selectedClientId,
   onSelectClient,
 }) => {
-  const theme = useTheme();
-  
   // נתוני הטופס (רק השדות הפעילים)
   const [formData, setFormData] = useState<FormData>({
     folderName: '',
@@ -73,7 +45,6 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
       const client = clients.find(c => c.id === selectedClientId) || null;
       
       if (client !== selectedClient) {
-        console.log('AddFolderForm: Selected client updated:', client);
         setSelectedClient(client);
       }
     }
@@ -84,11 +55,11 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
     const errors: {[key: string]: string} = {};
     
     if (!formData.folderName.trim()) {
-      errors.folderName = 'שם התיקייה הוא שדה חובה';
+      errors.folderName = 'יש להזין שם לתיק';
     }
     
     if (selectedClientId === null) {
-      errors.client = 'בחירת לקוח הוא שדה חובה';
+      errors.client = 'יש לבחור לקוח';
     }
     
     setFormErrors(errors);
@@ -97,15 +68,8 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    console.log('Form submission started', {
-      folderName: formData.folderName,
-      selectedClientId,
-      formData
-    });
 
     if (!validateForm()) {
-      console.log('Form validation failed', formErrors);
       return;
     }
 
@@ -118,11 +82,9 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
         clientId: selectedClientId,
       };
       
-      console.log('Sending data to backend:', backendData);
       
       await onAddFolder(backendData);
       
-      console.log('Folder created successfully');
       
       // איפוס הטופס רק אחרי הצלחה
       setFormData({
@@ -137,12 +99,12 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
       console.error('Error in form submission:', error);
       
       // הצגת שגיאה למשתמש
-      if (error.message.includes('Client ID')) {
-        setFormErrors({ client: 'בעיה בבחירת הלקוח. אנא בחר לקוח מחדש.' });
-      } else if (error.message.includes('folderName')) {
-        setFormErrors({ folderName: 'בעיה בשם התיקייה. אנא בדוק את השם.' });
+      if (error.message?.includes('Client ID')) {
+        setFormErrors({ client: 'בעיה בבחירת הלקוח. בחרו לקוח מחדש.' });
+      } else if (error.message?.includes('folderName')) {
+        setFormErrors({ folderName: 'בעיה בשם התיק. בדקו את השם.' });
       } else {
-        setFormErrors({ general: error.message || 'שגיאה ביצירת התיקייה' });
+        setFormErrors({ general: error.message || 'יצירת התיק נכשלה' });
       }
     } finally {
       setIsSubmitting(false);
@@ -151,7 +113,6 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
 
   const handleClientSelect = useCallback((client: Client | null) => {
     const clientId = client?.id || null;
-    console.log('Client selected:', { client, clientId });
     onSelectClient(clientId);
     
     // נקה שגיאות קודמות
@@ -170,132 +131,66 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
   }, [formErrors.folderName]);
 
   return (
-    <FormContainer elevation={2}>
-      <Box component="form" onSubmit={handleSubmit}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          
-          {/* הצגת שגיאה כללית */}
-          {formErrors.general && (
-            <Box sx={{ 
-              p: 2, 
-              borderRadius: 2, 
-              backgroundColor: alpha(theme.palette.error.main, 0.1),
-              border: `1px solid ${alpha(theme.palette.error.main, 0.3)}`
-            }}>
-              <Typography color="error" variant="body2">
-                {formErrors.general}
-              </Typography>
-            </Box>
-          )}
-          
-          {/* פרטים בסיסיים */}
-          <Box>
-            <SectionTitle variant="h6">
-              <FolderPlus size={20} />
-              פרטים בסיסיים
-            </SectionTitle>
-            
-            <Box sx={{ 
-              display: 'grid', 
-              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, 
-              gap: 3 
-            }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <TextField
-                  fullWidth
-                  label="שם תיקייה"
-                  value={formData.folderName}
-                  onChange={(e) => handleFolderNameChange(e.target.value)}
-                  required
-                  variant="outlined"
-                  error={!!formErrors.folderName}
-                  helperText={formErrors.folderName}
-                  disabled={isSubmitting}
-                />
+    <Box component="form" noValidate onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {formErrors.general && (
+        <Alert severity="error" role="alert">
+          {formErrors.general}
+        </Alert>
+      )}
 
-                <Autocomplete
-                  options={clients || []}
-                  getOptionLabel={(client) => `${client.fullName} (${client.email})`}
-                  value={selectedClient}
-                  onChange={(_, client) => handleClientSelect(client)}
-                  disabled={isSubmitting}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="בחר לקוח"
-                      required
-                      error={!!formErrors.client}
-                      helperText={formErrors.client}
-                    />
-                  )}
-                  renderOption={(props, client) => (
-                    <Box component="li" {...props}>
-                      <Box>
-                        <Typography variant="body1" fontWeight={600}>
-                          {client.fullName}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {client.email} • {client.phone}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  )}
-                />
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+        <TextField
+          fullWidth
+          label="שם התיק"
+          value={formData.folderName}
+          onChange={(e) => handleFolderNameChange(e.target.value)}
+          required
+          error={!!formErrors.folderName}
+          helperText={formErrors.folderName || ' '}
+          disabled={isSubmitting}
+        />
+
+        <Autocomplete
+          options={clients || []}
+          getOptionLabel={(client) => client.email ? `${client.fullName} (${client.email})` : client.fullName}
+          isOptionEqualToValue={(option, value) => option.id === value.id}
+          value={selectedClient}
+          onChange={(_, client) => handleClientSelect(client)}
+          disabled={isSubmitting}
+          noOptionsText="אין לקוחות. הוסיפו לקוח במסך הלקוחות."
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="לקוח"
+              required
+              error={!!formErrors.client}
+              helperText={formErrors.client || ' '}
+            />
+          )}
+          renderOption={(props, client) => (
+            <Box component="li" {...props} key={client.id}>
+              <Box>
+                <Typography sx={{ fontWeight: 600 }}>{client.fullName}</Typography>
+                <Typography sx={{ fontSize: 13, color: tokens.slate }}>
+                  {[client.email, client.phone].filter(Boolean).join(' · ')}
+                </Typography>
               </Box>
-
-            </Box>
-          </Box>
-
-          {/* כפתור שליחה */}
-          <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
-            <Button 
-              type="submit" 
-              variant="contained"
-              size="large"
-              disabled={isSubmitting || !formData.folderName.trim() || selectedClientId === null}
-              sx={{ 
-                borderRadius: 3,
-                px: 4,
-                py: 1.5,
-                background: `${theme.palette.primary.main}`,
-                '&:hover': {
-                  background: `${theme.palette.primary.dark}`,
-                }
-              }}
-            >
-              {isSubmitting ? 'יוצר תיקייה...' : 'יצירת תיקייה'}
-            </Button>
-          </Box>
-
-          {/* הודעת debug במצב פיתוח */}
-          {process.env.NODE_ENV === 'development' && (
-            <Box sx={{ 
-              mt: 2, 
-              p: 2, 
-              backgroundColor: alpha(theme.palette.info.main, 0.1),
-              borderRadius: 2,
-              border: `1px solid ${alpha(theme.palette.info.main, 0.3)}`
-            }}>
-              <Typography variant="caption" component="div">
-                <strong>Debug Info:</strong>
-              </Typography>
-              <Typography variant="caption" component="div">
-                Folder Name: {formData.folderName || 'Empty'}
-              </Typography>
-              <Typography variant="caption" component="div">
-                Selected Client ID: {selectedClientId || 'None'}
-              </Typography>
-              <Typography variant="caption" component="div">
-                Selected Client: {selectedClient?.fullName || 'None'}
-              </Typography>
-              <Typography variant="caption" component="div">
-                Clients Array: {Array.isArray(clients) ? `${clients.length} clients` : 'Not an array'}
-              </Typography>
             </Box>
           )}
-        </Box>
+        />
       </Box>
-    </FormContainer>
+
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={isSubmitting || !formData.folderName.trim() || selectedClientId === null}
+          sx={{ minWidth: 140 }}
+        >
+          {isSubmitting ? <CircularProgress size={18} sx={{ color: '#FFFFFF' }} /> : 'פתיחת התיק'}
+        </Button>
+      </Box>
+    </Box>
   );
 };
 

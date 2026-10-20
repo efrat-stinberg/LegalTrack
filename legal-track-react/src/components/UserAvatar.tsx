@@ -72,8 +72,8 @@ const UserAvatarComponent: React.FC<UserAvatarProps> = ({ style }) => {
         }}
       >
         <Avatar sx={{ width: 32, height: 32, fontSize: 14 }}>{firstLetter}</Avatar>
-        <Box sx={{ display: { xs: "none", sm: "flex" }, flexDirection: "column", alignItems: "flex-start", lineHeight: 1.2 }}>
-          <Typography sx={{ fontSize: 14, fontWeight: 500, color: tokens.ink }}>{userName}</Typography>
+        <Box sx={{ display: { xs: "none", sm: "flex" }, flexDirection: "column", alignItems: "flex-start", lineHeight: 1.2, minWidth: 0, maxWidth: 160 }}>
+          <Typography noWrap sx={{ fontSize: 14, fontWeight: 500, color: tokens.ink, maxWidth: "100%" }}>{userName}</Typography>
           <Typography sx={{ fontSize: 12, color: tokens.muted }}>{isAdmin ? "מנהל משרד" : "עורך דין"}</Typography>
         </Box>
         <ChevronDown size={16} color={tokens.muted} aria-hidden="true" />

@@ -1,6 +1,9 @@
+// Last-resort screen for render errors. It sits outside the app's ThemeProvider, so it brings its own.
 import { Component, ErrorInfo, ReactNode } from 'react';
-import { Box, Typography, Button, Paper, Alert } from '@mui/material';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { Box, Button, CssBaseline, Typography } from '@mui/material';
+import { ThemeProvider } from '@mui/material/styles';
+import { AlertTriangle, LogOut, RefreshCw } from 'lucide-react';
+import theme, { tokens } from '../theme';
 
 interface Props {
   children: ReactNode;
@@ -41,100 +44,68 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   public render() {
-    if (this.state.hasError) {
-      return (
-        <Box
-          sx={{
-            minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 3,
-            backgroundColor: '#f5f5f5'
-          }}
-        >
-          <Paper
-            elevation={3}
+    if (!this.state.hasError) return this.props.children;
+
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Box component="main" sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, background: tokens.ground }}>
+          <Box
+            role="alert"
             sx={{
-              p: 4,
-              maxWidth: 600,
-              textAlign: 'center',
-              borderRadius: 3
+              width: '100%',
+              maxWidth: 520,
+              p: { xs: 3, sm: 4 },
+              background: tokens.white,
+              border: `1px solid ${tokens.border}`,
+              borderRadius: `${tokens.radiusLg}px`,
             }}
           >
-            <Box mb={3}>
-              <AlertTriangle 
-                size={64} 
-                color="#1A1F2B" 
-                style={{ marginBottom: 16 }}
-              />
-              <Typography variant="h4" gutterBottom color="error">
-                אופס! משהו השתבש
-              </Typography>
-              <Typography variant="body1" color="text.secondary" mb={3}>
-                אירעה שגיאה בלתי צפויה באפליקציה. אנא נסה לרענן את הדף.
-              </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, color: tokens.navy700, mb: 1.5 }} aria-hidden="true">
+              <AlertTriangle size={22} />
             </Box>
+            <Typography variant="h1" sx={{ fontSize: 26, mb: 1 }}>
+              משהו השתבש
+            </Typography>
+            <Typography sx={{ color: tokens.slate, mb: 2.5 }}>
+              אירעה שגיאה לא צפויה בתצוגה. רענון הדף פותר את רוב המקרים.
+            </Typography>
 
-            <Alert 
-              severity="error" 
-              sx={{ mb: 3, textAlign: 'left' }}
-            >
-              <Typography variant="body2" component="div">
-                <strong>שגיאה:</strong> {this.state.error?.message}
-              </Typography>
-              {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
-                <Box mt={2}>
-                  <Typography variant="caption" component="div">
-                    <strong>Stack Trace:</strong>
-                  </Typography>
-                  <pre style={{ 
-                    fontSize: '10px', 
-                    overflow: 'auto',
-                    maxHeight: '200px',
-                    backgroundColor: '#f5f5f5',
-                    padding: '8px',
-                    borderRadius: '4px',
-                    marginTop: '8px'
-                  }}>
+            {this.state.error?.message && (
+              <Box
+                sx={{
+                  mb: 3,
+                  px: 1.75,
+                  py: 1.25,
+                  background: tokens.ground,
+                  border: `1px solid ${tokens.border}`,
+                  borderRadius: `${tokens.radius}px`,
+                  boxShadow: `inset -3px 0 0 ${tokens.ink}`,
+                  fontSize: 13,
+                }}
+              >
+                <strong>פרטי השגיאה: </strong>
+                <bdi dir="ltr">{this.state.error.message}</bdi>
+                {import.meta.env.DEV && this.state.errorInfo && (
+                  <Box component="pre" dir="ltr" sx={{ fontSize: 11, overflow: 'auto', maxHeight: 200, mt: 1, mb: 0, textAlign: 'left' }}>
                     {this.state.errorInfo.componentStack}
-                  </pre>
-                </Box>
-              )}
-            </Alert>
-
-            <Box display="flex" gap={2} justifyContent="center">
-              <Button
-                variant="contained"
-                startIcon={<RefreshCw size={20} />}
-                onClick={this.handleReload}
-                sx={{ borderRadius: 2 }}
-              >
-                רענן דף
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<Home size={20} />}
-                onClick={this.handleGoHome}
-                sx={{ borderRadius: 2 }}
-              >
-                חזור לעמוד הבית
-              </Button>
-            </Box>
-
-            {process.env.NODE_ENV === 'development' && (
-              <Box mt={3}>
-                <Typography variant="caption" color="text.secondary">
-                  מצב פיתוח - מידע נוסף זמין בקונסול
-                </Typography>
+                  </Box>
+                )}
               </Box>
             )}
-          </Paper>
-        </Box>
-      );
-    }
 
-    return this.props.children;
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <Button variant="contained" startIcon={<RefreshCw size={16} />} onClick={this.handleReload}>
+                רענון הדף
+              </Button>
+              <Button variant="outlined" startIcon={<LogOut size={16} />} onClick={this.handleGoHome}>
+                יציאה והתחברות מחדש
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </ThemeProvider>
+    );
   }
 }
 

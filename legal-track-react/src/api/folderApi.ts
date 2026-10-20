@@ -11,9 +11,9 @@ const getUserGroupId = (): number => {
     const token = getAuthToken();
     if (token) {
       // פענוח JWT token לקבלת groupId
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      console.log('JWT payload for groupId:', payload);
-      
+      // JWT segments are base64url; atob needs standard base64
+      const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+
       // נסה כמה אפשרויות של שמות שדות
       return payload.GroupId || payload.groupId || payload.group_id || 1;
     }

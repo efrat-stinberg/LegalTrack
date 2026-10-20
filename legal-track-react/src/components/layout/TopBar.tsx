@@ -79,7 +79,7 @@ const TopBar: React.FC<TopBarProps> = ({ onOpenMenu }) => {
         variant="contained"
         startIcon={<Plus size={16} />}
         onClick={() => navigate('/folders?new=1')}
-        sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
+        sx={{ display: { xs: 'none', sm: 'inline-flex' }, flexShrink: 0, whiteSpace: 'nowrap' }}
       >
         תיק חדש
       </Button>

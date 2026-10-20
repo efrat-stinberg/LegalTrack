@@ -1,28 +1,8 @@
+// Edit the signed-in user's name and email (opened from the user menu).
 import React, { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  Box,
-  Avatar,
-  Typography,
-  IconButton,
-  Fade,
-  useTheme,
-  alpha,
-  InputAdornment,
-  Alert
-} from "@mui/material";
-import { styled } from "@mui/material/styles";
-import {
-  X,
-  User,
-  Mail,
-  Save,
-  Camera,
-} from "lucide-react";
+import { Alert, Avatar, Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, TextField, Typography } from "@mui/material";
+import { X } from "lucide-react";
+import { tokens } from "../theme";
 
 interface UserEditDialogProps {
   isOpen: boolean;
@@ -31,166 +11,12 @@ interface UserEditDialogProps {
   user: { name: string; email: string };
 }
 
-const StyledDialog = styled(Dialog)(({ theme }) => ({
-  '& .MuiDialog-paper': {
-    borderRadius: 8,
-    overflow: 'hidden',
-    minWidth: 450,
-    background: `${theme.palette.background.paper}`,
-    border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-  }
-}));
-
-const DialogHeader = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(3),
-  background: `${theme.palette.primary.main}`,
-  color: 'white',
-  position: 'relative',
-  textAlign: 'center',
-  
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: -30,
-    right: -30,
-    width: 80,
-    height: 80,
-    background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
-    borderRadius: '50%',
-  }
-}));
-
-const UserAvatar = styled(Avatar)(({ theme }) => ({
-  width: 80,
-  height: 80,
-  margin: '0 auto',
-  marginBottom: theme.spacing(2),
-  background: alpha(theme.palette.common.white, 0.2),
-  backdropFilter: 'blur(10px)',
-  border: `3px solid ${alpha(theme.palette.common.white, 0.3)}`,
-  fontSize: '2rem',
-  fontWeight: 700,
-  position: 'relative',
-  cursor: 'pointer',
-  transition: 'all 0.3s ease',
-  
-  '&:hover': {
-    transform: 'scale(1)',
-    '& .camera-overlay': {
-      opacity: 1,
-    }
-  }
-}));
-
-const CameraOverlay = styled(Box)(({ theme }) => ({
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  borderRadius: '50%',
-  background: alpha(theme.palette.common.black, 0.5),
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  opacity: 0,
-  transition: 'opacity 0.3s ease',
-}));
-
-const CloseButton = styled(IconButton)(({ theme }) => ({
-  position: 'absolute',
-  top: theme.spacing(1),
-  left: theme.spacing(1),
-  background: alpha(theme.palette.common.white, 0.2),
-  backdropFilter: 'blur(10px)',
-  border: `1px solid ${alpha(theme.palette.common.white, 0.3)}`,
-  color: 'white',
-  
-  '&:hover': {
-    background: alpha(theme.palette.common.white, 0.3),
-    transform: 'scale(1)',
-  }
-}));
-
-const StyledTextField = styled(TextField)(({ theme }) => ({
-  '& .MuiOutlinedInput-root': {
-    borderRadius: 8,
-    background: alpha(theme.palette.background.paper, 0.8),
-    backdropFilter: 'blur(10px)',
-    transition: 'all 0.3s ease',
-    
-    '&:hover': {
-      transform: 'translateY(0)',
-      boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.15)}`,
-    },
-    
-    '&.Mui-focused': {
-      transform: 'translateY(0)',
-      boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.2)}`,
-    }
-  },
-  
-  '& .MuiOutlinedInput-notchedOutline': {
-    borderColor: alpha(theme.palette.primary.main, 0.2),
-  },
-  
-  '&:hover .MuiOutlinedInput-notchedOutline': {
-    borderColor: alpha(theme.palette.primary.main, 0.4),
-  },
-  
-  '& .Mui-focused .MuiOutlinedInput-notchedOutline': {
-    borderColor: theme.palette.primary.main,
-    borderWidth: 2,
-  }
-}));
-
-const SaveButton = styled(Button)(({ theme }) => ({
-  borderRadius: 8,
-  padding: theme.spacing(1.5, 3),
-  background: `${theme.palette.primary.main}`,
-  color: 'white',
-  fontWeight: 700,
-  textTransform: 'none',
-  boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.3)}`,
-  transition: 'all 0.3s ease',
-  
-  '&:hover': {
-    transform: 'translateY(0)',
-    boxShadow: `0 12px 32px ${alpha(theme.palette.primary.main, 0.4)}`,
-    background: `${theme.palette.primary.dark}`,
-  },
-  
-  '&:disabled': {
-    background: alpha(theme.palette.action.disabled, 0.12),
-    color: theme.palette.action.disabled,
-    transform: 'none',
-    boxShadow: 'none',
-  }
-}));
-
-const CancelButton = styled(Button)(({ theme }) => ({
-  borderRadius: 8,
-  padding: theme.spacing(1.5, 3),
-  textTransform: 'none',
-  fontWeight: 600,
-  border: `2px solid ${alpha(theme.palette.text.secondary, 0.2)}`,
-  color: theme.palette.text.secondary,
-  transition: 'all 0.3s ease',
-  
-  '&:hover': {
-    transform: 'translateY(0)',
-    borderColor: alpha(theme.palette.text.secondary, 0.4),
-    background: alpha(theme.palette.text.secondary, 0.05),
-  }
-}));
-
 const UserEditDialog: React.FC<UserEditDialogProps> = ({ 
   isOpen, 
   onClose, 
   onSave, 
   user 
 }) => {
-  const theme = useTheme();
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
@@ -248,128 +74,71 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
     }
   };
 
-  const firstLetter = name ? name.charAt(0).toUpperCase() : user.name.charAt(0).toUpperCase();
+  const firstLetter = (name || user.name || "?").charAt(0).toUpperCase();
 
   return (
-    <StyledDialog
-      open={isOpen}
-      onClose={handleClose}
-      maxWidth="sm"
-      fullWidth
-      TransitionComponent={Fade}
-      TransitionProps={{ timeout: 300 }}
-    >
-      {/* Header */}
-      <DialogHeader>
-        <CloseButton onClick={handleClose} disabled={isLoading}>
-          <X size={20} />
-        </CloseButton>
-        
-        <UserAvatar>
+    <Dialog open={isOpen} onClose={handleClose} maxWidth="xs" fullWidth aria-labelledby="user-edit-title">
+      <DialogTitle id="user-edit-title" sx={{ display: "flex", alignItems: "center", gap: 1.5, paddingInlineEnd: 7 }}>
+        <Avatar sx={{ width: 36, height: 36, fontSize: 16 }} aria-hidden="true">
           {firstLetter}
-          <CameraOverlay className="camera-overlay">
-            <Camera size={24} color="white" />
-          </CameraOverlay>
-        </UserAvatar>
-        
-        <Typography variant="h5" fontWeight={700} gutterBottom>
+        </Avatar>
+        <Box>
           עריכת פרופיל
-        </Typography>
-        <Typography variant="body2" sx={{ opacity: 0.9 }}>
-          עדכן את פרטיך האישיים
-        </Typography>
-      </DialogHeader>
+          <Typography sx={{ fontSize: 13, color: tokens.slate, fontWeight: 400 }}>השם והאימייל שלך במערכת</Typography>
+        </Box>
+        <IconButton onClick={handleClose} disabled={isLoading} aria-label="סגירה" size="small" sx={{ position: "absolute", insetInlineEnd: 12, top: 14 }}>
+          <X size={18} />
+        </IconButton>
+      </DialogTitle>
 
-      {/* Content */}
-      <DialogContent sx={{ p: 3 }}>
+      <DialogContent dividers sx={{ borderColor: tokens.borderSoft }}>
         {errors.general && (
-          <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+          <Alert severity="error" role="alert" sx={{ mb: 2 }}>
             {errors.general}
           </Alert>
         )}
-        
-        <Box display="flex" flexDirection="column" gap={3}>
-          <StyledTextField
+
+        <Box component="form" id="user-edit-form" noValidate onSubmit={(e) => { e.preventDefault(); handleSave(); }} sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+          <TextField
             label="שם מלא"
+            autoComplete="name"
             value={name}
             onChange={(e) => {
               setName(e.target.value);
-              if (errors.name) {
-                setErrors(prev => ({ ...prev, name: '' }));
-              }
+              if (errors.name) setErrors(prev => ({ ...prev, name: '' }));
             }}
             error={!!errors.name}
-            helperText={errors.name}
+            helperText={errors.name || " "}
             fullWidth
             disabled={isLoading}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <User size={20} color={theme.palette.text.secondary} />
-                </InputAdornment>
-              ),
-            }}
           />
-
-          <StyledTextField
+          <TextField
             label="אימייל"
             type="email"
+            autoComplete="email"
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
-              if (errors.email) {
-                setErrors(prev => ({ ...prev, email: '' }));
-              }
+              if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
             }}
             error={!!errors.email}
-            helperText={errors.email}
+            helperText={errors.email || " "}
             fullWidth
             disabled={isLoading}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Mail size={20} color={theme.palette.text.secondary} />
-                </InputAdornment>
-              ),
-            }}
+            inputProps={{ dir: "ltr", style: { textAlign: "right" } }}
           />
-        </Box>
-
-        <Box 
-          mt={3} 
-          p={2} 
-          bgcolor={alpha(theme.palette.info.main, 0.05)} 
-          borderRadius={2}
-          border={`1px solid ${alpha(theme.palette.info.main, 0.2)}`}
-        >
-          <Typography variant="body2" color="info.main" fontWeight={600} gutterBottom>
-            טיפ
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            שימוש באימייל תקין חיוני לקבלת התראות ועדכונים במערכת
-          </Typography>
         </Box>
       </DialogContent>
 
-      {/* Actions */}
-      <DialogActions sx={{ p: 3, gap: 2 }}>
-        <CancelButton 
-          onClick={handleClose} 
-          disabled={isLoading}
-          fullWidth
-        >
+      <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
+        <Button variant="outlined" onClick={handleClose} disabled={isLoading}>
           ביטול
-        </CancelButton>
-        <SaveButton
-          onClick={handleSave}
-          disabled={isLoading || !name.trim() || !email.trim()}
-          startIcon={isLoading ? null : <Save size={18} />}
-          fullWidth
-        >
-          {isLoading ? 'שומר...' : 'שמור שינויים'}
-        </SaveButton>
+        </Button>
+        <Button type="submit" form="user-edit-form" variant="contained" disabled={isLoading || !name.trim() || !email.trim()} sx={{ minWidth: 120 }}>
+          {isLoading ? <CircularProgress size={18} sx={{ color: "#FFFFFF" }} /> : "שמירה"}
+        </Button>
       </DialogActions>
-    </StyledDialog>
+    </Dialog>
   );
 };
 

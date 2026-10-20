@@ -1,50 +1,23 @@
-// FolderGridView.tsx - תיקון הניווט
-import React, { useState } from 'react';
+// Grid of folder cards for the folder-management page: open, rename, delete.
+import React, { useRef, useState } from 'react';
 import {
-  Card,
-  CardContent,
-  Typography,
-  IconButton,
   Box,
-  Chip,
-  Avatar,
+  Button,
+  Card,
+  CardActionArea,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  ListItemIcon,
   Menu,
   MenuItem,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
   TextField,
-  useTheme,
-  alpha,
-  Tooltip,
-  Zoom,
+  Typography,
 } from '@mui/material';
-import { styled } from '@mui/material/styles';
-import {
-  FolderOpen,
-  MoreVertical,
-  Edit2,
-  Trash2,
-  FileText,
-  Calendar,
-  User,
-  Eye,
-  Share2,
-  Archive
-} from 'lucide-react';
-
-// Custom Grid Component
-const FolderGrid = styled(Box)(({ theme }) => ({
-  display: 'grid',
-  gap: theme.spacing(3),
-  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-  
-  [theme.breakpoints.down('sm')]: {
-    gridTemplateColumns: 'repeat(1, 1fr)',
-  },
-}));
+import { Calendar, Edit2, Eye, FileText, Folder as FolderIcon, MoreVertical, Trash2, User } from 'lucide-react';
+import { tokens } from '../theme';
 
 interface Folder {
   id: number;
@@ -53,10 +26,6 @@ interface Folder {
   clientName?: string;
   createdDate?: string;
   lastModified?: string;
-  status?: 'active' | 'archived' | 'closed';
-  priority?: 'low' | 'medium' | 'high' | 'urgent';
-  color?: string;
-  tags?: string[];
   documentsCount?: number;
 }
 
@@ -68,99 +37,23 @@ interface FolderGridViewProps {
   searchQuery?: string;
 }
 
-const FolderCard = styled(Card)(({ theme }) => ({
-  height: '100%',
-  borderRadius: 8,
-  border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  position: 'relative',
-  overflow: 'hidden',
-  cursor: 'pointer',
-  background: `${theme.palette.background.paper}`,
-  
-  '&:hover': {
-    transform: 'translateY(0)',
-    boxShadow: `0 20px 40px ${alpha(theme.palette.primary.main, 0.15)}`,
-    border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-    
-    '& .folder-actions': {
-      opacity: 1,
-      transform: 'translateY(0)',
-    },
-    
-    '& .folder-icon': {
-      transform: 'scale(1) rotate(5deg)',
-    }
-  },
-  
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 4,
-    background: 'var(--folder-color, #1B3355)',
-  }
-}));
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-const FolderIcon = styled(Avatar)(({ theme }) => ({
-  width: 64,
-  height: 64,
-  background: 'var(--folder-color, #1B3355)',
-  margin: '0 auto',
-  marginBottom: theme.spacing(2),
-  boxShadow: `0 8px 24px ${alpha('#1B3355', 0.3)}`,
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  
-  '& svg': {
-    color: 'white',
-  }
-}));
+const highlightText = (text: string, query: string) => {
+  if (!query.trim()) return text;
+  const regex = new RegExp(`(${escapeRegExp(query.trim())})`, 'gi');
+  return text.split(regex).map((part, index) =>
+    index % 2 === 1 ? (
+      <Box component="mark" key={index} sx={{ background: tokens.borderSoft, color: 'inherit', fontWeight: 700, borderRadius: '2px', px: '1px' }}>
+        {part}
+      </Box>
+    ) : (
+      part
+    )
+  );
+};
 
-const ActionButtons = styled(Box)(({ theme }) => ({
-  position: 'absolute',
-  top: theme.spacing(1),
-  right: theme.spacing(1),
-  opacity: 0,
-  transform: 'translateY(0)',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  zIndex: 2,
-}));
-
-const StatsChip = styled(Chip)(({ theme }) => ({
-  backgroundColor: alpha(theme.palette.primary.main, 0.1),
-  color: theme.palette.primary.main,
-  border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-  fontSize: '0.75rem',
-  height: 24,
-  
-  '& .MuiChip-icon': {
-    color: 'inherit',
-    fontSize: '0.875rem',
-  }
-}));
-
-const MetaInfo = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: theme.spacing(1),
-  marginTop: theme.spacing(1),
-  color: theme.palette.text.secondary,
-  fontSize: '0.75rem',
-  
-  '& svg': {
-    fontSize: '0.875rem',
-  }
-}));
-
-const EditDialog = styled(Dialog)(({ theme }) => ({
-  '& .MuiDialog-paper': {
-    borderRadius: 8,
-    padding: theme.spacing(2),
-    minWidth: 400,
-  }
-}));
+const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('he-IL');
 
 const FolderGridView: React.FC<FolderGridViewProps> = ({
   folders,
@@ -169,37 +62,15 @@ const FolderGridView: React.FC<FolderGridViewProps> = ({
   onDeleteFolder,
   searchQuery = ''
 }) => {
-  const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
-
-  const folderColors = [
-    '#1B3355',
-    '#2A4870',
-    '#2A4870',
-    '#2A4870',
-    '#2A4870',
-    '#a8edea',
-    '#2A4870',
-    '#E3E6EB',
-  ];
+  const renameInputRef = useRef<HTMLInputElement>(null);
 
   const handleCardClick = (folder: Folder) => {
-    console.log('FolderGridView: Card clicked:', {
-      folderId: folder.id,
-      folderName: folder.name
-    });
-    
-    // וודא שיש ID תקין
-    if (!folder.id || isNaN(folder.id)) {
-      console.error('FolderGridView: Invalid folder ID:', folder.id);
-      return;
-    }
-    
-    // קריאה לפונקציה עם האובייקט הנכון
+    if (!folder.id || isNaN(folder.id)) return;
     onFolderClick({ id: folder.id });
   };
 
@@ -207,13 +78,10 @@ const FolderGridView: React.FC<FolderGridViewProps> = ({
     event.stopPropagation();
     setAnchorEl(event.currentTarget);
     setSelectedFolder(folder);
-    console.log('FolderGridView: Menu opened for folder:', folder.id);
   };
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setSelectedFolder(null);
-  };
+  // Keeps selectedFolder: the rename/delete dialogs opened from the menu still need it
+  const handleMenuClose = () => setAnchorEl(null);
 
   const handleEditClick = () => {
     if (selectedFolder) {
@@ -239,229 +107,135 @@ const FolderGridView: React.FC<FolderGridViewProps> = ({
 
   const handleDeleteConfirm = () => {
     if (selectedFolder) {
-      console.log('FolderGridView: Deleting folder:', selectedFolder.id);
       onDeleteFolder(selectedFolder.id);
       setDeleteDialogOpen(false);
       setSelectedFolder(null);
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('he-IL');
-  };
-
-  const highlightText = (text: string, query: string) => {
-    if (!query) return text;
-    
-    const regex = new RegExp(`(${query})`, 'gi');
-    const parts = text.split(regex);
-    
-    return parts.map((part, index) =>
-      regex.test(part) ? (
-        <span key={index} style={{ 
-          backgroundColor: alpha(theme.palette.warning.main, 0.3),
-          fontWeight: 'bold'
-        }}>
-          {part}
-        </span>
-      ) : part
-    );
-  };
-
   return (
     <>
-      <FolderGrid>
-        {folders.map((folder, index) => (
-          <Zoom in={true} timeout={300 + index * 100} key={folder.id}>
-            <FolderCard
-              onClick={() => handleCardClick(folder)}
-              sx={{
-                '--folder-color': folderColors[index % folderColors.length],
-              }}
-            >
-              <ActionButtons className="folder-actions">
-                <Tooltip title="אפשרויות">
-                  <IconButton
-                    size="small"
-                    onClick={(e) => handleMenuOpen(e, folder)}
-                    sx={{
-                      backgroundColor: alpha(theme.palette.background.paper, 0.9),
-                      backdropFilter: 'blur(10px)',
-                      '&:hover': {
-                        backgroundColor: theme.palette.background.paper,
-                      }
-                    }}
+      <Box
+        component="ul"
+        aria-label="תיקים"
+        sx={{ listStyle: 'none', m: 0, p: 0, display: 'grid', gap: 2, gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}
+      >
+        {folders.map((folder) => (
+          <Box component="li" key={folder.id}>
+            <Card sx={{ height: '100%', position: 'relative', '&:hover': { borderColor: tokens.borderStrong } }}>
+              <CardActionArea
+                onClick={() => handleCardClick(folder)}
+                aria-label={`פתיחת התיק ${folder.name}`}
+                sx={{ height: '100%', p: 2.25, pb: 2, display: 'flex', flexDirection: 'column', alignItems: 'stretch', justifyContent: 'flex-start', '&:hover': { background: tokens.hover } }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25, paddingInlineEnd: 4, mb: 1.5 }}>
+                  <Box sx={{ color: tokens.navy700, display: 'flex', mt: '2px' }} aria-hidden="true">
+                    <FolderIcon size={18} />
+                  </Box>
+                  <Typography
+                    title={folder.name}
+                    sx={{ fontWeight: 600, fontSize: 15, color: tokens.ink, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
                   >
-                    <MoreVertical size={16} />
-                  </IconButton>
-                </Tooltip>
-              </ActionButtons>
-
-              <CardContent sx={{ p: 3, textAlign: 'center' }}>
-                <FolderIcon 
-                  className="folder-icon"
-                  sx={{ '--folder-color': folderColors[index % folderColors.length] }}
-                >
-                  <FolderOpen size={28} />
-                </FolderIcon>
-
-                <Typography 
-                  variant="h6" 
-                  fontWeight={700} 
-                  gutterBottom
-                  sx={{ 
-                    minHeight: 32,
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden'
-                  }}
-                  title={folder.name}
-                >
-                  {highlightText(folder.name, searchQuery)}
-                </Typography>
-
-                <Box display="flex" justifyContent="center" gap={1} mb={2}>
-                  <StatsChip
-                    icon={<FileText />}
-                    label={`${folder.files.length} קבצים`}
-                    size="small"
-                  />
+                    {highlightText(folder.name, searchQuery)}
+                  </Typography>
                 </Box>
 
-                {folder.clientName && (
-                  <MetaInfo>
-                    <User size={14} />
-                    <Typography variant="caption" title={folder.clientName}>
-                      {highlightText(folder.clientName, searchQuery)}
-                    </Typography>
-                  </MetaInfo>
-                )}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, color: tokens.slate, fontSize: 13 }}>
+                  {folder.clientName && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                      <User size={14} aria-hidden="true" />
+                      <Typography component="span" sx={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {highlightText(folder.clientName, searchQuery)}
+                      </Typography>
+                    </Box>
+                  )}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <FileText size={14} aria-hidden="true" />
+                    <span>{folder.files.length === 1 ? 'מסמך אחד' : `${folder.files.length} מסמכים`}</span>
+                  </Box>
+                  {folder.createdDate && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Calendar size={14} aria-hidden="true" />
+                      <span>נפתח {formatDate(folder.createdDate)}</span>
+                    </Box>
+                  )}
+                </Box>
+              </CardActionArea>
 
-                {folder.createdDate && (
-                  <MetaInfo>
-                    <Calendar size={14} />
-                    <Typography variant="caption">
-                      נוצר: {formatDate(folder.createdDate)}
-                    </Typography>
-                  </MetaInfo>
-                )}
-              </CardContent>
-            </FolderCard>
-          </Zoom>
+              <IconButton
+                size="small"
+                onClick={(e) => handleMenuOpen(e, folder)}
+                aria-label={`פעולות לתיק ${folder.name}`}
+                aria-haspopup="menu"
+                sx={{ position: 'absolute', top: 10, insetInlineEnd: 8, color: tokens.slate }}
+              >
+                <MoreVertical size={16} />
+              </IconButton>
+            </Card>
+          </Box>
         ))}
-      </FolderGrid>
+      </Box>
 
-      {/* Context Menu */}
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            minWidth: 180,
-            boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.12)}`,
-          }
-        }}
-      >
-        <MenuItem onClick={() => selectedFolder && handleCardClick(selectedFolder)}>
-          <Eye size={16} style={{ marginRight: 8 }} />
-          פתח תיקייה
+      {/* disableRestoreFocus: otherwise the closing menu pulls focus back from the dialog it opened */}
+      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose} disableRestoreFocus PaperProps={{ sx: { minWidth: 180 } }}>
+        <MenuItem onClick={() => { handleMenuClose(); if (selectedFolder) handleCardClick(selectedFolder); }}>
+          <ListItemIcon><Eye size={16} /></ListItemIcon>
+          פתיחת התיק
         </MenuItem>
         <MenuItem onClick={handleEditClick}>
-          <Edit2 size={16} style={{ marginRight: 8 }} />
-          עריכת שם
+          <ListItemIcon><Edit2 size={16} /></ListItemIcon>
+          שינוי שם
         </MenuItem>
-        <MenuItem>
-          <Share2 size={16} style={{ marginRight: 8 }} />
-          שיתוף
-        </MenuItem>
-        <MenuItem>
-          <Archive size={16} style={{ marginRight: 8 }} />
-          ארכב
-        </MenuItem>
-        <MenuItem onClick={handleDeleteClick} sx={{ color: 'error.main' }}>
-          <Trash2 size={16} style={{ marginRight: 8 }} />
+        <MenuItem onClick={handleDeleteClick}>
+          <ListItemIcon><Trash2 size={16} /></ListItemIcon>
           מחיקה
         </MenuItem>
       </Menu>
 
-      {/* Edit Dialog */}
-      <EditDialog
+      <Dialog
         open={editDialogOpen}
         onClose={() => setEditDialogOpen(false)}
-        maxWidth="sm"
+        maxWidth="xs"
         fullWidth
+        aria-labelledby="folder-rename-title"
+        // autoFocus loses to the menu that opened the dialog, so focus the field once it is shown
+        TransitionProps={{ onEntered: () => renameInputRef.current?.select() }}
       >
-        <DialogTitle>
-          <Box display="flex" alignItems="center" gap={2}>
-            <Avatar sx={{ backgroundColor: 'primary.main' }}>
-              <Edit2 size={20} />
-            </Avatar>
-            עריכת שם תיקייה
-          </Box>
-        </DialogTitle>
+        <DialogTitle id="folder-rename-title">שינוי שם התיק</DialogTitle>
         <DialogContent>
-          <TextField
-            autoFocus
-            fullWidth
-            label="שם תיקייה"
-            value={newFolderName}
-            onChange={(e) => setNewFolderName(e.target.value)}
-            margin="normal"
-            variant="outlined"
-            sx={{ mt: 2 }}
-          />
+          <Box component="form" id="folder-rename-form" onSubmit={(e) => { e.preventDefault(); handleEditSubmit(); }} sx={{ pt: 1 }}>
+            <TextField inputRef={renameInputRef} fullWidth label="שם התיק" value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} />
+          </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          <Button onClick={() => setEditDialogOpen(false)}>
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+          <Button variant="outlined" onClick={() => setEditDialogOpen(false)}>
             ביטול
           </Button>
-          <Button 
-            onClick={handleEditSubmit} 
-            variant="contained"
-            disabled={!newFolderName.trim()}
-          >
-            שמור
+          <Button type="submit" form="folder-rename-form" variant="contained" disabled={!newFolderName.trim()}>
+            שמירה
           </Button>
         </DialogActions>
-      </EditDialog>
+      </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-        PaperProps={{
-          sx: { borderRadius: 3 }
-        }}
-      >
-        <DialogTitle>
-          <Box display="flex" alignItems="center" gap={2}>
-            <Avatar sx={{ backgroundColor: 'error.main' }}>
-              <Trash2 size={20} />
-            </Avatar>
-            אישור מחיקה
-          </Box>
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} maxWidth="xs" fullWidth aria-labelledby="folder-delete-title">
+        <DialogTitle id="folder-delete-title" sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+          <Trash2 size={18} aria-hidden="true" />
+          מחיקת תיק
         </DialogTitle>
         <DialogContent>
           <Typography>
-            האם אתה בטוח שברצונך למחוק את התיקייה "{selectedFolder?.name}"?
+            למחוק את התיק "{selectedFolder?.name}"?
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            פעולה זו לא ניתנת לביטול.
+          <Typography sx={{ mt: 1, color: tokens.slate, fontSize: 14 }}>
+            המסמכים והשיחות של התיק יימחקו גם הם. אי אפשר לבטל את הפעולה.
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          <Button onClick={() => setDeleteDialogOpen(false)}>
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+          <Button variant="outlined" onClick={() => setDeleteDialogOpen(false)}>
             ביטול
           </Button>
-          <Button 
-            onClick={handleDeleteConfirm} 
-            variant="contained"
-            color="error"
-          >
-            מחק
+          <Button onClick={handleDeleteConfirm} variant="contained" startIcon={<Trash2 size={16} />}>
+            מחיקה
           </Button>
         </DialogActions>
       </Dialog>
