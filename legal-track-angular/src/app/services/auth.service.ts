@@ -346,7 +346,10 @@ export class AuthService {
       const parts = token.split('.');
       if (parts.length !== 3) return null;
 
-      const payload = JSON.parse(atob(parts[1]));
+      // JWT segments are base64url and the claims are UTF-8 (Hebrew names), which plain atob() garbles
+      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(parts[1].length / 4) * 4, '=');
+      const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+      const payload = JSON.parse(new TextDecoder().decode(bytes));
       
       // Map JWT claims to our interface
       return {

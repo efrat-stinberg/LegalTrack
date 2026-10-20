@@ -24,199 +24,102 @@ import { UsersService } from '../../services/users.service';
     MatProgressSpinnerModule
   ],
   template: `
-    <div class="dialog-container">
-      <h2 mat-dialog-title>הזמנת עורך דין חדש</h2>
-      
-      <mat-dialog-content>
-        <form [formGroup]="inviteForm" class="invite-form">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>כתובת אימייל</mat-label>
-            <input matInput type="email" formControlName="email" 
-                   placeholder="lawyer@example.com"
-                   [class.error]="inviteForm.get('email')?.invalid && inviteForm.get('email')?.touched">
-            <mat-icon matSuffix>email</mat-icon>
-            @if (inviteForm.get('email')?.hasError('required')) {
-              <mat-error>אימייל הוא שדה חובה</mat-error>
-            }
-            @if (inviteForm.get('email')?.hasError('email')) {
-              <mat-error>כתובת אימייל לא תקינה</mat-error>
-            }
-          </mat-form-field>
+    <h2 mat-dialog-title>הזמנת עורך דין</h2>
 
-          <div class="form-info">
-            <mat-icon class="info-icon">info</mat-icon>
-            <div class="info-text">
-              <p><strong>מה יקרה לאחר השליחה:</strong></p>
-              <ul>
-                <li>המערכת תשלח אימייל הזמנה לכתובת שהוזנה</li>
-                <li>עורך הדין יוכל להירשם באמצעות קישור מיוחד</li>
-                <li>לאחר ההרשמה הוא יתווסף אוטומטית לקבוצה שלך</li>
-                <li>ההזמנה תקפה לזמן מוגבל ולשימוש חד-פעמי</li>
-              </ul>
-            </div>
+    <mat-dialog-content>
+      <form [formGroup]="inviteForm" class="invite-form" (ngSubmit)="onSendInvite()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>כתובת אימייל</mat-label>
+          <input matInput type="email" formControlName="email" dir="ltr" class="ltr-input"
+                 placeholder="lawyer@example.com" autocomplete="off" [readonly]="!!inviteLink">
+          <mat-icon matSuffix aria-hidden="true">mail_outline</mat-icon>
+          @if (inviteForm.get('email')?.hasError('required')) {
+            <mat-error>יש להזין אימייל</mat-error>
+          } @else if (inviteForm.get('email')?.hasError('email')) {
+            <mat-error>כתובת האימייל לא תקינה</mat-error>
+          }
+        </mat-form-field>
+      </form>
+
+      @if (!inviteLink) {
+        <div class="note">
+          <p class="note-title">מה קורה אחרי השליחה</p>
+          <ul>
+            <li>נשלח מייל עם קישור הרשמה אישי.</li>
+            <li>עורך הדין נרשם דרך הקישור ומצורף למשרד שלך.</li>
+            <li>הקישור חד-פעמי ותקף לזמן מוגבל.</li>
+          </ul>
+        </div>
+      } @else {
+        <div class="invite-link-box" role="status">
+          <p class="note-title">
+            <mat-icon aria-hidden="true">link</mat-icon>
+            ההזמנה נוצרה, אבל המייל לא נשלח
+          </p>
+          <p class="muted">אפשר להעביר לעורך הדין את הקישור הזה בדרך אחרת:</p>
+          <div class="invite-link-row">
+            <input class="invite-link-input" [value]="inviteLink" readonly aria-label="קישור ההזמנה" (focus)="$any($event.target).select()">
+            <button mat-stroked-button type="button" (click)="copyLink()">
+              <mat-icon>content_copy</mat-icon> העתקה
+            </button>
           </div>
-        </form>
+          @if (emailError) {
+            <p class="email-error">סיבת הכישלון: <bdi>{{ emailError }}</bdi></p>
+          }
+        </div>
+      }
+    </mat-dialog-content>
 
-        @if (inviteLink) {
-          <div class="invite-link-box">
-            <p><strong>ההזמנה נוצרה, אבל המייל לא נשלח.</strong></p>
-            <p>אפשר להעביר לעורך הדין את הקישור הזה (למשל בוואטסאפ):</p>
-            <div class="invite-link-row">
-              <input class="invite-link-input" [value]="inviteLink" readonly (focus)="$any($event.target).select()">
-              <button mat-stroked-button type="button" (click)="copyLink()">
-                <mat-icon>content_copy</mat-icon> העתק
-              </button>
-            </div>
-            @if (emailError) {
-              <p class="email-error">סיבת הכישלון: {{ emailError }}</p>
-            }
-          </div>
-        }
-      </mat-dialog-content>
-
-      <mat-dialog-actions align="end">
-        <button mat-button (click)="onCancel()" [disabled]="loading">
-          ביטול
-        </button>
-        <button mat-raised-button color="primary" 
-                (click)="onSendInvite()" 
-                [disabled]="inviteForm.invalid || loading">
+    <mat-dialog-actions align="end">
+      @if (inviteLink) {
+        <button mat-flat-button color="primary" (click)="onCancel()">סגירה</button>
+      } @else {
+        <button mat-button (click)="onCancel()" [disabled]="loading">ביטול</button>
+        <button mat-flat-button color="primary" (click)="onSendInvite()" [disabled]="inviteForm.invalid || loading" class="send">
           @if (loading) {
-            <mat-spinner diameter="20"></mat-spinner>
+            <mat-spinner diameter="18"></mat-spinner>
           } @else {
             <mat-icon>send</mat-icon>
           }
-          <span>{{ loading ? 'שולח...' : 'שלח הזמנה' }}</span>
+          <span>{{ loading ? 'שולח...' : 'שליחת הזמנה' }}</span>
         </button>
-      </mat-dialog-actions>
-    </div>
+      }
+    </mat-dialog-actions>
   `,
   styles: [`
-    .invite-link-box {
-      margin-top: 16px;
-      padding: 12px;
-      border-radius: 8px;
-      background: #F6F7F9;
-      border: 1px solid #E3E6EB;
+    :host { display: block; direction: rtl; text-align: right; }
+    .invite-form { padding-top: 8px; }
+    .full-width { width: 100%; }
+    .ltr-input { text-align: right; }
+    .note, .invite-link-box {
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--ground);
     }
-    .invite-link-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
+    .note-title {
+      display: flex; align-items: center; gap: 6px;
+      margin: 0 0 8px; font-weight: 600; color: var(--ink); font-size: 14px;
     }
+    .note-title mat-icon { font-size: 20px; width: 20px; height: 20px; color: var(--navy-700); }
+    .note ul { margin: 0; padding-right: 18px; color: var(--slate); font-size: 14px; line-height: 1.6; }
+    .muted { margin: 0 0 10px; color: var(--slate); font-size: 14px; }
+    .invite-link-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .invite-link-input {
-      flex: 1;
+      flex: 1 1 200px; min-width: 0;
       direction: ltr;
-      padding: 8px;
-      border: 1px solid #ccc;
+      padding: 9px 10px;
+      border: 1px solid var(--border-strong);
       border-radius: 4px;
-      font-size: 12px;
+      background: #FFFFFF;
+      color: var(--ink);
+      font: 13px/1.4 monospace;
     }
-    .email-error {
-      color: #1A1F2B;
-      font-size: 12px;
-      word-break: break-word;
-    }
-    .dialog-container {
-      min-width: 400px;
-      max-width: 500px;
-      padding: 20px;
-    }
-
-    .invite-form {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      margin: 20px 0;
-    }
-
-    .full-width {
-      width: 100%;
-    }
-
-    .form-info {
-      display: flex;
-      gap: 12px;
-      padding: 16px;
-      background-color: #f5f5f5;
-      border-radius: 8px;
-      border-right: 4px solid #1F4E8C;
-    }
-
-    .info-icon {
-      color: #1F4E8C;
-      margin-top: 2px;
-      flex-shrink: 0;
-    }
-
-    .info-text {
-      flex: 1;
-    }
-
-    .info-text p {
-      margin: 0 0 8px 0;
-      font-weight: 500;
-      color: #333;
-    }
-
-    .info-text ul {
-      margin: 0;
-      padding-right: 16px;
-      color: #666;
-    }
-
-    .info-text li {
-      margin-bottom: 4px;
-      font-size: 14px;
-      line-height: 1.4;
-    }
-
-    mat-dialog-title {
-      color: #333;
-      margin-bottom: 0;
-      font-size: 20px;
-      font-weight: 500;
-    }
-
-    mat-dialog-actions {
-      padding-top: 20px;
-      gap: 8px;
-    }
-
-    .error {
-      border-color: #1A1F2B !important;
-    }
-
-    button[mat-raised-button] {
-      min-width: 140px;
-    }
-
-    mat-spinner {
-      margin-left: 8px;
-    }
-
-    mat-dialog-content {
-      max-height: 60vh;
-      overflow-y: auto;
-    }
-
-    /* RTL Support */
-    .dialog-container {
-      direction: rtl;
-      text-align: right;
-    }
-
-    mat-dialog-actions {
-      direction: rtl;
-    }
-
-    .form-info {
-      direction: rtl;
-    }
-
-    .info-text ul {
-      text-align: right;
-    }
+    .invite-link-input:focus-visible { outline: 2px solid var(--link); outline-offset: 1px; }
+    .email-error { margin: 10px 0 0; color: var(--ink); font-size: 13px; word-break: break-word; }
+    mat-dialog-actions { gap: 8px; }
+    .send { min-width: 140px; }
+    .send mat-spinner { display: inline-block; margin-left: 8px; }
   `]
 })
 export class InviteUserDialogComponent {

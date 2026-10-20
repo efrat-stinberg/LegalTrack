@@ -671,6 +671,7 @@ export class UsersComponent implements OnInit {
   openInviteDialog(): void {
     const dialogRef = this.dialog.open(InviteUserDialogComponent, {
       width: '500px',
+      maxWidth: 'calc(100vw - 32px)',
       disableClose: true,
       direction: 'rtl',
       panelClass: 'invite-dialog'
