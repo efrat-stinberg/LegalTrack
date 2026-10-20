@@ -98,11 +98,17 @@ export const uploadFileToServer = async (
         throw new Error('הקובץ גדול מדי לשרת.');
       } else if (error.response?.status === 415) {
         throw new Error('סוג הקובץ לא נתמך.');
-      } else if (error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      } else if (typeof error.response?.data === 'string' && error.response.data) {
+      }
+      const detail = error.response?.data?.message
+        || (typeof error.response?.data === 'string' ? error.response.data : '');
+      if (error.response && error.response.status >= 500) {
+        // Server-side storage problems (e.g. S3 not configured) come back as technical English text
+        throw new Error(`שמירת הקובץ נכשלה בשרת.${detail ? ` פרטים: ${detail}` : ''}`);
+      } else if (detail) {
         // The API returns plain-text errors, e.g. "Folder not found."
-        throw new Error(error.response.data);
+        throw new Error(detail);
+      } else if (!error.response) {
+        throw new Error('אין חיבור לשרת. בדקו את החיבור ונסו שוב.');
       }
     }
     

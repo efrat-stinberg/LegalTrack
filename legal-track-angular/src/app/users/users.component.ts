@@ -161,7 +161,7 @@ import { UsersService, User } from '../services/users.service';
 
                     <div class="user-actions">
                       @if (!user.isAdmin) {
-                        <button mat-icon-button color="warn" [matTooltip]="'הסר משתמש'" (click)="removeUser(user)">
+                        <button mat-icon-button color="warn" [matTooltip]="'הסר משתמש'" [attr.aria-label]="'הסרת ' + user.username" (click)="removeUser(user)">
                           <mat-icon>delete</mat-icon>
                         </button>
                       }

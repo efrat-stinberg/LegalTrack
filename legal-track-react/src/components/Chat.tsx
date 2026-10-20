@@ -70,8 +70,12 @@ const Chat: React.FC<ChatProps> = ({ folderId }) => {
       );
       setMessages((prev) => [...prev, newMessage]);
     } catch (err: any) {
+      const status = axios.isAxiosError(err) ? err.response?.status : undefined;
       const serverMessage = axios.isAxiosError(err) && typeof err.response?.data === "string" ? err.response.data : null;
-      setError(serverMessage || "שליחת השאלה נכשלה. נסו שוב.");
+      // The server explains 503s in technical English (e.g. missing ChatKey); lead with a Hebrew sentence
+      if (status === 503) setError(`העוזר אינו זמין כרגע.${serverMessage ? ` פרטים: ${serverMessage}` : ""}`);
+      else if (axios.isAxiosError(err) && !err.response) setError("אין חיבור לשרת או שהתשובה התעכבה. נסו שוב.");
+      else setError(serverMessage || "שליחת השאלה נכשלה. נסו שוב.");
       setQuestion(text);
     } finally {
       setPendingQuestion(null);

@@ -32,7 +32,6 @@ import {
   CheckCircle,
   AlertCircle,
   Trash2,
-  Eye,
   Plus,
   FileX,
   Clock
@@ -62,9 +61,8 @@ const UploadContainer = styled(Paper)(({ theme }) => ({
   boxShadow: 'none',
   position: 'relative',
   width: '100%',
-  maxHeight: '90vh',
-  display: 'flex',
-  flexDirection: 'column',
+  // No height cap or flex here: the surrounding Dialog scrolls. A capped flex column squeezed
+  // the file list (inside a Collapse) and its rows spilled over the buttons below.
 }));
 
 const HeaderSection = styled(Box)(({ theme }) => ({
@@ -79,7 +77,7 @@ const CloseButton = styled(IconButton)(({ theme }) => ({
   borderRadius: 6,
 }));
 
-const DropZone = styled(Box)<{ isDragActive: boolean; hasFiles: boolean }>(({ theme, isDragActive }) => ({
+const DropZone = styled(Box, { shouldForwardProp: (prop) => prop !== 'isDragActive' && prop !== 'hasFiles' })<{ isDragActive: boolean; hasFiles: boolean }>(({ theme, isDragActive }) => ({
   border: `1px dashed ${isDragActive ? theme.palette.info.main : '#C9CFD8'}`,
   borderRadius: 8,
   padding: theme.spacing(5, 3),
@@ -92,7 +90,7 @@ const DropZone = styled(Box)<{ isDragActive: boolean; hasFiles: boolean }>(({ th
   },
 }));
 
-const UploadIcon = styled(Box)<{ isDragActive: boolean; hasFiles: boolean }>(({ theme }) => ({
+const UploadIcon = styled(Box, { shouldForwardProp: (prop) => prop !== 'isDragActive' && prop !== 'hasFiles' })<{ isDragActive: boolean; hasFiles: boolean }>(({ theme }) => ({
   width: 48,
   height: 48,
   borderRadius: 8,
@@ -468,6 +466,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ folderId, onClose, onUploadSucc
                   </ListItemIcon>
                   
                   <ListItemText
+                    secondaryTypographyProps={{ component: 'div' }}
                     primary={
                       <Typography variant="subtitle2" fontWeight={600}>
                         {fileItem.file.name}
@@ -486,7 +485,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ folderId, onClose, onUploadSucc
                           />
                         )}
                         {fileItem.error && (
-                          <Typography variant="caption" color="error.main">
+                          <Typography variant="caption" component="div" role="alert" sx={{ color: 'text.primary', fontWeight: 500, mt: 0.25 }}>
                             {fileItem.error}
                           </Typography>
                         )}
@@ -496,14 +495,10 @@ const FileUpload: React.FC<FileUploadProps> = ({ folderId, onClose, onUploadSucc
                   
                   <ListItemSecondaryAction>
                     <Box display="flex" gap={0.5}>
-                      <Tooltip title="תצוגה מקדימה">
-                        <IconButton size="small" disabled={isUploading}>
-                          <Eye size={14} />
-                        </IconButton>
-                      </Tooltip>
                       <Tooltip title="הסר קובץ">
                         <IconButton 
                           size="small" 
+                          aria-label={`הסרת ${fileItem.file.name}`}
                           onClick={() => removeFile(fileItem.id)}
                           disabled={isUploading}
                           sx={{ 
