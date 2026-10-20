@@ -54,9 +54,34 @@ LegalTrack/
 ### 🏢 Admin Application (Angular)
 
 - Register an office (group) with an admin account.
-- Invite lawyers by email (SendGrid); invite links expire after a configurable time.
-- View, edit and remove users.
-- Dashboard with charts of users and activity.
+- Invite lawyers by email (SendGrid); invite links expire after a configurable time. If the email can't be sent, the invite link is shown for copying.
+- View and remove users, export the list as CSV.
+- Dashboard with the office's user, case and client counts and recent cases.
+
+---
+
+## 🎨 Design System
+
+Both apps share one visual language ("same line and tone", not pixel-identical): navy, steel blue and neutral grays only, right-to-left, flat bordered cards, no gradients or bouncing animations. Statuses (success, error, warning) are told apart by **icon and wording**, never by green/orange/red.
+
+| Token | Value | Use |
+|---|---|---|
+| `navy900` | `#0F1E33` | Sidebar, brand panel, page titles |
+| `navy700` | `#1B3355` | Primary actions |
+| `navy500` | `#2A4870` | Borders on dark surfaces |
+| `blue600` | `#1F4E8C` | Links, focus ring |
+| `steel` | `#6F8FB8` | Accents on dark surfaces |
+| `ink` | `#1A1F2B` | Body text, error emphasis |
+| `slate` / `muted` | `#4A5363` / `#5B6472` | Secondary text |
+| `borderStrong` / `border` / `borderSoft` | `#C9CFD8` / `#E3E6EB` / `#EEF0F3` | Input, card and row borders |
+| `ground` / `hover` | `#F6F7F9` / `#F3F6FA` | Page background, hover |
+
+- **Fonts:** Heebo for the interface, Frank Ruhl Libre for page titles only.
+- **Shape:** radius 4 / 6 / 8 px; 40 px buttons; visible focus outline; text meets WCAG AA contrast.
+- **Where it's defined:**
+  - React – [`legal-track-react/src/theme.ts`](legal-track-react/src/theme.ts) (the token source, also mapped onto the MUI theme) and `src/index.css`.
+  - Angular – [`legal-track-angular/src/styles.css`](legal-track-angular/src/styles.css) (the same tokens as CSS variables, e.g. `--navy-700`; older variable names are mapped onto them).
+- **Shared layouts:** sign-in and invite registration in React use `components/AuthShell.tsx`; the Angular sign-in and office registration follow the same navy-panel + form layout.
 
 ---
 
