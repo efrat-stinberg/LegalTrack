@@ -243,16 +243,6 @@ const AddFolderForm: React.FC<AddFolderFormProps> = ({
                 />
               </Box>
 
-              <TextField
-                fullWidth
-                label="תיאור (אופציונלי)"
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                multiline
-                rows={4}
-                variant="outlined"
-                disabled={isSubmitting}
-              />
             </Box>
           </Box>
 

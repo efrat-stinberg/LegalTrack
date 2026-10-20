@@ -263,7 +263,7 @@ const FolderDetailsPage: React.FC = () => {
                   {folder.clientId && (
                     <Chip
                       icon={<User size={16} />}
-                      label={`לקוח: ${folder.clientId}`}
+                      label={`לקוח: ${folder.clientName || folder.clientId}`}
                       sx={{ 
                         background: alpha('#ffffff', 0.2), 
                         color: 'white',

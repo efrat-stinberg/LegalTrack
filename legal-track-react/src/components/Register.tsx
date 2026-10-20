@@ -125,8 +125,9 @@ const Register = () => {
       return;
     }
 
-    if (password.length < 6) {
-      setErrorMessage("הסיסמה חייבת להכיל לפחות 6 תווים");
+    // Same rule as the server: at least 5 characters, with letters and digits
+    if (password.length < 5 || !/[a-zA-Zא-ת]/.test(password) || !/[0-9]/.test(password)) {
+      setErrorMessage("הסיסמה חייבת להכיל לפחות 5 תווים, כולל אותיות ומספרים");
       setOpenSnackbar(true);
       return;
     }
@@ -330,7 +331,7 @@ const Register = () => {
           variant="outlined"
           disabled={isLoading}
           sx={{ mb: 2 }}
-          helperText="לפחות 6 תווים"
+          helperText="לפחות 5 תווים, אותיות ומספרים"
         />
         
         <TextField

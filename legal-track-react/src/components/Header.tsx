@@ -282,7 +282,8 @@ const Header: React.FC = () => {
   const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [notifications] = useState(3);
+  // No notifications backend yet; a count of 0 hides the badge
+  const [notifications] = useState(0);
 
   const menuItems: MenuItem[] = [
     {

@@ -340,6 +340,8 @@ const FileUpload: React.FC<FileUploadProps> = ({ folderId, onClose, onUploadSucc
 
     setIsUploading(true);
     setError("");
+    // Counted here: the failedFiles value from state is stale inside this async loop
+    let failures = 0;
 
     for (const fileItem of files) {
       if (fileItem.status === 'success') continue;
@@ -377,6 +379,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ folderId, onClose, onUploadSucc
 
       } catch (err: any) {
         console.error("Upload failed:", err);
+        failures++;
         
         // עדכן סטטוס לשגיאה
         setFiles(prev => prev.map(f => 
@@ -390,11 +393,13 @@ const FileUpload: React.FC<FileUploadProps> = ({ folderId, onClose, onUploadSucc
     setIsUploading(false);
     
     // אם כל הקבצים הועלו בהצלחה
-    if (failedFiles === 0) {
+    if (failures === 0) {
       setTimeout(() => {
         onUploadSuccess?.();
         onClose?.();
       }, 1500);
+    } else {
+      setError(`${failures} קבצים לא הועלו. פרטי השגיאה מופיעים ליד כל קובץ.`);
     }
   };
 

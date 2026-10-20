@@ -31,7 +31,6 @@ import {
   BarChart3,
   Search,
   Shield,
-  Globe,
   Zap
 } from "lucide-react";
 
@@ -308,17 +307,6 @@ const HomePage: React.FC<HomePageProps> = () => {
                   <Chip 
                     icon={<Shield size={16} />}
                     label="מערכת מאובטחת" 
-                    sx={{ 
-                      background: alpha('#ffffff', 0.2)
-, 
-                      color: 'white', 
-                      border: `1px solid ${alpha('#ffffff', 0.3)
-}` 
-                    }} 
-                  />
-                  <Chip 
-                    icon={<Globe size={16} />}
-                    label="זמינות 99.9%" 
                     sx={{ 
                       background: alpha('#ffffff', 0.2)
 , 

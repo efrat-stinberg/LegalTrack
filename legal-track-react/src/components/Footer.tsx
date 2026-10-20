@@ -3,25 +3,16 @@ import {
   Box,
   Typography,
   Container,
-  IconButton,
   Divider,
   useTheme,
   alpha,
-  Link,
-  Tooltip
+  Link
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import {
   Scale,
   Heart,
   Shield,
-  Globe,
-  Mail,
-  Phone,
-  MapPin,
-  Github,
-  Twitter,
-  Linkedin,
   ExternalLink
 } from "lucide-react";
 
@@ -89,39 +80,6 @@ const LogoIcon = styled(Box)(({ theme }) => ({
   }
 }));
 
-const ContactItem = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: theme.spacing(1.5),
-  marginBottom: theme.spacing(1),
-  color: theme.palette.text.secondary,
-  transition: 'color 0.3s ease',
-  
-  '&:hover': {
-    color: theme.palette.primary.main,
-  },
-  
-  '& svg': {
-    color: theme.palette.primary.main,
-  }
-}));
-
-const SocialButton = styled(IconButton)(({ theme }) => ({
-  width: 44,
-  height: 44,
-  background: alpha(theme.palette.primary.main, 0.1),
-  border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-  color: theme.palette.primary.main,
-  transition: 'all 0.3s ease',
-  
-  '&:hover': {
-    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-    color: 'white',
-    transform: 'translateY(-2px)',
-    boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.3)}`,
-  }
-}));
-
 const FooterLink = styled(Link)(({ theme }) => ({
   color: theme.palette.text.secondary,
   textDecoration: 'none',
@@ -170,26 +128,13 @@ const Footer: React.FC = () => {
   const theme = useTheme();
   const currentYear = new Date().getFullYear();
 
+  // Hash URLs: the app uses HashRouter, so plain hrefs must include "#/"
   const quickLinks = [
-    { label: 'ניהול תיקים', href: '/folders' },
-    { label: 'לקוחות', href: '/clients' },
-    { label: 'מסמכים', href: '/documents' },
-    { label: 'דוחות', href: '/reports' },
-    { label: 'הגדרות', href: '/settings' },
-  ];
-
-  const legalLinks = [
-    { label: 'תנאי שימוש', href: '/terms' },
-    { label: 'מדיניות פרטיות', href: '/privacy' },
-    { label: 'הסכם רישיון', href: '/license' },
-    { label: 'אבטחת מידע', href: '/security' },
-    { label: 'תמיכה', href: '/support' },
-  ];
-
-  const socialLinks = [
-    { icon: <Github size={20} />, href: '#', label: 'GitHub' },
-    { icon: <Twitter size={20} />, href: '#', label: 'Twitter' },
-    { icon: <Linkedin size={20} />, href: '#', label: 'LinkedIn' },
+    { label: 'ניהול תיקים', href: '#/folders' },
+    { label: 'לקוחות', href: '#/clients' },
+    { label: 'מסמכים', href: '#/documents' },
+    { label: 'דוחות', href: '#/analytics' },
+    { label: 'עזרה ותמיכה', href: '#/support' },
   ];
 
   return (
@@ -204,27 +149,22 @@ const Footer: React.FC = () => {
               </LogoIcon>
               <Box>
                 <Typography variant="h6" fontWeight={700} color="primary">
-                  Legal Manager Pro
+                  LegalTrack
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  מערכת ניהול תיקים מתקדמת
+                  מערכת לניהול תיקים ומסמכים משפטיים
                 </Typography>
               </Box>
             </LogoContainer>
-            
+
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              פתרון מקצועי לניהול תיקים משפטיים עם טכנולוגיית AI מתקדמת. 
-              ארגון חכם, חיפוש מהיר ואבטחה מלאה לכל הנתונים שלך.
+              ניהול לקוחות, תיקים ומסמכים במקום אחד, עם צ'אט AI שעונה על שאלות מתוך מסמכי התיק.
             </Typography>
 
             <Box display="flex" flexDirection="column" gap={1}>
               <FeatureChip>
                 <Shield size={12} />
-                הגנה מלאה על הנתונים
-              </FeatureChip>
-              <FeatureChip>
-                <Globe size={12} />
-                נגישות 24/7 מכל מקום
+                כל משרד רואה רק את הנתונים שלו
               </FeatureChip>
             </Box>
           </LogoSection>
@@ -243,60 +183,6 @@ const Footer: React.FC = () => {
               ))}
             </Box>
           </Box>
-
-          {/* Legal */}
-          <Box>
-            <Typography variant="h6" fontWeight={700} gutterBottom color="primary">
-              משפטי ותמיכה
-            </Typography>
-            <Box display="flex" flexDirection="column">
-              {legalLinks.map((link, index) => (
-                <FooterLink key={index} href={link.href}>
-                  <ExternalLink size={14} />
-                  {link.label}
-                </FooterLink>
-              ))}
-            </Box>
-          </Box>
-
-          {/* Contact */}
-          <Box>
-            <Typography variant="h6" fontWeight={700} gutterBottom color="primary">
-              יצירת קשר
-            </Typography>
-            <Box display="flex" flexDirection="column" gap={1}>
-              <ContactItem>
-                <Mail size={16} />
-                <Typography variant="body2">
-                  support@legalmanager.co.il
-                </Typography>
-              </ContactItem>
-              <ContactItem>
-                <Phone size={16} />
-                <Typography variant="body2">
-                  03-1234567
-                </Typography>
-              </ContactItem>
-              <ContactItem>
-                <MapPin size={16} />
-                <Typography variant="body2">
-                  תל אביב, ישראל
-                </Typography>
-              </ContactItem>
-            </Box>
-
-            <Box display="flex" gap={1} mt={3}>
-              {socialLinks.map((social, index) => (
-                <Tooltip key={index} title={social.label} arrow>
-                  <Link href={social.href} underline="none">
-                    <SocialButton>
-                      {social.icon}
-                    </SocialButton>
-                  </Link>
-                </Tooltip>
-              ))}
-            </Box>
-          </Box>
         </FooterSection>
 
         <Divider sx={{ mb: 3 }} />
@@ -304,7 +190,7 @@ const Footer: React.FC = () => {
         <CopyrightSection>
           <Box display="flex" alignItems="center" gap={1}>
             <Typography variant="body2" color="text.secondary">
-              © {currentYear} Legal Manager Pro. כל הזכויות שמורות.
+              © {currentYear} LegalTrack. כל הזכויות שמורות.
             </Typography>
           </Box>
 
@@ -318,23 +204,6 @@ const Footer: React.FC = () => {
             </Typography>
           </Box>
 
-          <Box display="flex" alignItems="center" gap={2}>
-            <Typography variant="caption" color="text.secondary">
-              גרסה 2.1.0
-            </Typography>
-            <Box
-              sx={{
-                width: 8,
-                height: 8,
-                borderRadius: '50%',
-                background: theme.palette.success.main,
-                animation: 'pulse 2s infinite',
-              }}
-            />
-            <Typography variant="caption" color="success.main">
-              מערכת פעילה
-            </Typography>
-          </Box>
         </CopyrightSection>
       </FooterContent>
     </FooterContainer>

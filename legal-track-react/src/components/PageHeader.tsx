@@ -12,16 +12,12 @@ import {
   alpha,
   Tooltip,
   Menu,
-  MenuItem,
-  Divider
+  MenuItem
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import {
   Search,
   Filter,
-  Settings,
-  Download,
-  Upload,
   MoreVertical,
   Bell,
   HelpCircle
@@ -239,18 +235,6 @@ const PageHeader: React.FC<PageHeaderProps> = ({
               <Filter size={20} />
             </ActionButton>
           </Tooltip>
-          
-          <Tooltip title="ייצא נתונים">
-            <ActionButton size="small">
-              <Download size={20} />
-            </ActionButton>
-          </Tooltip>
-          
-          <Tooltip title="ייבא נתונים">
-            <ActionButton size="small">
-              <Upload size={20} />
-            </ActionButton>
-          </Tooltip>
         </Box>
       </SearchSection>
 
@@ -281,15 +265,6 @@ const PageHeader: React.FC<PageHeaderProps> = ({
           }
         }}
       >
-        <MenuItem onClick={handleMenuClose}>
-          <Settings size={16} style={{ marginRight: 8 }} />
-          הגדרות מערכת
-        </MenuItem>
-        <MenuItem onClick={handleMenuClose}>
-          <Download size={16} style={{ marginRight: 8 }} />
-          ייצוא דוח מלא
-        </MenuItem>
-        <Divider />
         {availableFilters.map((filter) => (
           <MenuItem
             key={filter}

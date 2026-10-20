@@ -100,6 +100,9 @@ export const uploadFileToServer = async (
         throw new Error('סוג הקובץ לא נתמך.');
       } else if (error.response?.data?.message) {
         throw new Error(error.response.data.message);
+      } else if (typeof error.response?.data === 'string' && error.response.data) {
+        // The API returns plain-text errors, e.g. "Folder not found."
+        throw new Error(error.response.data);
       }
     }
     

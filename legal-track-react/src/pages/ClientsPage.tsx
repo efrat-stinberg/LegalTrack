@@ -36,7 +36,6 @@ import {
   Trash2,
   Phone,
   Mail,
-  MapPin,
   User,
   Users,
   TrendingUp,
@@ -488,16 +487,6 @@ const ClientsPage: React.FC = () => {
                       height: 32
                     }} 
                   />
-                  <Chip 
-                    icon={<Star size={16} />}
-                    label="מעקב דירוגים" 
-                    sx={{ 
-                      background: alpha('#ffffff', 0.2), 
-                      color: 'white',
-                      border: `1px solid ${alpha('#ffffff', 0.3)}`,
-                      height: 32
-                    }} 
-                  />
                 </Box>
               </Box>
 
@@ -787,13 +776,6 @@ const ClientsPage: React.FC = () => {
                       ),
                     }}
                   />
-                  <TextField
-                    label="חברה"
-                    value={formData.company}
-                    onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                    fullWidth
-                    disabled={formMode === 'view'}
-                  />
                 </Box>
 
                 <Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap={3}>
@@ -829,31 +811,6 @@ const ClientsPage: React.FC = () => {
                     }}
                   />
                 </Box>
-
-                <TextField
-                  label="כתובת"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  fullWidth
-                  disabled={formMode === 'view'}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <MapPin size={16} />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-
-                <TextField
-                  label="הערות"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  fullWidth
-                  multiline
-                  rows={3}
-                  disabled={formMode === 'view'}
-                />
 
                 {formMode === 'view' && selectedClient?.createdDate && (
                   <Box p={2} bgcolor={alpha(theme.palette.info.main, 0.1)} borderRadius={2}>

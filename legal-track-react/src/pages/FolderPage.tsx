@@ -29,8 +29,6 @@ import {
   SortDesc,
   Grid3X3,
   List,
-  Download,
-  Upload,
   Folder,
   TrendingUp,
 } from 'lucide-react';
@@ -476,20 +474,6 @@ const FoldersPage: React.FC = () => {
                 </Typography>
               </Box>
               <Box display="flex" gap={2}>
-                <Tooltip title="ייצא נתונים">
-                  <ActionButton
-                    sx={{ background: alpha('#ffffff', 0.2), color: 'white' }}
-                  >
-                    <Download size={20} />
-                  </ActionButton>
-                </Tooltip>
-                <Tooltip title="ייבא נתונים">
-                  <ActionButton
-                    sx={{ background: alpha('#ffffff', 0.2), color: 'white' }}
-                  >
-                    <Upload size={20} />
-                  </ActionButton>
-                </Tooltip>
               </Box>
             </Box>
           </HeaderSection>

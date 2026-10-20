@@ -5,6 +5,7 @@ export interface MyFolder {
   folderName: string;
   createdDate: string;
   clientId: number; // Backend מצפה לזה (לא optional)
+  clientName?: string; // Filled by GET /api/folders/{id}
   groupId: number; // מהBackend
   documents: MyDocument[];
   
