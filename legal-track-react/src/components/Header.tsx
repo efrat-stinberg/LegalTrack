@@ -26,13 +26,10 @@ import {
   Bell,
   Search,
   Users,
-  Settings,
   HelpCircle,
   Home,
   FileText,
   BarChart3,
-  Calendar,
-  MessageSquare,
   FolderCog,
   Shield,
   Globe,
@@ -324,19 +321,6 @@ const Header: React.FC = () => {
       icon: <BarChart3 size={20} />,
       section: 'tools'
     },
-    {
-      path: '/calendar',
-      label: 'יומן',
-      icon: <Calendar size={20} />,
-      section: 'tools'
-    },
-    {
-      path: '/messages',
-      label: 'הודעות',
-      icon: <MessageSquare size={20} />,
-      badge: 5,
-      section: 'tools'
-    },
   ];
 
   const handleLogoClick = () => {
@@ -461,22 +445,6 @@ const Header: React.FC = () => {
         <Divider sx={{ my: 2 }} />
 
         <List dense>
-          <MenuListItem 
-            sx={{ cursor: 'pointer' }}
-            onClick={() => handleMenuItemClick('/settings')}
-            className={isActivePath('/settings') ? 'active' : ''}
-          >
-            <ListItemIcon sx={{ minWidth: 40 }}>
-              <Settings size={20} />
-            </ListItemIcon>
-            <ListItemText 
-              primary="הגדרות"
-              primaryTypographyProps={{
-                fontSize: '0.875rem'
-              }}
-            />
-          </MenuListItem>
-
           <MenuListItem 
             sx={{ cursor: 'pointer' }}
             onClick={() => handleMenuItemClick('/support')}

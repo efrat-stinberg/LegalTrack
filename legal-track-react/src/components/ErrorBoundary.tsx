@@ -37,7 +37,7 @@ class ErrorBoundary extends Component<Props, State> {
 
   private handleGoHome = () => {
     localStorage.clear();
-    window.location.href = '/login';
+    window.location.href = '/#/login';
   };
 
   public render() {

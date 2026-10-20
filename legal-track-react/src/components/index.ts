@@ -5,7 +5,6 @@ export { default as FolderCreationSection } from './FolderCreationSection';
 export { default as FolderGridView } from './FolderGridView';
 export { default as AddFolderForm } from './AddFolderForm';
 export { default as ClientAutocomplete } from './ClientAutocomplete';
-export { default as Login } from './Login';
 export { default as Register } from './Register';
 export { default as ProtectedRoute } from './ProtectedRoute';
 export { default as ProtectedLayout } from './ProtectedLayout';

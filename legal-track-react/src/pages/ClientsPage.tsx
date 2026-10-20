@@ -53,6 +53,8 @@ import {
 // Import existing utilities and components
 import { StatsGrid } from '../utils/GridHelpers';
 import { getClients, createClient, updateClient, deleteClient } from '../api/clientApi';
+import { getAllFolders } from '../api/folderApi';
+import { MyFolder } from '../models/Folder';
 import { Client } from '../models/Client';
 
 const PageContainer = styled(Container)(({ theme }) => ({
@@ -250,6 +252,11 @@ const ClientsPage: React.FC = () => {
 
   // State Management
   const [clients, setClients] = useState<Client[]>([]);
+  const [folders, setFolders] = useState<MyFolder[]>([]);
+
+  useEffect(() => {
+    getAllFolders().then(setFolders).catch(() => setFolders([]));
+  }, []);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -313,47 +320,16 @@ const ClientsPage: React.FC = () => {
   }, [clients, searchQuery]);
 
   // Statistics
+  // Real numbers only: counts from the office's clients and cases
   const stats = useMemo(() => {
-    const totalClients = clients.length;
-    const activeClients = clients.filter(c => c.status !== 'inactive').length;
-    const newThisMonth = clients.filter(c => {
-      const clientDate = new Date(c.createdDate || Date.now());
-      const monthAgo = new Date();
-      monthAgo.setMonth(monthAgo.getMonth() - 1);
-      return clientDate > monthAgo;
-    }).length;
-
+    const clientsWithCases = new Set(folders.map((f) => f.clientId));
     return [
-      {
-        title: 'סה"כ לקוחות',
-        value: totalClients,
-        icon: <Users size={24} />,
-        color: '#667eea',
-        change: '+12%'
-      },
-      {
-        title: 'לקוחות פעילים',
-        value: activeClients,
-        icon: <User size={24} />,
-        color: '#10b981',
-        change: '+8%'
-      },
-      {
-        title: 'חדשים החודש',
-        value: newThisMonth,
-        icon: <TrendingUp size={24} />,
-        color: '#f59e0b',
-        change: '+25%'
-      },
-      {
-        title: 'דירוג ממוצע',
-        value: '4.8',
-        icon: <Star size={24} />,
-        color: '#ef4444',
-        change: '+0.2'
-      },
+      { title: 'סה"כ לקוחות', value: clients.length, icon: <Users size={24} />, color: '#667eea' },
+      { title: 'לקוחות עם תיקים', value: clients.filter((c) => c.id !== undefined && clientsWithCases.has(c.id)).length, icon: <User size={24} />, color: '#10b981' },
+      { title: 'סה"כ תיקים', value: folders.length, icon: <TrendingUp size={24} />, color: '#f59e0b' },
+      { title: 'לקוחות עם אימייל', value: clients.filter((c) => !!c.email).length, icon: <Star size={24} />, color: '#ef4444' },
     ];
-  }, [clients]);
+  }, [clients, folders]);
 
   const handleCreateClient = () => {
     setFormMode('create');
@@ -405,8 +381,9 @@ const ClientsPage: React.FC = () => {
         await deleteClient(client.id);
         setClients(prev => prev.filter(c => c.id !== client.id));
         showNotification('הלקוח נמחק בהצלחה', 'success');
-      } catch (error) {
-        showNotification('שגיאה במחיקת הלקוח', 'error');
+      } catch (error: any) {
+        const serverMessage = typeof error?.response?.data === 'string' ? error.response.data : null;
+        showNotification(serverMessage || 'שגיאה במחיקת הלקוח', 'error');
       }
     }
     setMenuAnchor(null);
@@ -605,15 +582,6 @@ const ClientsPage: React.FC = () => {
                     >
                       {stat.icon}
                     </Avatar>
-                  </Box>
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <TrendingUp size={16} color={theme.palette.success.main} />
-                    <Typography variant="body2" color="success.main" fontWeight={600}>
-                      {stat.change}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      מהחודש שעבר
-                    </Typography>
                   </Box>
                 </CardContent>
               </StatsCard>

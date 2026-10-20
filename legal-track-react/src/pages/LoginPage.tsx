@@ -123,11 +123,11 @@ const LandingPage: React.FC = () => {
 //   ];
 
   const handleGetStarted = () => {
-    window.location.href = '/login';
+    window.location.href = '/#/login';
   };
 
 //   const handleLogin = () => {
-//     window.location.href = '/login';
+//     window.location.href = '/#/login';
 //   };
 
   return (

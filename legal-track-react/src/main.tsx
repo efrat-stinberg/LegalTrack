@@ -11,6 +11,12 @@ window.addEventListener('unhandledrejection', (event) => {
   console.error('Unhandled promise rejection:', event.reason);
 });
 
+// Invite emails link to "/?invite=<token>" (the static host only serves "/"); open the register page
+const inviteToken = new URLSearchParams(window.location.search).get('invite');
+if (inviteToken) {
+  window.history.replaceState(null, '', `/#/register?token=${encodeURIComponent(inviteToken)}`);
+}
+
 console.log('Starting React application...');
 
 try {

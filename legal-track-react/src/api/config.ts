@@ -46,13 +46,25 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// File uploads need the token too
+fileUploadClient.interceptors.request.use((config) => {
+  const token = getAuthToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // Response interceptor
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // A 401 from the login call itself means wrong credentials: let the form show the error
+    const isLoginCall = /\/(login|register)$/i.test(error.config?.url ?? "");
+    if (error.response?.status === 401 && !isLoginCall) {
       localStorage.removeItem("token");
-      window.location.href = "/login";
+      // Root + hash route: works on the static host without rewrite rules
+      window.location.href = "/#/login";
     }
     return Promise.reject(error);
   }

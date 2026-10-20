@@ -1,5 +1,6 @@
 // App.tsx - גרסה מתוקנת ומפושטת
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+// HashRouter (URLs like /#/home): the static host only serves index.html at "/", so deep links and refreshes must not need server rewrites
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -17,9 +18,6 @@ import FolderDetailsPage from './pages/FolderDetailsPage';
 import ClientsPage from './pages/ClientsPage';
 import DocumentsPage from './pages/DocumentsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
-import CalendarPage from './pages/CalendarPage';
-import MessagesPage from './pages/MessagesPage';
-import SettingsPage from './pages/SettingsPage';
 import SupportPage from './pages/SupportPage';
 import FolderManagementPage from './pages/FolderManagementPage';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -60,9 +58,6 @@ function App() {
                 <Route path="clients" element={<ClientsPage />} />
                 <Route path="documents" element={<DocumentsPage />} />
                 <Route path="analytics" element={<AnalyticsPage />} />
-                <Route path="calendar" element={<CalendarPage />} />
-                <Route path="messages" element={<MessagesPage />} />
-                <Route path="settings" element={<SettingsPage />} />
                 <Route path="support" element={<SupportPage />} />
                 <Route path="folder-management" element={<FolderManagementPage />} />
               </Route>

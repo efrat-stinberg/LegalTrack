@@ -24,7 +24,6 @@ import {
   FolderOpen,
   Users,
   FileText,
-  TrendingUp,
   Plus,
   ArrowRight,
   Clock,
@@ -211,39 +210,37 @@ const HomePage: React.FC<HomePageProps> = () => {
     .sort((a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime())
     .slice(0, 5);
 
+  const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const foldersLast30Days = folders.filter((f) => new Date(f.createdDate).getTime() >= monthAgo).length;
+
   const statsData = [
     {
       title: 'סה"כ תיקיות',
       value: folders.length,
       icon: <FolderOpen size={24} />,
       color: '#667eea',
-      trend: '+12%',
-      subtitle: 'השבוע'
+      subtitle: "תיקים פתוחים במשרד"
     },
     {
       title: 'מסמכים',
       value: totalDocuments,
       icon: <FileText size={24} />,
       color: '#10b981',
-      trend: '+8%',
-      subtitle: 'החודש'
+      subtitle: "בכל התיקים"
     },
     {
       title: 'לקוחות פעילים',
       value: clients.length,
       icon: <Users size={24} />,
       color: '#f59e0b',
-      trend: '+5%',
-      subtitle: 'השבוע'
+      subtitle: "לקוחות רשומים"
     },
     {
-      title: 'פעילות',
-      value: 94,
+      title: "תיקים חדשים",
+      value: foldersLast30Days,
       icon: <Activity size={24} />,
-      color: '#ef4444',
-      trend: '+2%',
-      subtitle: 'היום',
-      format: 'percentage'
+      color: "#ef4444",
+      subtitle: "ב-30 הימים האחרונים"
     }
   ];
 
@@ -383,7 +380,7 @@ const HomePage: React.FC<HomePageProps> = () => {
                           {stat.title}
                         </Typography>
                         <Typography variant="h3" fontWeight={700} color="primary">
-                          {stat.format === 'percentage' ? `${stat.value}%` : stat.value.toLocaleString()}
+                          {stat.value.toLocaleString()}
                         </Typography>
                       </Box>
                       <Avatar 
@@ -396,10 +393,6 @@ const HomePage: React.FC<HomePageProps> = () => {
                       </Avatar>
                     </Box>
                     <Box display="flex" alignItems="center" gap={1}>
-                      <TrendingUp size={16} color={theme.palette.success.main} />
-                      <Typography variant="body2" color="success.main" fontWeight={600}>
-                        {stat.trend}
-                      </Typography>
                       <Typography variant="body2" color="text.secondary">
                         {stat.subtitle}
                       </Typography>

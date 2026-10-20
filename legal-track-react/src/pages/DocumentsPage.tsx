@@ -1,5 +1,9 @@
 // src/pages/DocumentsPage.tsx
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getAllDocuments } from '../api/documentApi';
+import { getAllFolders } from '../api/folderApi';
+import { getDownloadUrl } from '../api/s3Api';
 import {
   Container,
   Box,
@@ -10,7 +14,6 @@ import {
   Button,
   Card,
   CardContent,
-  IconButton,
   Chip,
   useTheme,
   alpha,
@@ -24,11 +27,8 @@ import {
   FileText,
   Download,
   Eye,
-  MoreVertical,
   Upload,
-  Filter,
   Calendar,
-  User,
   FolderOpen
 } from 'lucide-react';
 
@@ -60,88 +60,54 @@ const DocumentCard = styled(Card)(({ theme }) => ({
 const DocumentsPage: React.FC = () => {
   const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
   interface Document {
     id: number;
     name: string;
     type: string;
-    size: string;
+    filePath: string;
     uploadDate: string;
     folder: string;
-    uploader: string;
+    folderId: number;
   }
-  
+
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const mockDocuments = [
-    {
-      id: 1,
-      name: 'חוזה שכירות - דירה ברמת גן.pdf',
-      type: 'PDF',
-      size: '2.3 MB',
-      uploadDate: '2024-01-15',
-      folder: 'תיק משפחת כהן',
-      uploader: 'עו"ד שרה לוי'
-    },
-    {
-      id: 2,
-      name: 'תביעה אזרחית - נזקי רכוש.docx',
-      type: 'DOCX',
-      size: '1.8 MB',
-      uploadDate: '2024-01-14',
-      folder: 'תיק חברת ביטוח',
-      uploader: 'עו"ד דני כהן'
-    },
-    {
-      id: 3,
-      name: 'הסכם עבודה - חברת היי-טק.pdf',
-      type: 'PDF',
-      size: '1.2 MB',
-      uploadDate: '2024-01-13',
-      folder: 'תיק דיני עבודה',
-      uploader: 'עו"ד רינה גל'
-    },
-    {
-      id: 4,
-      name: 'צו עיקול - בנק הפועלים.pdf',
-      type: 'PDF',
-      size: '856 KB',
-      uploadDate: '2024-01-12',
-      folder: 'תיק גבייה',
-      uploader: 'עו"ד משה לוי'
-    },
-    {
-      id: 5,
-      name: 'תשובה לכתב אישום.docx',
-      type: 'DOCX',
-      size: '3.1 MB',
-      uploadDate: '2024-01-11',
-      folder: 'תיק פלילי',
-      uploader: 'עו"ד אמיר כהן'
-    },
-    {
-      id: 6,
-      name: 'הצעת פשרה - תאונת דרכים.pdf',
-      type: 'PDF',
-      size: '945 KB',
-      uploadDate: '2024-01-10',
-      folder: 'תיק נזיקין',
-      uploader: 'עו"ד לילך רוזן'
-    }
-  ];
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // טוען מסמכים מה-API
-    setTimeout(() => {
-      setDocuments(mockDocuments);
-      setLoading(false);
-    }, 1000);
+    // All documents of the office, with the name of the case each belongs to
+    Promise.all([getAllDocuments(), getAllFolders()])
+      .then(([docs, folders]) => {
+        const folderNames = new Map(folders.map((f) => [f.folderId, f.folderName]));
+        setDocuments(
+          docs.map((d) => ({
+            id: d.documentId,
+            name: d.documentName,
+            type: (d.documentName.split('.').pop() || '').toUpperCase(),
+            filePath: d.filePath,
+            uploadDate: d.uploadDate,
+            folder: folderNames.get(d.folderId) ?? '',
+            folderId: d.folderId,
+          }))
+        );
+      })
+      .catch(() => setError('שגיאה בטעינת המסמכים'))
+      .finally(() => setLoading(false));
   }, []);
+
+  const openDocument = async (doc: Document) => {
+    try {
+      const url = await getDownloadUrl(doc.filePath);
+      window.open(url, '_blank', 'noopener');
+    } catch {
+      setError('לא ניתן לפתוח את המסמך');
+    }
+  };
 
   const filteredDocuments = documents.filter(doc =>
     doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    doc.folder.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    doc.uploader.toLowerCase().includes(searchQuery.toLowerCase())
+    doc.folder.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -181,6 +147,7 @@ const DocumentsPage: React.FC = () => {
               <Button
                 variant="contained"
                 startIcon={<Upload size={20} />}
+                onClick={() => navigate("/folders")}
                 sx={{
                   background: alpha('#ffffff', 0.2),
                   '&:hover': { background: alpha('#ffffff', 0.3) }
@@ -188,22 +155,12 @@ const DocumentsPage: React.FC = () => {
               >
                 העלה מסמך
               </Button>
-              <Button
-                variant="outlined"
-                startIcon={<Filter size={20} />}
-                sx={{
-                  borderColor: alpha('#ffffff', 0.3),
-                  color: 'white',
-                  '&:hover': { 
-                    borderColor: alpha('#ffffff', 0.5),
-                    background: alpha('#ffffff', 0.1)
-                  }
-                }}
-              >
-                סינון
-              </Button>
             </Box>
           </HeaderSection>
+
+          {error && (
+            <Typography color="error" mb={2}>{error}</Typography>
+          )}
 
           {loading ? (
             <Box display="flex" justifyContent="center" py={8}>
@@ -228,25 +185,14 @@ const DocumentsPage: React.FC = () => {
                         </Typography>
                         <Box display="flex" gap={1} mt={1}>
                           <Chip label={doc.type} size="small" color="primary" />
-                          <Chip label={doc.size} size="small" variant="outlined" />
                         </Box>
                       </Box>
-                      <IconButton size="small">
-                        <MoreVertical size={16} />
-                      </IconButton>
                     </Box>
                     
                     <Box display="flex" alignItems="center" gap={1} mb={1}>
                       <FolderOpen size={14} color={theme.palette.text.secondary} />
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography variant="caption" color="primary" sx={{ cursor: "pointer" }} onClick={() => navigate(`/folders/${doc.folderId}`)}>
                         {doc.folder}
-                      </Typography>
-                    </Box>
-                    
-                    <Box display="flex" alignItems="center" gap={1} mb={1}>
-                      <User size={14} color={theme.palette.text.secondary} />
-                      <Typography variant="caption" color="text.secondary">
-                        {doc.uploader}
                       </Typography>
                     </Box>
                     
@@ -258,10 +204,10 @@ const DocumentsPage: React.FC = () => {
                     </Box>
                     
                     <Box display="flex" gap={1}>
-                      <Button size="small" startIcon={<Eye size={16} />} variant="outlined">
+                      <Button size="small" startIcon={<Eye size={16} />} variant="outlined" onClick={() => openDocument(doc)}>
                         צפה
                       </Button>
-                      <Button size="small" startIcon={<Download size={16} />} variant="contained">
+                      <Button size="small" startIcon={<Download size={16} />} variant="contained" onClick={() => openDocument(doc)}>
                         הורד
                       </Button>
                     </Box>
@@ -287,7 +233,7 @@ const DocumentsPage: React.FC = () => {
               <Typography variant="body2" color="text.secondary" mb={3}>
                 {searchQuery ? 'נסה לשנות את מונחי החיפוש' : 'התחל על ידי העלאת המסמך הראשון שלך'}
               </Typography>
-              <Button variant="contained" startIcon={<Upload size={20} />}>
+              <Button variant="contained" startIcon={<Upload size={20} />} onClick={() => navigate("/folders")}>
                 העלה מסמך ראשון
               </Button>
             </Box>

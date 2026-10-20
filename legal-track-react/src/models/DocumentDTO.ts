@@ -1,8 +1,10 @@
+// Shape of a document as returned by GET /api/document (camelCase JSON)
 type DocumentDTO = {
-    DocumentName: string;
-    FilePath: string;
-    UploadDate: string;
-    FolderId: number;
+    documentId: number;
+    documentName: string;
+    filePath: string;
+    uploadDate: string;
+    folderId: number;
 }
 
 export default DocumentDTO;

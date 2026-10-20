@@ -1323,13 +1323,13 @@ const AuthPage = () => {
   const infoCards = [
     {
       icon: <TrendingUp size={32} color="#ffd700" />,
-      title: "יעילות מוכחת",
-      subtitle: "חיסכון של 40% בזמן העבודה"
+      title: "צ'אט AI על מסמכי התיק",
+      subtitle: "תשובות מתוך המסמכים שהועלו לתיק"
     },
     {
       icon: <Groups fontSize="large" sx={{ color: "#ffd700" }} />,
-      title: "מעל 1,000 לקוחות",
-      subtitle: "משרדי עורכי דין מובילים"
+      title: "ניהול משרד במקום אחד",
+      subtitle: "לקוחות, תיקים, מסמכים ועורכי דין"
     }
   ];
 
