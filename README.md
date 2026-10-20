@@ -67,9 +67,9 @@ Group (law firm)          User                      Client
 ├── Id                    ├── UserId                ├── Id
 ├── Name                  ├── UserName              ├── FullName
 ├── CreatedByUserId       ├── Email                 ├── Email
-└── Users[]               ├── Password              ├── Phone
-                          ├── IsAdmin               └── Folders[]
-                          └── GroupId
+└── Users[]               ├── Password (hashed)     ├── Phone
+                          ├── IsAdmin               ├── GroupId
+                          └── GroupId               └── Folders[]
 
 Folder (case)             Document                  ChatMessage
 ├── FolderId              ├── DocumentId            ├── Id
@@ -92,13 +92,13 @@ All routes are prefixed with `/api`. Swagger UI is available at `/swagger`.
 | Area      | Endpoints |
 |-----------|-----------|
 | Auth      | `POST /login`, `POST /register`, `POST /register-admin` |
-| Users     | `GET/POST /users`, `GET/PUT/DELETE /users/{id}`, `GET /users/{email}` |
+| Users     | `GET /users` (Admin), `GET /users/{id}`, `GET /users/{email}`, `PUT /users/{id}`, `DELETE /users/{id}` (Admin) |
 | Invites   | `POST /invite/invite-lawyer` (Admin), `POST /invite/validate` |
-| Groups    | `GET/POST /group`, `GET /group/{id}` |
+| Groups    | `GET /group`, `GET /group/{id}` (own office only) |
 | Clients   | `GET/POST /client`, `GET/PUT/DELETE /client/{id}` |
 | Folders   | `GET/POST /folders`, `GET/PUT/DELETE /folders/{id}`, `GET /folders/by-client/{clientId}` |
 | Documents | `GET/POST /document`, `GET/PUT/DELETE /document/{id}` |
-| S3        | `POST /s3/upload`, `GET /s3/presigned-upload-url`, `GET /s3/presigned-download-url`, `GET /s3/download`, `GET /s3/list`, `POST /s3/notify-upload`, `DELETE /s3/delete` |
+| S3        | `POST /s3/upload`, `GET /s3/presigned-upload-url`, `GET /s3/presigned-download-url`, `GET /s3/download`, `POST /s3/notify-upload`, `DELETE /s3/delete` |
 | Chat      | `GET /chat/{folderId}` (history), `POST /chat/{folderId}` (ask a question) |
 
 ---
@@ -127,12 +127,13 @@ The server reads settings from `appsettings.json`, [user secrets](https://learn.
 |-----|-------------|
 | `ConnectionStrings:DefaultConnection` | MySQL connection string |
 | `JWT:Key`, `JWT:Issuer`, `JWT:Audience` | JWT signing settings |
-| `JWT:TokenExpirationMinutes` | Token lifetime |
+| `JWT:TokenExpirationMinutes` | Token lifetime (default: 1440 = one day) |
 | `AWS:AccessKey`, `AWS:SecretKey`, `AWS:Region`, `AWS:BucketName` | S3 storage |
 | `ChatKey` | OpenAI API key |
 | `SendGrid:ApiKey`, `SendGrid:SenderEmail` | Invitation emails |
-| `Invite:ExpirationMinutes` | Invite link lifetime |
-| `Frontend:BaseUrl` | URL of the React app (used in invite links) |
+| `Invite:ExpirationMinutes` | Invite link lifetime (default: 10080 = 7 days) |
+| `Frontend:BaseUrl` | URL of the React app, used in invite links (default: `https://legaltrack.onrender.com`) |
+| `Cors:AllowedOrigins` | Optional, comma separated. Sites allowed to call the API (default: any) |
 
 Example using user secrets:
 
@@ -182,10 +183,24 @@ The API URL is set in `src/environments/environment.ts` (`apiUrl`).
 
 ## 🔐 Security
 
-- JWT authentication on protected endpoints, validated on every request.
-- Role-based access: admin-only actions (e.g. inviting lawyers) require the `Admin` role.
-- Cases are scoped to the user's office (group).
-- Files are stored in S3 and uploaded/downloaded via presigned URLs.
+- Every endpoint except login, registration and invite validation requires a JWT.
+- Each office (group) only sees its own users, clients, cases, documents, files and chat history.
+- Admin-only actions (inviting lawyers, listing and removing users) require the `Admin` role.
+- Passwords are hashed with ASP.NET Core Identity's `PasswordHasher`.
+- Files are stored privately in S3 and accessed through short-lived presigned URLs.
+
+---
+
+## 🧪 Tests
+
+`LagalTrackServer/TaxManagerServer.Tests` holds 33 end-to-end API tests. They run the real API (controllers, JWT, EF Core migrations) against MySQL, with S3, SendGrid and OpenAI replaced by in-memory fakes. They cover registration and login, the invite flow (including a failed email), admin vs. lawyer permissions, client/case/document CRUD, upload and download, the AI chat, office isolation and anonymous access.
+
+```bash
+# MySQL connection for the tests (the database is dropped and recreated)
+export LEGALTRACK_TEST_DB="server=127.0.0.1;port=3306;database=legaltrack_tests;user=root;password=yourpassword"
+cd LagalTrackServer/TaxManagerServer.Tests
+dotnet test
+```
 
 ---
 
