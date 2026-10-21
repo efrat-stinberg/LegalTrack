@@ -125,6 +125,7 @@ builder.Services.AddScoped<IFolderRepository, FolderRepository>();
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IInviteRepository, InviteRepository>();
 builder.Services.AddScoped<IInviteService, InviteService>();
+builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
 builder.Services.AddScoped<IEmailService, SendGridEmailService>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 

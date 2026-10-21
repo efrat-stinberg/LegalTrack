@@ -55,12 +55,14 @@ namespace TaxManagerServer.Tests.Infrastructure
             return new ApiSession(factory.CreateClient(), email, await ReadTokenAsync(register));
         }
 
-        public static string InviteTokenFromLink(string link)
+        public static string InviteTokenFromLink(string link) => QueryValue(link, "invite");
+
+        public static string QueryValue(string link, string name)
         {
             var query = new Uri(link).Query.TrimStart('?').Split('&')
                 .Select(p => p.Split('=', 2))
                 .ToDictionary(p => p[0], p => Uri.UnescapeDataString(p[1]));
-            return query["invite"];
+            return query[name];
         }
 
         public async Task<JsonElement> GetJsonAsync(string url)

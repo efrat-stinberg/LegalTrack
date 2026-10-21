@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -15,6 +15,9 @@ namespace TaxManagerServer.Core.DTOs
         public DateTime CreatedDate { get; set; }
         public int ClientId { get; set; }
         public string ClientName { get; set; } = null!;
+        public string Status { get; set; } = null!;
+        public DateTime? NextDeadline { get; set; }
+        public string? NextDeadlineNote { get; set; }
 
         public Collection<DocumentDTO> Documents { get; set; }
     }

@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.ObjectModel;
@@ -39,6 +39,18 @@ public class FolderController : OfficeControllerBase
         return client != null && await IsInMyOfficeAsync(client.GroupId);
     }
 
+    // Checks the optional status/deadline fields; returns an error message, or null when they are valid
+    private static string? ValidateCaseFields(FolderPostModel model)
+    {
+        if (model.Status != null && !FolderStatus.IsValid(model.Status))
+            return $"Invalid status. Allowed: {string.Join(", ", FolderStatus.All)}.";
+        if (model.NextDeadlineNote != null && model.NextDeadlineNote.Trim().Length > 200)
+            return "Deadline note is limited to 200 characters.";
+        return null;
+    }
+
+    private static string? CleanNote(string? note) => string.IsNullOrWhiteSpace(note) ? null : note.Trim();
+
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Folder>>> GetAll()
     {
@@ -75,6 +87,8 @@ public class FolderController : OfficeControllerBase
     {
         if (folder == null || string.IsNullOrWhiteSpace(folder.FolderName))
             return BadRequest("Invalid folder data.");
+        if (ValidateCaseFields(folder) is string fieldError)
+            return BadRequest(fieldError);
 
         var existingFolder = await GetOwnFolderAsync(id);
         if (existingFolder == null)
@@ -85,6 +99,10 @@ public class FolderController : OfficeControllerBase
 
         existingFolder.FolderName = folder.FolderName.Trim();
         existingFolder.ClientId = folder.ClientId;
+        if (folder.Status != null)
+            existingFolder.Status = folder.Status;
+        existingFolder.NextDeadline = folder.NextDeadline?.Date;
+        existingFolder.NextDeadlineNote = folder.NextDeadline == null ? null : CleanNote(folder.NextDeadlineNote);
         await _folderService.UpdateAsync(existingFolder);
 
         return NoContent();
@@ -105,6 +123,8 @@ public class FolderController : OfficeControllerBase
     {
         if (folderPostModel == null || string.IsNullOrWhiteSpace(folderPostModel.FolderName))
             return BadRequest("Invalid folder data.");
+        if (ValidateCaseFields(folderPostModel) is string fieldError)
+            return BadRequest(fieldError);
 
         var groupId = await GetCurrentGroupIdAsync();
         if (groupId == null)
@@ -119,6 +139,9 @@ public class FolderController : OfficeControllerBase
             GroupId = groupId.Value,
             ClientId = folderPostModel.ClientId,
             CreatedDate = DateTime.UtcNow,
+            Status = folderPostModel.Status ?? FolderStatus.Open,
+            NextDeadline = folderPostModel.NextDeadline?.Date,
+            NextDeadlineNote = folderPostModel.NextDeadline == null ? null : CleanNote(folderPostModel.NextDeadlineNote),
             Documents = new Collection<Document>()
         };
 
@@ -130,6 +153,9 @@ public class FolderController : OfficeControllerBase
             FolderName = newFolder.FolderName,
             CreatedDate = newFolder.CreatedDate,
             ClientId = newFolder.ClientId,
+            Status = newFolder.Status,
+            NextDeadline = newFolder.NextDeadline,
+            NextDeadlineNote = newFolder.NextDeadlineNote,
         };
 
         return Ok(folderDto);

@@ -160,6 +160,18 @@ namespace TaxManagerServer.Data.Migrations
                     b.Property<int>("GroupId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("NextDeadline")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("NextDeadlineNote")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
                     b.Property<int?>("UserId")
                         .HasColumnType("int");
 
@@ -224,6 +236,39 @@ namespace TaxManagerServer.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Invites");
+                });
+
+            modelBuilder.Entity("TaxManagerServer.Core.Models.PasswordReset", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.ToTable("PasswordResets");
                 });
 
             modelBuilder.Entity("TaxManager.Core.Models.Document", b =>

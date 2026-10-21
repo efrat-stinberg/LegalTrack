@@ -41,7 +41,7 @@ namespace TaxManagerServer.Tests.Infrastructure
         }
     }
 
-    // Records invite emails instead of sending them; can be switched to fail like SendGrid would
+    // Records invite and password-reset emails instead of sending them; can be switched to fail like SendGrid would
     public class FakeEmailService : IEmailService
     {
         public ConcurrentDictionary<string, string> LinksByEmail { get; } = new();
@@ -52,6 +52,16 @@ namespace TaxManagerServer.Tests.Infrastructure
             if (FailWith != null)
                 throw new EmailSendException(FailWith);
             LinksByEmail[toEmail] = inviteLink;
+            return Task.CompletedTask;
+        }
+
+        public ConcurrentDictionary<string, string> ResetLinksByEmail { get; } = new();
+
+        public Task SendPasswordResetEmailAsync(string toEmail, string resetLink)
+        {
+            if (FailWith != null)
+                throw new EmailSendException(FailWith);
+            ResetLinksByEmail[toEmail] = resetLink;
             return Task.CompletedTask;
         }
     }

@@ -15,6 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- PasswordHasher, the same hashing the API uses at registration -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\TaxManagerServer.Core\TaxManagerServer.Core.csproj" />
   </ItemGroup>
 

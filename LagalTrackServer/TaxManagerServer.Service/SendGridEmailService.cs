@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Net;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using SendGrid;
 using SendGrid.Helpers.Mail;
@@ -8,6 +9,8 @@ namespace TaxManagerServer.Service
 {
     public class SendGridEmailService : IEmailService
     {
+        private const string SenderName = "LegalTrack";
+
         private readonly string? _apiKey;
         private readonly string? _senderEmail;
         private readonly ILogger<SendGridEmailService> _logger;
@@ -19,7 +22,39 @@ namespace TaxManagerServer.Service
             _logger = logger;
         }
 
-        public async Task SendInviteEmailAsync(string toEmail, string inviteLink)
+        public Task SendInviteEmailAsync(string toEmail, string inviteLink)
+        {
+            var link = WebUtility.HtmlEncode(inviteLink);
+            return SendAsync(
+                toEmail,
+                "הוזמנת להצטרף ל-LegalTrack",
+                $@"
+<div dir='rtl' style='font-family:Arial,sans-serif'>
+  <p>שלום,</p>
+  <p>הוזמנת להצטרף למערכת LegalTrack.</p>
+  <p><a href='{link}'>לחצו כאן כדי להשלים את ההרשמה</a></p>
+  <p>הקישור אישי ואין להעביר אותו לאחרים.</p>
+</div>",
+                $"הוזמנת להצטרף למערכת LegalTrack. להשלמת ההרשמה: {inviteLink}");
+        }
+
+        public Task SendPasswordResetEmailAsync(string toEmail, string resetLink)
+        {
+            var link = WebUtility.HtmlEncode(resetLink);
+            return SendAsync(
+                toEmail,
+                "איפוס סיסמה ב-LegalTrack",
+                $@"
+<div dir='rtl' style='font-family:Arial,sans-serif'>
+  <p>שלום,</p>
+  <p>התקבלה בקשה לאיפוס הסיסמה שלך ב-LegalTrack.</p>
+  <p><a href='{link}'>לחצו כאן כדי לבחור סיסמה חדשה</a></p>
+  <p>הקישור תקף לזמן מוגבל ולשימוש אחד. אם לא ביקשת איפוס, אפשר להתעלם מהמייל.</p>
+</div>",
+                $"לאיפוס הסיסמה ב-LegalTrack: {resetLink} . אם לא ביקשת איפוס, אפשר להתעלם מהמייל.");
+        }
+
+        private async Task SendAsync(string toEmail, string subject, string htmlContent, string plainContent)
         {
             if (string.IsNullOrWhiteSpace(_apiKey))
                 throw new EmailSendException("SendGrid:ApiKey is not configured on the server.");
@@ -27,19 +62,8 @@ namespace TaxManagerServer.Service
                 throw new EmailSendException("SendGrid:SenderEmail is not configured on the server.");
 
             var client = new SendGridClient(_apiKey);
-            var from = new EmailAddress(_senderEmail, "LegalFlow");
-            var to = new EmailAddress(toEmail);
-            const string subject = "הוזמנת להצטרף ל-LegalFlow";
-            var htmlContent = $@"
-<div dir='rtl' style='font-family:Arial,sans-serif'>
-  <p>שלום,</p>
-  <p>הוזמנת להצטרף למערכת LegalFlow.</p>
-  <p><a href='{inviteLink}'>לחצו כאן כדי להשלים את ההרשמה</a></p>
-  <p>הקישור אישי ואין להעביר אותו לאחרים.</p>
-</div>";
-            var plainContent = $"הוזמנת להצטרף למערכת LegalFlow. להשלמת ההרשמה: {inviteLink}";
-
-            var msg = MailHelper.CreateSingleEmail(from, to, subject, plainContent, htmlContent);
+            var msg = MailHelper.CreateSingleEmail(
+                new EmailAddress(_senderEmail, SenderName), new EmailAddress(toEmail), subject, plainContent, htmlContent);
 
             Response response;
             try

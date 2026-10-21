@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using TaxManagerServer.Core.Models;
 using TaxManagerServer.Core.Repository;
 using TaxManagerServer.Core.Services;
@@ -9,8 +9,6 @@ namespace TaxManagerServer.Service
     {
         // Used when Invite:ExpirationMinutes is not configured
         private const int DefaultExpirationMinutes = 7 * 24 * 60;
-        // Used when Frontend:BaseUrl is not configured (the deployed lawyers' app)
-        private const string DefaultFrontendBaseUrl = "https://legaltrack.onrender.com";
 
         private readonly IRepositoryManager _repositoryManager;
         private readonly IEmailService _emailService;
@@ -66,15 +64,6 @@ namespace TaxManagerServer.Service
                 ? minutes
                 : DefaultExpirationMinutes;
 
-        // Links point at the site root (not /register) because the static host only serves index.html at "/";
-        // the React app forwards ?invite=... to its /register page.
-        private string BuildInviteLink(string token)
-        {
-            var baseUrl = _configuration["Frontend:BaseUrl"];
-            if (string.IsNullOrWhiteSpace(baseUrl))
-                baseUrl = DefaultFrontendBaseUrl;
-            baseUrl = baseUrl.TrimEnd('/');
-            return $"{baseUrl}/?invite={Uri.EscapeDataString(token)}";
-        }
+        private string BuildInviteLink(string token) => FrontendLinks.Build(_configuration, "invite", token);
     }
 }

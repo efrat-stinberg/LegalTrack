@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,6 +21,14 @@ namespace TaxManagerServer.Core.Models
         public int GroupId { get; set; } 
         public Group Group { get; set; }
         public DateTime CreatedDate { get; set; }
+
+        // Case status (one of FolderStatus) and the next deadline the office tracks for it
+        [MaxLength(20)]
+        public string Status { get; set; } = FolderStatus.Open;
+        public DateTime? NextDeadline { get; set; }
+        [MaxLength(200)]
+        public string? NextDeadlineNote { get; set; }
+
         public ICollection<Document> Documents { get; set; } = new List<Document>();
 
         public Folder()

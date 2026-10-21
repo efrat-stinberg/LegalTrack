@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,6 +21,7 @@ namespace TaxManager.Data
         public DbSet<Group> Groups { get; set; }
         public DbSet<Invite> Invites { get; set; }
         public DbSet<Client> Clients { get; set; }
+        public DbSet<PasswordReset> PasswordResets { get; set; }
 
         public DataContext(DbContextOptions<DataContext> options) : base(options)
         {
@@ -43,6 +44,10 @@ namespace TaxManager.Data
                 .HasForeignKey(u => u.GroupId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PasswordReset>()
+                .HasIndex(r => r.TokenHash)
+                .IsUnique();
         }
 
 
