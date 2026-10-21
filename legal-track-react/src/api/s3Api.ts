@@ -1,7 +1,10 @@
 // src/api/s3Api.ts - תיקון עם timeout מורחב והתקדמות
-import axios from "axios";
+import axios, { type AxiosProgressEvent } from "axios";
 import { apiClient, fileUploadClient } from "./config";
 import { S3UploadNotification } from "./types";
+
+// What upload callbacks receive: axios progress plus a whole-number percentage
+export type UploadProgress = AxiosProgressEvent & { percentCompleted?: number };
 
 // ===== S3 FILE API =====
 
@@ -36,7 +39,7 @@ export const getDownloadUrl = async (objectKey: string): Promise<string> => {
 export const uploadFileToS3 = async (
   file: File, 
   uploadUrl: string,
-  onProgress?: (progressEvent: any) => void
+  onProgress?: (progressEvent: UploadProgress) => void
 ): Promise<void> => {
   try {
     console.log(`Uploading file to S3: ${file.name} (${file.size} bytes)`);
@@ -59,7 +62,7 @@ export const uploadFileToS3 = async (
 export const uploadFileToServer = async (
   file: File, 
   folderId: number,
-  onProgress?: (progressEvent: any) => void
+  onProgress?: (progressEvent: UploadProgress) => void
 ) => {
   try {
     console.log(`Uploading file to server: ${file.name} for folder ${folderId}`);

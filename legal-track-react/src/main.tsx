@@ -11,13 +11,16 @@ window.addEventListener('unhandledrejection', (event) => {
   console.error('Unhandled promise rejection:', event.reason);
 });
 
-// Invite emails link to "/?invite=<token>" (the static host only serves "/"); open the register page
-const inviteToken = new URLSearchParams(window.location.search).get('invite');
+// Emailed links point at the site root (the static host only serves "/"):
+// "/?invite=<token>" opens registration, "/?reset=<token>" opens the password reset page
+const query = new URLSearchParams(window.location.search);
+const inviteToken = query.get('invite');
+const resetToken = query.get('reset');
 if (inviteToken) {
   window.history.replaceState(null, '', `/#/register?token=${encodeURIComponent(inviteToken)}`);
+} else if (resetToken) {
+  window.history.replaceState(null, '', `/#/reset-password?token=${encodeURIComponent(resetToken)}`);
 }
-
-console.log('Starting React application...');
 
 try {
   const rootElement = document.getElementById('root');
@@ -27,15 +30,12 @@ try {
 
   const root = createRoot(rootElement);
 
-  console.log('Root created successfully');
-
   root.render(
     <StrictMode>
       <App />
     </StrictMode>,
   );
 
-  console.log('App rendered successfully');
 } catch (error) {
   console.error('Failed to initialize React app:', error);
 

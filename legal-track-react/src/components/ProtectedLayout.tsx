@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Box, Drawer } from "@mui/material";
+import type { RootState } from "../store/store";
+import { Box, CircularProgress, Drawer } from "@mui/material";
 import Sidebar from "./layout/Sidebar";
 import TopBar from "./layout/TopBar";
 import { apiClient, getAuthToken } from "../api/config";
@@ -14,7 +15,7 @@ const NAME_ID_CLAIM = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nam
 const ProtectedLayout = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const dispatch = useDispatch();
-  const currentUser = useSelector((state: any) => state.user.currentUser);
+  const currentUser = useSelector((state: RootState) => state.user.currentUser);
 
   // The signed-in user lives only in memory: after a page reload, load it again from the token
   useEffect(() => {
@@ -58,7 +59,16 @@ const ProtectedLayout = () => {
       <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
         <TopBar onOpenMenu={() => setMenuOpen(true)} />
         <Box component="main" sx={{ flex: 1, width: "100%", maxWidth: 1360, mx: "auto", boxSizing: "border-box", px: { xs: 2, md: 4 }, py: 3 }}>
-          <Outlet />
+          {/* Pages are lazy-loaded; keep the sidebar and top bar on screen while one loads */}
+          <Suspense
+            fallback={
+              <Box role="status" aria-label="טוען" sx={{ display: "flex", justifyContent: "center", py: 10 }}>
+                <CircularProgress size={24} />
+              </Box>
+            }
+          >
+            <Outlet />
+          </Suspense>
         </Box>
       </Box>
     </Box>

@@ -23,8 +23,8 @@ export const getClients = async () => {
         
         console.log(`ClientAPI: Success with endpoint: ${endpoint}`);
         break;
-      } catch (error: any) {
-        console.warn(`ClientAPI: Endpoint ${endpoint} failed:`, error.message);
+      } catch (error: unknown) {
+        console.warn(`ClientAPI: Endpoint ${endpoint} failed:`, error instanceof Error ? error.message : error);
         lastError = error;
         continue;
       }
@@ -46,7 +46,7 @@ export const getClients = async () => {
     }
     
     return { data: clients };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('ClientAPI: Error fetching clients:', error);
     
     // במקרה של שגיאה, החזר array ריק כדי שהאפליקציה תמשיך לעבוד

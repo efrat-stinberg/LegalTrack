@@ -69,7 +69,7 @@ const Chat: React.FC<ChatProps> = ({ folderId }) => {
         { timeout: CHAT_TIMEOUT_MS }
       );
       setMessages((prev) => [...prev, newMessage]);
-    } catch (err: any) {
+    } catch (err: unknown) {
       const status = axios.isAxiosError(err) ? err.response?.status : undefined;
       const serverMessage = axios.isAxiosError(err) && typeof err.response?.data === "string" ? err.response.data : null;
       // The server explains 503s in technical English (e.g. missing ChatKey); lead with a Hebrew sentence

@@ -121,31 +121,27 @@ export const createFolder = async (formData: CreateFolderFormData): Promise<MyFo
   }
 };
 
-export const updateFolder = async (id: number, folderData: Partial<MyFolder>): Promise<void> => {
+export const updateFolder = async (id: number, data: UpdateFolderRequest): Promise<void> => {
   try {
-    console.log('Updating folder:', { id, folderData });
-    
-    // הכנת נתונים לפי מה שה-Backend מצפה
-    const backendData: UpdateFolderRequest = {
-      folderName: folderData.folderName!,
-      clientId: folderData.clientId!
-    };
-    
-    console.log('Sending update request:', backendData);
-    
-    await apiClient.put(`/folders/${id}`, backendData);
-    console.log('Folder updated successfully');
+    await apiClient.put(`/folders/${id}`, {
+      ...data,
+      nextDeadline: data.nextDeadline ? data.nextDeadline.slice(0, 10) : null,
+    });
   } catch (error) {
-    console.error("Error updating folder:", error);
-    
     if (axios.isAxiosError(error)) {
-      const errorMessage = error.response?.data?.message || error.message;
-      throw new Error(`שגיאה בעדכון תיקייה: ${errorMessage}`);
+      const detail = typeof error.response?.data === 'string' ? error.response.data : error.response?.data?.message;
+      throw new Error(`עדכון התיק נכשל${detail ? `: ${detail}` : ''}`);
     }
-    
     throw error;
   }
 };
+
+// The fields an update must send back unchanged when only some of them are edited
+export const caseFieldsOf = (folder: MyFolder): Pick<UpdateFolderRequest, 'status' | 'nextDeadline' | 'nextDeadlineNote'> => ({
+  status: folder.status,
+  nextDeadline: folder.nextDeadline ?? null,
+  nextDeadlineNote: folder.nextDeadlineNote ?? null,
+});
 
 export const deleteFolder = async (id: number): Promise<void> => {
   try {

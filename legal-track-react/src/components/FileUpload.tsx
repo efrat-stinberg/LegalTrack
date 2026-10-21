@@ -268,14 +268,14 @@ const FileUpload: React.FC<FileUploadProps> = ({ folderId, onClose, onUploadSucc
             : f
         ));
 
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Upload failed:", err);
         failures++;
         
         // עדכן סטטוס לשגיאה
         setFiles(prev => prev.map(f => 
           f.id === fileItem.id 
-            ? { ...f, status: 'error' as const, error: err.message || 'שגיאה בהעלאה' }
+            ? { ...f, status: 'error' as const, error: err instanceof Error && err.message ? err.message : 'שגיאה בהעלאה' }
             : f
         ));
       }

@@ -24,7 +24,7 @@ export const fileUploadClient = axios.create({
 // Utility functions
 export const getAuthToken = (): string | null => {
   try {
-    let token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
     if (token) {
       return token.replace(/^"|"$/g, '');
     }
@@ -75,7 +75,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public status?: number,
-    public data?: any
+    public data?: unknown
   ) {
     super(message);
     this.name = 'ApiError';

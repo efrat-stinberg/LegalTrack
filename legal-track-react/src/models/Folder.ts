@@ -1,25 +1,17 @@
 import MyDocument from "./Document";
 
+// Values the server accepts for Folder.Status
+export type CaseStatus = 'open' | 'in_progress' | 'waiting' | 'closed';
+
 export interface MyFolder {
   folderId: number;
   folderName: string;
   createdDate: string;
-  clientId: number; // Backend מצפה לזה (לא optional)
+  clientId: number;
   clientName?: string; // Filled by GET /api/folders/{id}
-  groupId: number; // מהBackend
+  groupId: number;
   documents: MyDocument[];
-  
-  // שדות נוספים שיכולים להיות שימושיים בעתיד אבל לא נשלחים לBackend
-  lastModified?: string;
-  description?: string;
-  priority?: 'low' | 'medium' | 'high' | 'urgent';
-  color?: string;
-  tags?: string[];
-  status?: 'active' | 'archived' | 'closed';
-  
-  // נתונים חישוביים
-  documentsCount?: number;
-  lastActivity?: string;
-  size?: number;
+  status: CaseStatus;
+  nextDeadline?: string | null; // "YYYY-MM-DDT00:00:00"
+  nextDeadlineNote?: string | null;
 }
-

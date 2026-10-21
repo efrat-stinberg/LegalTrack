@@ -1,3 +1,5 @@
+import type { CaseStatus } from '../models/Folder';
+
 // Frontend form data types
 export interface CreateFolderFormData {
     folderName: string;
@@ -21,10 +23,14 @@ export interface CreateFolderFormData {
     clientId: number;
   }
   
-  // Update folder request
+  // Update folder request. The server clears the deadline when nextDeadline is null or missing,
+  // so it is required here: callers that only rename must pass the current deadline back.
   export interface UpdateFolderRequest {
     folderName: string;
     clientId: number;
+    status?: CaseStatus;
+    nextDeadline: string | null;
+    nextDeadlineNote?: string | null;
   }
   
   // File upload types
@@ -54,6 +60,6 @@ export interface CreateFolderFormData {
   // Error response type
   export interface ApiErrorResponse {
     message: string;
-    details?: any;
+    details?: unknown;
     statusCode?: number;
   }

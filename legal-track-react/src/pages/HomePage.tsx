@@ -1,4 +1,4 @@
-// Overview: the office's key numbers, the latest cases, and quick ways to start common work.
+// Overview: the office's key numbers, upcoming deadlines, the latest cases, and quick ways to start common work.
 import React, { useEffect, useMemo, useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -7,6 +7,9 @@ import { ChevronLeft, FilePlus2, FolderPlus, UserPlus } from "lucide-react";
 import { getAllFolders } from "../api/api";
 import { getClients } from "../api/clientApi";
 import { MyFolder } from "../models/Folder";
+import { DeadlineText } from "../components/caseStatus";
+import { daysUntil } from "../utils/caseStatus";
+import type { RootState } from "../store/store";
 import { Client } from "../models/Client";
 import PageTitle from "../components/layout/PageTitle";
 import { tokens } from "../theme";
@@ -19,7 +22,7 @@ const panel = {
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const currentUser = useSelector((state: any) => state.user.currentUser);
+  const currentUser = useSelector((state: RootState) => state.user.currentUser);
   const [folders, setFolders] = useState<MyFolder[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,9 +43,15 @@ const HomePage: React.FC = () => {
   const monthAgo = Date.now() - 30 * 864e5;
   const newCases = folders.filter((f) => new Date(f.createdDate).getTime() >= monthAgo).length;
   const recent = [...folders].sort((a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()).slice(0, 6);
+  const activeCount = folders.filter((f) => f.status !== "closed").length;
+  // Active cases with a deadline in the next 30 days or already overdue, soonest first
+  const upcoming = folders
+    .filter((f) => f.status !== "closed" && f.nextDeadline && daysUntil(f.nextDeadline) <= 30)
+    .sort((a, b) => a.nextDeadline!.localeCompare(b.nextDeadline!))
+    .slice(0, 5);
 
   const stats = [
-    { label: "תיקים", value: folders.length, note: "פתוחים במשרד", to: "/folders" },
+    { label: "תיקים פעילים", value: activeCount, note: `מתוך ${folders.length} תיקים`, to: "/folders" },
     { label: "תיקים חדשים", value: newCases, note: "ב-30 הימים האחרונים", to: "/folders" },
     { label: "לקוחות", value: clients.length, note: "רשומים במשרד", to: "/clients" },
     { label: "מסמכים", value: totalDocuments, note: "בכל התיקים", to: "/documents" },
@@ -148,7 +157,53 @@ const HomePage: React.FC = () => {
             ))}
         </Box>
 
-        <Box component="section" aria-labelledby="actions-title" sx={{ ...panel, flex: "1 1 260px", minWidth: 0 }}>
+        <Box sx={{ flex: "1 1 280px", minWidth: 0, display: "flex", flexDirection: "column", gap: 2.5 }}>
+        <Box component="section" aria-labelledby="deadlines-title" sx={{ ...panel }}>
+          <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${tokens.border}` }}>
+            <Typography id="deadlines-title" component="h2" variant="h6" sx={{ color: tokens.navy900 }}>
+              מועדים קרובים
+            </Typography>
+            <Typography sx={{ fontSize: 12, color: tokens.muted }}>30 הימים הקרובים, כולל מועדים שעברו</Typography>
+          </Box>
+          {loading && (
+            <Box sx={{ px: 2.5, py: 1.75 }}>
+              <Skeleton width="70%" />
+            </Box>
+          )}
+          {!loading && upcoming.length === 0 && (
+            <Typography sx={{ px: 2.5, py: 2.5, color: tokens.slate, fontSize: 14 }}>אין מועדים קרובים. מוסיפים מועד מתוך דף התיק.</Typography>
+          )}
+          {!loading &&
+            upcoming.map((f) => (
+              <Box
+                key={f.folderId}
+                component={RouterLink}
+                to={`/folders/${f.folderId}`}
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 0.25,
+                  px: 2.5,
+                  py: 1.25,
+                  borderBottom: `1px solid ${tokens.borderSoft}`,
+                  textDecoration: "none",
+                  color: tokens.ink,
+                  "&:hover": { background: tokens.hover },
+                  "&:focus-visible": { outline: `2px solid ${tokens.blue600}`, outlineOffset: -2 },
+                }}
+              >
+                <Typography sx={{ fontWeight: 600, color: tokens.navy900, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {f.folderName}
+                  {f.nextDeadlineNote && <Box component="span" sx={{ fontWeight: 400, color: tokens.slate }}> · {f.nextDeadlineNote}</Box>}
+                </Typography>
+                <Box sx={{ fontSize: 13 }}>
+                  <DeadlineText date={f.nextDeadline} />
+                </Box>
+              </Box>
+            ))}
+        </Box>
+
+        <Box component="section" aria-labelledby="actions-title" sx={{ ...panel }}>
           <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${tokens.border}` }}>
             <Typography id="actions-title" component="h2" variant="h6" sx={{ color: tokens.navy900 }}>
               פעולות מהירות
@@ -185,6 +240,7 @@ const HomePage: React.FC = () => {
               </Box>
             ))}
           </Box>
+        </Box>
         </Box>
       </Box>
     </Box>

@@ -1,4 +1,5 @@
 // Case details: header with client and actions, the case's documents, and the AI assistant.
+import axios from "axios";
 import { useParams, useNavigate, Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
@@ -24,7 +25,9 @@ import { getClients } from "../api/clientApi";
 import DocumentList from "../components/DocumentList";
 import FileUpload from "../components/FileUpload";
 import Chat from "../components/Chat";
-import { MyFolder } from "../models/Folder";
+import { CaseStatus, MyFolder } from "../models/Folder";
+import { DeadlineText, StatusChip } from "../components/caseStatus";
+import { CASE_STATUSES } from "../utils/caseStatus";
 import { Client } from "../models/Client";
 import { tokens } from "../theme";
 
@@ -45,7 +48,13 @@ const FolderDetailsPage: React.FC = () => {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
-  const [form, setForm] = useState({ folderName: "", clientId: 0 });
+  const [form, setForm] = useState<{ folderName: string; clientId: number; status: CaseStatus; nextDeadline: string; nextDeadlineNote: string }>({
+    folderName: "",
+    clientId: 0,
+    status: "open",
+    nextDeadline: "",
+    nextDeadlineNote: "",
+  });
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -58,8 +67,8 @@ const FolderDetailsPage: React.FC = () => {
     try {
       setError(null);
       setFolder(await getFolderByIdWithDocuments(folderId));
-    } catch (e: any) {
-      setError(e?.response?.status === 404 ? "התיק לא נמצא או שאין לך גישה אליו" : "לא ניתן לטעון את התיק");
+    } catch (e: unknown) {
+      setError(axios.isAxiosError(e) && e.response?.status === 404 ? "התיק לא נמצא או שאין לך גישה אליו" : "לא ניתן לטעון את התיק");
     } finally {
       setLoading(false);
     }
@@ -73,7 +82,13 @@ const FolderDetailsPage: React.FC = () => {
 
   const openEdit = async () => {
     if (!folder) return;
-    setForm({ folderName: folder.folderName, clientId: folder.clientId });
+    setForm({
+      folderName: folder.folderName,
+      clientId: folder.clientId,
+      status: folder.status ?? "open",
+      nextDeadline: folder.nextDeadline?.slice(0, 10) ?? "",
+      nextDeadlineNote: folder.nextDeadlineNote ?? "",
+    });
     setEditOpen(true);
     if (clients.length === 0) {
       const res = await getClients();
@@ -85,12 +100,18 @@ const FolderDetailsPage: React.FC = () => {
     if (!folder || !form.folderName.trim()) return;
     setSaving(true);
     try {
-      await updateFolder(folder.folderId, { folderName: form.folderName.trim(), clientId: form.clientId });
+      await updateFolder(folder.folderId, {
+        folderName: form.folderName.trim(),
+        clientId: form.clientId,
+        status: form.status,
+        nextDeadline: form.nextDeadline || null,
+        nextDeadlineNote: form.nextDeadline ? form.nextDeadlineNote.trim() || null : null,
+      });
       await load();
       setEditOpen(false);
       setNotice("פרטי התיק עודכנו");
-    } catch (e: any) {
-      setNotice(e?.message || "עדכון התיק נכשל");
+    } catch (e: unknown) {
+      setNotice(e instanceof Error ? e.message : "עדכון התיק נכשל");
     } finally {
       setSaving(false);
     }
@@ -134,15 +155,33 @@ const FolderDetailsPage: React.FC = () => {
 
       <Paper sx={{ ...panel, px: 3, py: 2.75, display: "flex", flexWrap: "wrap", gap: 2.5, justifyContent: "space-between", alignItems: "flex-start" }}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25, minWidth: 0 }}>
-          <Typography variant="h1" sx={{ fontSize: { xs: 24, md: 30 } }}>
-            {folder.folderName}
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap" }}>
+            <Typography variant="h1" sx={{ fontSize: { xs: 24, md: 30 } }}>
+              {folder.folderName}
+            </Typography>
+            <StatusChip status={folder.status} />
+          </Box>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2.5, color: tokens.slate }}>
             <span>
               לקוח: <strong style={{ color: tokens.ink }}>{folder.clientName || "—"}</strong>
             </span>
             <span>נפתח: {new Date(folder.createdDate).toLocaleDateString("he-IL")}</span>
             <span>{docCount === 1 ? "מסמך אחד" : `${docCount} מסמכים`}</span>
+          </Box>
+          <Box sx={{ display: "flex", gap: 1, alignItems: "baseline", flexWrap: "wrap" }}>
+            <Typography component="span" sx={{ color: tokens.slate, fontSize: 14 }}>
+              המועד הבא:
+            </Typography>
+            {folder.nextDeadline ? (
+              <Box component="span" sx={{ fontSize: 14 }}>
+                <DeadlineText date={folder.nextDeadline} />
+                {folder.nextDeadlineNote && <Box component="span" sx={{ color: tokens.ink, fontWeight: 500 }}> – {folder.nextDeadlineNote}</Box>}
+              </Box>
+            ) : (
+              <Button size="small" variant="text" onClick={openEdit} sx={{ minHeight: 0, p: 0, fontSize: 14 }}>
+                הוספת מועד
+              </Button>
+            )}
           </Box>
         </Box>
         <Box sx={{ display: "flex", gap: 1.25, flexWrap: "wrap" }}>
@@ -234,6 +273,41 @@ const FolderDetailsPage: React.FC = () => {
               </MenuItem>
             ))}
           </TextField>
+          <TextField select label="סטטוס" value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as CaseStatus }))}>
+            {CASE_STATUSES.map((s) => (
+              <MenuItem key={s.value} value={s.value}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <s.icon size={15} aria-hidden="true" />
+                  {s.label}
+                </Box>
+              </MenuItem>
+            ))}
+          </TextField>
+          <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
+            <TextField
+              type="date"
+              label="המועד הבא"
+              value={form.nextDeadline}
+              onChange={(e) => setForm((f) => ({ ...f, nextDeadline: e.target.value }))}
+              InputLabelProps={{ shrink: true }}
+              helperText="רשות – למשל דיון או הגשה"
+              sx={{ flex: 1 }}
+            />
+            {form.nextDeadline && (
+              <Button variant="text" onClick={() => setForm((f) => ({ ...f, nextDeadline: "", nextDeadlineNote: "" }))} sx={{ mt: 0.5 }}>
+                ניקוי
+              </Button>
+            )}
+          </Box>
+          {form.nextDeadline && (
+            <TextField
+              label="מה המועד"
+              value={form.nextDeadlineNote}
+              onChange={(e) => setForm((f) => ({ ...f, nextDeadlineNote: e.target.value }))}
+              inputProps={{ maxLength: 200 }}
+              placeholder="לדוגמה: דיון בבית משפט השלום"
+            />
+          )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
           <Button variant="outlined" onClick={() => setEditOpen(false)} disabled={saving}>

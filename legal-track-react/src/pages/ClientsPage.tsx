@@ -1,4 +1,5 @@
 // Clients: searchable table with each client's cases, plus add / edit / delete.
+import axios from "axios";
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import {
@@ -115,8 +116,8 @@ const ClientsPage: React.FC = () => {
       setClients((prev) => prev.filter((c) => c.id !== toDelete.id));
       setNotice({ text: `הלקוח "${toDelete.fullName}" נמחק` });
       setToDelete(null);
-    } catch (error: any) {
-      const serverMessage = typeof error?.response?.data === 'string' ? error.response.data : null;
+    } catch (error: unknown) {
+      const serverMessage = axios.isAxiosError(error) && typeof error.response?.data === 'string' ? error.response.data : null;
       setNotice({ text: serverMessage || 'מחיקת הלקוח נכשלה', error: true });
       setToDelete(null);
     } finally {
@@ -246,7 +247,21 @@ const ClientsPage: React.FC = () => {
         </MenuItem>
       </Menu>
 
-      <Dialog open={Boolean(dialog)} onClose={() => !saving && setDialog(null)} maxWidth="sm" fullWidth>
+      {/* The dialog is a form so Enter in any field saves */}
+      <Dialog
+        open={Boolean(dialog)}
+        onClose={() => !saving && setDialog(null)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          component: 'form',
+          noValidate: true,
+          onSubmit: (e: React.FormEvent) => {
+            e.preventDefault();
+            submit();
+          },
+        }}
+      >
         <DialogTitle>{dialog?.mode === 'create' ? 'לקוח חדש' : 'עריכת פרטי לקוח'}</DialogTitle>
         <DialogContent sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, pt: '8px !important' }}>
           <TextField
@@ -280,7 +295,7 @@ const ClientsPage: React.FC = () => {
           <Button variant="outlined" onClick={() => setDialog(null)} disabled={saving}>
             ביטול
           </Button>
-          <Button variant="contained" onClick={submit} disabled={saving}>
+          <Button type="submit" variant="contained" disabled={saving}>
             {dialog?.mode === 'create' ? 'הוספת הלקוח' : 'שמירה'}
           </Button>
         </DialogActions>

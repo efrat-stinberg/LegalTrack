@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
-import { Home, FolderOpen, FolderCog, Users, FileText, BarChart3, HelpCircle, Scale } from 'lucide-react';
+import { Home, FolderOpen, Users, FileText, BarChart3, HelpCircle, Scale } from 'lucide-react';
 import { tokens } from '../../theme';
 
 interface NavItem {
@@ -35,7 +35,6 @@ const groups: NavGroup[] = [
   {
     title: 'ניהול וניתוח',
     items: [
-      { path: '/folder-management', label: 'ניהול תיקים מתקדם', icon: <FolderCog size={18} /> },
       { path: '/analytics', label: 'דוחות', icon: <BarChart3 size={18} /> },
     ],
   },

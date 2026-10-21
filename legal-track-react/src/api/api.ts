@@ -1,8 +1,6 @@
 // Legacy api.ts file for backward compatibility
 // מעבר הדרגתי - ייבוא מהקבצים החדשים
 
-// Re-export everything from the new organized API structure
-export * from './index';
 
 // Client API exports
 export { 
@@ -33,7 +31,6 @@ export type {
 // User API
 export { 
   loginUser, 
-  registerUser, 
   getUserByEmail, 
   updateUser 
 } from './userApi';
@@ -44,6 +41,7 @@ export {
   getFolderByIdWithDocuments, 
   createFolder, 
   updateFolder, 
+  caseFieldsOf,
   deleteFolder 
 } from './folderApi';
 

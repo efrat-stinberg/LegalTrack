@@ -1,5 +1,6 @@
 // Registration from an invite link (/#/register?token=...). Same layout as the sign-in screen.
 import { useSearchParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 import { useEffect, useState } from "react";
 import { Alert, Box, Button, CircularProgress, IconButton, InputAdornment, TextField, Typography } from "@mui/material";
 import { Eye, EyeOff, MailCheck } from "lucide-react";
@@ -36,14 +37,14 @@ const Register = () => {
         const response = await apiClient.post("/invite/validate", { token });
         setEmail(response.data.email);
         setStatus("valid");
-      } catch (error: any) {
+      } catch (error: unknown) {
         let errorMsg = "ההזמנה לא תקינה או שפג תוקפה.";
-        if (error.response) {
+        if (axios.isAxiosError(error) && error.response) {
           if (error.response.status === 400) errorMsg = error.response.data?.message || errorMsg;
           else if (error.response.status === 404) errorMsg = "ההזמנה לא נמצאה במערכת.";
           else if (error.response.status === 410) errorMsg = "פג תוקף ההזמנה.";
           else if (typeof error.response.data?.message === "string") errorMsg = error.response.data.message;
-        } else if (error.request) {
+        } else if (axios.isAxiosError(error) && error.request) {
           errorMsg = "אין חיבור לשרת. בדקו את החיבור לאינטרנט ונסו שוב.";
         }
         setErrorMessage(errorMsg);
@@ -80,13 +81,13 @@ const Register = () => {
       const user = await getUserByEmail(email);
       dispatch(login(user));
       navigate("/home", { replace: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       let errorMsg = "ההרשמה נכשלה. נסו שוב.";
-      if (error.response) {
+      if (axios.isAxiosError(error) && error.response) {
         if (error.response.status === 409) errorMsg = "כבר קיים משתמש עם האימייל הזה.";
         else if (typeof error.response.data?.message === "string") errorMsg = error.response.data.message;
         else if (typeof error.response.data === "string" && error.response.data) errorMsg = error.response.data;
-      } else if (error.request) {
+      } else if (axios.isAxiosError(error) && error.request) {
         errorMsg = "אין חיבור לשרת. נסו שוב.";
       }
       setErrorMessage(errorMsg);

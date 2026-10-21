@@ -1,6 +1,6 @@
 import axios from "axios";
 import { apiClient } from "./config";
-import { LoginResponse, RegisterRequest } from "./types";
+import { LoginResponse } from "./types";
 import User from "../models/User";
 
 // ===== USER API =====
@@ -11,40 +11,9 @@ export const loginUser = async (email: string, password: string): Promise<string
     const response = await apiClient.post<LoginResponse>('/login', { email, password });
     console.log('Login successful');
     return response.data.token;
-  } catch (error: any) {
-    console.error("Login failed:", error.response ? error.response.data : error.message);
+  } catch (error: unknown) {
+    console.error("Login failed:", axios.isAxiosError(error) ? error.response?.data ?? error.message : error);
     throw error;
-  }
-};
-
-export const registerUser = async (
-  username: string,
-  email: string,
-  password: string,
-  isAdmin: boolean = false
-): Promise<any> => {
-  try {
-    const registerData: RegisterRequest = {
-      username,
-      email,
-      password,
-      groupId: 0,
-      isAdmin
-    };
-    
-    console.log('Attempting registration for:', email);
-    const response = await apiClient.post('/Auth/register', registerData);
-    console.log('Registration successful');
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      if (error.response?.status === 409) {
-        throw new Error("Registration failed: User with this email already exists.");
-      }
-      throw new Error(`Registration failed: ${error.response?.data?.message || "Unknown error"}`);
-    } else {
-      throw new Error("Registration failed: Unknown error");
-    }
   }
 };
 

@@ -1,4 +1,4 @@
-// Cases list: search, filter by client and status of documents, sort, and row actions.
+// Cases list: key numbers, search, filters (client, status, documents, dates), sort, and row actions.
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -21,16 +21,20 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { Edit3, MoreVertical, Plus, Search, Trash2 } from 'lucide-react';
-import { createFolder as apiCreateFolder, deleteFolder, getAllFolders, updateFolder } from '../api/api';
+import { Check, Edit3, MoreVertical, Plus, Search, Trash2 } from 'lucide-react';
+import { caseFieldsOf, createFolder as apiCreateFolder, deleteFolder, getAllFolders, updateFolder } from '../api/api';
 import { getClients } from '../api/clientApi';
-import { MyFolder } from '../models/Folder';
+import { CaseStatus, MyFolder } from '../models/Folder';
+import { DeadlineText, StatusChip } from '../components/caseStatus';
+import { CASE_STATUSES } from '../utils/caseStatus';
+import StatsSection from '../components/StatsSection';
 import { Client } from '../models/Client';
 import PageTitle from '../components/layout/PageTitle';
 import { tokens } from '../theme';
 
 type QuickFilter = 'all' | 'hasDocuments' | 'empty' | 'recent' | 'older';
-type SortKey = 'date-desc' | 'date-asc' | 'name' | 'documents';
+type SortKey = 'date-desc' | 'date-asc' | 'name' | 'documents' | 'deadline';
+type StatusFilter = 'all' | 'active' | CaseStatus;
 
 const quickFilters: { key: QuickFilter; label: string }[] = [
   { key: 'all', label: 'כל התיקים' },
@@ -61,6 +65,7 @@ const FoldersPage: React.FC = () => {
   const [search, setSearch] = useState(params.get('q') ?? '');
   const [clientFilter, setClientFilter] = useState<number | 'all'>(params.get('client') ? Number(params.get('client')) : 'all');
   const [quickFilter, setQuickFilter] = useState<QuickFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [sort, setSort] = useState<SortKey>('date-desc');
 
   const [createOpen, setCreateOpen] = useState(params.get('new') === '1');
@@ -108,6 +113,8 @@ const FoldersPage: React.FC = () => {
       const created = new Date(f.createdDate).getTime();
       const docs = f.documents?.length || 0;
       if (clientFilter !== 'all' && f.clientId !== clientFilter) return false;
+      if (statusFilter === 'active' && f.status === 'closed') return false;
+      if (statusFilter !== 'all' && statusFilter !== 'active' && f.status !== statusFilter) return false;
       if (quickFilter === 'hasDocuments' && docs === 0) return false;
       if (quickFilter === 'empty' && docs > 0) return false;
       if (quickFilter === 'recent' && created < weekAgo) return false;
@@ -125,13 +132,18 @@ const FoldersPage: React.FC = () => {
           return a.folderName.localeCompare(b.folderName, 'he');
         case 'documents':
           return (b.documents?.length || 0) - (a.documents?.length || 0);
+        case 'deadline':
+          // Soonest first; cases without a deadline go last
+          if (!a.nextDeadline) return b.nextDeadline ? 1 : 0;
+          if (!b.nextDeadline) return -1;
+          return a.nextDeadline.localeCompare(b.nextDeadline);
         case 'date-asc':
           return new Date(a.createdDate).getTime() - new Date(b.createdDate).getTime();
         default:
           return new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime();
       }
     });
-  }, [folders, search, clientFilter, quickFilter, sort, clientName]);
+  }, [folders, search, clientFilter, statusFilter, quickFilter, sort, clientName]);
 
   const closeCreate = () => {
     setCreateOpen(false);
@@ -152,8 +164,8 @@ const FoldersPage: React.FC = () => {
       closeCreate();
       setNotice({ text: `התיק "${created.folderName}" נפתח` });
       navigate(`/folders/${created.folderId}`);
-    } catch (e: any) {
-      setNotice({ text: e?.message || 'פתיחת התיק נכשלה', error: true });
+    } catch (e: unknown) {
+      setNotice({ text: e instanceof Error ? e.message : 'פתיחת התיק נכשלה', error: true });
     } finally {
       setSaving(false);
     }
@@ -163,7 +175,7 @@ const FoldersPage: React.FC = () => {
     if (!toRename || !toRename.name.trim()) return;
     setSaving(true);
     try {
-      await updateFolder(toRename.folder.folderId, { folderName: toRename.name.trim(), clientId: toRename.folder.clientId });
+      await updateFolder(toRename.folder.folderId, { folderName: toRename.name.trim(), clientId: toRename.folder.clientId, ...caseFieldsOf(toRename.folder) });
       setFolders((prev) => prev.map((f) => (f.folderId === toRename.folder.folderId ? { ...f, folderName: toRename.name.trim() } : f)));
       setNotice({ text: 'שם התיק עודכן' });
       setToRename(null);
@@ -171,6 +183,18 @@ const FoldersPage: React.FC = () => {
       setNotice({ text: 'עדכון שם התיק נכשל', error: true });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const changeStatus = async (folder: MyFolder, status: CaseStatus) => {
+    setMenu(null);
+    if (folder.status === status) return;
+    try {
+      await updateFolder(folder.folderId, { folderName: folder.folderName, clientId: folder.clientId, ...caseFieldsOf(folder), status });
+      setFolders((prev) => prev.map((f) => (f.folderId === folder.folderId ? { ...f, status } : f)));
+      setNotice({ text: `הסטטוס של "${folder.folderName}" עודכן` });
+    } catch {
+      setNotice({ text: 'עדכון הסטטוס נכשל', error: true });
     }
   };
 
@@ -189,7 +213,7 @@ const FoldersPage: React.FC = () => {
     }
   };
 
-  const grid = 'minmax(0, 2fr) minmax(0, 1.4fr) 90px 110px 120px';
+  const grid = 'minmax(0, 1.8fr) minmax(0, 1fr) 92px minmax(190px, 1.5fr) 56px 84px 104px';
   const filtered = rows.length !== folders.length;
 
   return (
@@ -203,6 +227,8 @@ const FoldersPage: React.FC = () => {
           </Button>
         }
       />
+
+      {!loading && !loadError && <StatsSection folders={folders} clients={clients} />}
 
       <Box sx={{ background: tokens.white, border: `1px solid ${tokens.border}`, borderRadius: `${tokens.radiusLg}px` }}>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.25, alignItems: 'center', px: 2, py: 1.75, borderBottom: `1px solid ${tokens.border}` }}>
@@ -229,7 +255,7 @@ const FoldersPage: React.FC = () => {
               sx={{ flex: 1, fontSize: 14 }}
             />
           </Box>
-          <Box component="select" aria-label="סינון לפי לקוח" value={clientFilter} onChange={(e: any) => setClientFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))} sx={selectSx}>
+          <Box component="select" aria-label="סינון לפי לקוח" value={clientFilter} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setClientFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))} sx={selectSx}>
             <option value="all">כל הלקוחות</option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>
@@ -237,29 +263,41 @@ const FoldersPage: React.FC = () => {
               </option>
             ))}
           </Box>
-          <Box component="select" aria-label="סינון תיקים" value={quickFilter} onChange={(e: any) => setQuickFilter(e.target.value)} sx={selectSx}>
+          <Box component="select" aria-label="סינון לפי סטטוס" value={statusFilter} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value as StatusFilter)} sx={selectSx}>
+            <option value="all">כל הסטטוסים</option>
+            <option value="active">פעילים (לא סגורים)</option>
+            {CASE_STATUSES.map((st) => (
+              <option key={st.value} value={st.value}>
+                {st.label}
+              </option>
+            ))}
+          </Box>
+          <Box component="select" aria-label="סינון תיקים" value={quickFilter} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setQuickFilter(e.target.value as QuickFilter)} sx={selectSx}>
             {quickFilters.map((f) => (
               <option key={f.key} value={f.key}>
                 {f.label}
               </option>
             ))}
           </Box>
-          <Box component="select" aria-label="מיון" value={sort} onChange={(e: any) => setSort(e.target.value)} sx={selectSx}>
+          <Box component="select" aria-label="מיון" value={sort} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSort(e.target.value as SortKey)} sx={selectSx}>
             <option value="date-desc">נפתח לאחרונה</option>
             <option value="date-asc">נפתח ראשון</option>
             <option value="name">שם התיק (א-ת)</option>
             <option value="documents">מספר מסמכים</option>
+            <option value="deadline">המועד הקרוב</option>
           </Box>
         </Box>
 
         <Box sx={{ overflowX: 'auto' }}>
-          <Box role="table" aria-label="תיקים" sx={{ minWidth: 680 }}>
+          <Box role="table" aria-label="תיקים" sx={{ minWidth: 900 }}>
             <Box
               role="row"
               sx={{ display: 'grid', gridTemplateColumns: grid, gap: 1.5, px: 2, py: 1.25, background: tokens.ground, borderBottom: `1px solid ${tokens.border}`, fontSize: 12, fontWeight: 600, color: tokens.slate }}
             >
               <span role="columnheader">שם התיק</span>
               <span role="columnheader">לקוח</span>
+              <span role="columnheader">סטטוס</span>
+              <span role="columnheader">המועד הבא</span>
               <span role="columnheader">מסמכים</span>
               <span role="columnheader">נפתח</span>
               <span role="columnheader" className="sr-only">
@@ -272,6 +310,8 @@ const FoldersPage: React.FC = () => {
                 <Box key={i} sx={{ display: 'grid', gridTemplateColumns: grid, gap: 1.5, px: 2, py: 1.75, borderBottom: `1px solid ${tokens.borderSoft}` }}>
                   <Skeleton width="70%" />
                   <Skeleton width="60%" />
+                  <Skeleton width={60} />
+                  <Skeleton width="70%" />
                   <Skeleton width={30} />
                   <Skeleton width={70} />
                   <span />
@@ -300,6 +340,7 @@ const FoldersPage: React.FC = () => {
                     onClick={() => {
                       setSearch('');
                       setClientFilter('all');
+                      setStatusFilter('all');
                       setQuickFilter('all');
                     }}
                   >
@@ -323,6 +364,12 @@ const FoldersPage: React.FC = () => {
                   </Box>
                   <Box role="cell" sx={{ color: tokens.slate, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {clientName.get(f.clientId) ?? '—'}
+                  </Box>
+                  <Box role="cell">
+                    <StatusChip status={f.status} size="sm" />
+                  </Box>
+                  <Box role="cell" sx={{ fontSize: 13, minWidth: 0 }}>
+                    <DeadlineText date={f.status === 'closed' ? null : f.nextDeadline} note={f.nextDeadlineNote} showNote />
                   </Box>
                   <Box role="cell" sx={{ color: tokens.slate, fontVariantNumeric: 'tabular-nums' }}>
                     {f.documents?.length || 0}
@@ -352,7 +399,22 @@ const FoldersPage: React.FC = () => {
         )}
       </Box>
 
-      <Menu anchorEl={menu?.anchor} open={Boolean(menu)} onClose={() => setMenu(null)}>
+      <Menu anchorEl={menu?.anchor} open={Boolean(menu)} onClose={() => setMenu(null)} PaperProps={{ sx: { minWidth: 200 } }}>
+        <Typography sx={{ px: 2, pt: 1, pb: 0.5, fontSize: 12, fontWeight: 600, color: tokens.muted }}>סטטוס</Typography>
+        {CASE_STATUSES.map((st) => (
+          <MenuItem key={st.value} onClick={() => menu && changeStatus(menu.folder, st.value)} selected={menu?.folder.status === st.value}>
+            <ListItemIcon>
+              <st.icon size={16} />
+            </ListItemIcon>
+            {st.label}
+            {menu?.folder.status === st.value && (
+              <Box component="span" sx={{ marginInlineStart: 'auto', display: 'flex', color: tokens.navy700 }} aria-label="הסטטוס הנוכחי">
+                <Check size={15} />
+              </Box>
+            )}
+          </MenuItem>
+        ))}
+        <Box sx={{ my: 0.5, borderTop: `1px solid ${tokens.borderSoft}` }} />
         <MenuItem
           onClick={() => {
             if (menu) setToRename({ folder: menu.folder, name: menu.folder.folderName });

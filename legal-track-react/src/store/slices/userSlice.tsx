@@ -49,11 +49,9 @@ const userSlice = createSlice({
             groupId: folder.groupId,
             clientId: folder.clientId,
             createdDate: folder.createdDate,
-            lastModified: folder.lastModified,
             status: folder.status,
-            priority: folder.priority,
-            color: folder.color,
-            tags: folder.tags,
+            nextDeadline: folder.nextDeadline,
+            nextDeadlineNote: folder.nextDeadlineNote,
             documents: folder.documents?.map((document) => ({
               documentId: document.documentId,
               documentName: document.documentName,

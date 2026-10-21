@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import type { RootState } from "../store/store";
 import { useEffect, useState } from 'react';
 import { Box, CircularProgress } from '@mui/material';
 
@@ -8,8 +9,8 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const isAuthenticated = useSelector((state: any) => state.user.isAuthenticated);
-  const currentUser = useSelector((state: any) => state.user.currentUser);
+  const isAuthenticated = useSelector((state: RootState) => state.user.isAuthenticated);
+  const currentUser = useSelector((state: RootState) => state.user.currentUser);
   const [isLoading, setIsLoading] = useState(true);
   const [hasValidToken, setHasValidToken] = useState(false);
 

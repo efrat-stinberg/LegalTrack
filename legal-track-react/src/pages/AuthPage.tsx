@@ -1,7 +1,8 @@
 // Sign-in for lawyers. New lawyers join through an invite from their office admin.
 import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { Alert, Box, Button, CircularProgress, IconButton, InputAdornment, Link, TextField, Typography } from "@mui/material";
 import { Eye, EyeOff } from "lucide-react";
 import { loginUser, getUserByEmail } from "../api/api";
@@ -42,11 +43,11 @@ const Login = () => {
       if (!user || !user.email) throw new Error("Invalid user data received from server");
       dispatch(login(user));
       navigate("/home", { replace: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       localStorage.removeItem("token");
-      if (error.response?.status === 401) setErrorMessage("האימייל או הסיסמה שגויים.");
-      else if (error.response) setErrorMessage("ההתחברות נכשלה. נסו שוב בעוד רגע.");
-      else if (error.request) setErrorMessage("אין חיבור לשרת. בדקו את החיבור לאינטרנט ונסו שוב.");
+      if (axios.isAxiosError(error) && error.response?.status === 401) setErrorMessage("האימייל או הסיסמה שגויים.");
+      else if (axios.isAxiosError(error) && error.response) setErrorMessage("ההתחברות נכשלה. נסו שוב בעוד רגע.");
+      else if (axios.isAxiosError(error) && error.request) setErrorMessage("אין חיבור לשרת. בדקו את החיבור לאינטרנט ונסו שוב.");
       else setErrorMessage("אירעה שגיאה לא צפויה. נסו שוב.");
     } finally {
       setIsLoading(false);
@@ -99,6 +100,10 @@ const Login = () => {
             ),
           }}
         />
+
+        <Link component={RouterLink} to="/forgot-password" underline="hover" sx={{ alignSelf: "flex-start", fontSize: 13, mt: -1.5 }}>
+          שכחתי סיסמה
+        </Link>
 
         <Button type="submit" variant="contained" size="large" disabled={isLoading} sx={{ minHeight: 44 }}>
           {isLoading ? <CircularProgress size={20} sx={{ color: "#FFFFFF" }} /> : "התחברות"}

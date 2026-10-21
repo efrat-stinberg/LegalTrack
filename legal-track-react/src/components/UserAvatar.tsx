@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import type { RootState } from "../store/store";
 import { useNavigate } from "react-router-dom";
 import { Avatar, Box, ButtonBase, Divider, ListItemIcon, Menu, MenuItem, Skeleton, Typography } from "@mui/material";
 import { ChevronDown, Edit3, LogOut } from "lucide-react";
@@ -15,8 +16,8 @@ interface UserAvatarProps {
 
 // The signed-in user's button in the top bar: profile editing and sign-out.
 const UserAvatarComponent: React.FC<UserAvatarProps> = ({ style }) => {
-  const currentUser = useSelector((state: any) => state.user.currentUser);
-  const isAuthenticated = useSelector((state: any) => state.user.isAuthenticated);
+  const currentUser = useSelector((state: RootState) => state.user.currentUser);
+  const isAuthenticated = useSelector((state: RootState) => state.user.isAuthenticated);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -27,7 +28,7 @@ const UserAvatarComponent: React.FC<UserAvatarProps> = ({ style }) => {
     return <Skeleton variant="rounded" width={140} height={36} style={style} />;
   }
 
-  const userName = currentUser?.username || currentUser?.name || "משתמש";
+  const userName = currentUser?.username || "משתמש";
   const userEmail = currentUser?.email || "";
   const isAdmin = currentUser?.isAdmin || false;
   const firstLetter = userName ? userName.charAt(0).toUpperCase() : "U";
