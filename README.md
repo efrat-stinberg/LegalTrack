@@ -46,16 +46,18 @@ LegalTrack/
 ### 🧑‍💼 Lawyers' Application (React)
 
 - **Clients** – add, edit, delete and search clients (name, email, phone).
-- **Cases (folders)** – create cases linked to a client, view them in a grid, filter by client.
+- **Cases (folders)** – create cases linked to a client; each case has a status (open, in progress, waiting, closed) and an optional next deadline with a note. The cases list filters by client, status, documents and date, sorts by the soonest deadline, and changes status from the row menu.
 - **Documents** – upload PDFs to S3, view, download and delete documents per case.
 - **AI legal chat** – ask questions about a case; answers are based on the text extracted from that case's documents. Chat history is saved per case.
-- **Stats** – overview of cases and documents.
+- **Overview** – key numbers, upcoming and overdue deadlines, recent cases.
+- **Password reset** – "forgot password" emails a one-time link (valid for an hour).
 
 ### 🏢 Admin Application (Angular)
 
 - Register an office (group) with an admin account.
 - Invite lawyers by email (SendGrid); invite links expire after a configurable time. If the email can't be sent, the invite link is shown for copying.
 - View and remove users, export the list as CSV.
+- Create a password reset link for a user (valid for 24 hours) to pass on when the reset email doesn't arrive.
 - Dashboard with the office's user, case and client counts and recent cases.
 
 ---
@@ -102,10 +104,13 @@ Folder (case)             Document                  ChatMessage
 ├── ClientId              ├── FilePath (S3 key)     ├── Question
 ├── GroupId               ├── UploadDate            ├── Answer
 ├── CreatedDate           └── FolderId              └── CreatedAt
+├── Status (open | in_progress | waiting | closed)
+├── NextDeadline, NextDeadlineNote
 └── Documents[]
 
-Invite
-├── Id, Email, Token, GroupId, IsUsed, CreatedAt
+Invite                                  PasswordReset
+├── Id, Email, Token, GroupId,          ├── Id, UserId, TokenHash (SHA-256),
+└── IsUsed, CreatedAt                   └── CreatedAt, ExpiresAt, UsedAt
 ```
 
 ---
@@ -119,6 +124,7 @@ All routes are prefixed with `/api`. Swagger UI is available at `/swagger`.
 | Auth      | `POST /login`, `POST /register`, `POST /register-admin` |
 | Users     | `GET /users` (Admin), `GET /users/{id}`, `GET /users/{email}`, `PUT /users/{id}`, `DELETE /users/{id}` (Admin) |
 | Invites   | `POST /invite/invite-lawyer` (Admin), `POST /invite/validate` |
+| Password  | `POST /password/forgot`, `POST /password/validate`, `POST /password/reset`, `POST /password/admin-link/{userId}` (Admin, own office) |
 | Groups    | `GET /group`, `GET /group/{id}` (own office only) |
 | Clients   | `GET/POST /client`, `GET/PUT/DELETE /client/{id}` |
 | Folders   | `GET/POST /folders`, `GET/PUT/DELETE /folders/{id}`, `GET /folders/by-client/{clientId}` |
@@ -157,6 +163,7 @@ The server reads settings from `appsettings.json`, [user secrets](https://learn.
 | `ChatKey` | OpenAI API key |
 | `SendGrid:ApiKey`, `SendGrid:SenderEmail` | Invitation emails |
 | `Invite:ExpirationMinutes` | Invite link lifetime (default: 10080 = 7 days) |
+| `PasswordReset:EmailLinkMinutes` / `PasswordReset:AdminLinkMinutes` | Reset link lifetime (defaults: 60 and 1440) |
 | `Frontend:BaseUrl` | URL of the React app, used in invite links (default: `https://legaltrack.onrender.com`) |
 | `Cors:AllowedOrigins` | Optional, comma separated. Sites allowed to call the API (default: any) |
 
@@ -218,7 +225,7 @@ The API URL is set in `src/environments/environment.ts` (`apiUrl`).
 
 ## 🧪 Tests
 
-`LagalTrackServer/TaxManagerServer.Tests` holds 33 end-to-end API tests. They run the real API (controllers, JWT, EF Core migrations) against MySQL, with S3, SendGrid and OpenAI replaced by in-memory fakes. They cover registration and login, the invite flow (including a failed email), admin vs. lawyer permissions, client/case/document CRUD, upload and download, the AI chat, office isolation and anonymous access.
+`LagalTrackServer/TaxManagerServer.Tests` holds 39 end-to-end API tests. They run the real API (controllers, JWT, EF Core migrations) against MySQL, with S3, SendGrid and OpenAI replaced by in-memory fakes. They cover registration and login, the invite flow (including a failed email), password reset (email and admin links, single use), admin vs. lawyer permissions, client/case/document CRUD, case status and deadlines, upload and download, the AI chat, office isolation and anonymous access.
 
 ```bash
 # MySQL connection for the tests (the database is dropped and recreated)
