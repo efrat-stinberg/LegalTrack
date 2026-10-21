@@ -217,3 +217,32 @@ a { color: var(--link); }
 @media print {
   .no-print { display: none !important; }
 }
+
+/* The prebuilt indigo-pink theme brings pink (accent), red (warn) and indigo. Map whatever still asks for
+   them onto the design system, so no component can bring those colors back. */
+.mat-mdc-icon-button.mat-warn, .mat-mdc-icon-button.mat-accent, .mat-mdc-icon-button.mat-primary {
+  --mdc-icon-button-icon-color: var(--slate);
+  --mat-icon-button-icon-color: var(--slate);
+  color: var(--slate) !important;
+}
+.mat-mdc-button.mat-warn, .mat-mdc-button.mat-accent { color: var(--link) !important; }
+.mat-mdc-unelevated-button.mat-warn, .mat-mdc-raised-button.mat-warn,
+.mat-mdc-unelevated-button.mat-accent, .mat-mdc-raised-button.mat-accent {
+  --mdc-filled-button-container-color: var(--navy-700);
+  --mdc-protected-button-container-color: var(--navy-700);
+  --mdc-filled-button-label-text-color: #FFFFFF;
+  --mdc-protected-button-label-text-color: #FFFFFF;
+}
+.mat-mdc-standard-chip {
+  --mdc-chip-elevated-container-color: #FFFFFF;
+  --mdc-chip-elevated-selected-container-color: var(--border-soft);
+  --mdc-chip-label-text-color: var(--ink);
+  --mdc-chip-selected-label-text-color: var(--ink);
+  --mdc-chip-with-icon-icon-color: var(--navy-700);
+  --mdc-chip-with-icon-selected-icon-color: var(--navy-700);
+}
+.mat-mdc-progress-spinner, .mat-mdc-progress-bar {
+  --mdc-circular-progress-active-indicator-color: var(--navy-700);
+  --mdc-linear-progress-active-indicator-color: var(--navy-700);
+  --mdc-linear-progress-track-color: var(--border-soft);
+}

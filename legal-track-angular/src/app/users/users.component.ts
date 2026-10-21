@@ -7,12 +7,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTableModule } from '@angular/material/table';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { InviteUserDialogComponent } from './invite-user-dialog/invite-user-dialog.component';
+import { ResetLinkDialogComponent } from './reset-link-dialog/reset-link-dialog.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '../shared/confirm-dialog/confirm-dialog.component';
 import { UsersService, User } from '../services/users.service';
 
 @Component({
@@ -27,7 +28,6 @@ import { UsersService, User } from '../services/users.service';
     MatFormFieldModule,
     MatInputModule,
     MatTableModule,
-    MatChipsModule,
     MatTooltipModule,
     MatMenuModule
   ],
@@ -150,18 +150,19 @@ import { UsersService, User } from '../services/users.service';
                       <h4 class="user-name">{{ user.username }}</h4>
                       <p class="user-email">{{ user.email }}</p>
                       <div class="user-meta">
-                        <mat-chip-listbox>
-                          <mat-chip-option [color]="user.isAdmin ? 'primary' : 'accent'" selected>
-                            <mat-icon matChipAvatar>{{ user.isAdmin ? 'admin_panel_settings' : 'gavel' }}</mat-icon>
-                            {{ user.isAdmin ? 'מנהל' : 'עורך דין' }}
-                          </mat-chip-option>
-                        </mat-chip-listbox>
+                        <span class="role-badge">
+                          <mat-icon aria-hidden="true">{{ user.isAdmin ? 'admin_panel_settings' : 'gavel' }}</mat-icon>
+                          {{ user.isAdmin ? 'מנהל' : 'עורך דין' }}
+                        </span>
                       </div>
                     </div>
 
                     <div class="user-actions">
+                      <button mat-icon-button [matTooltip]="'קישור לאיפוס סיסמה'" [attr.aria-label]="'קישור לאיפוס סיסמה עבור ' + user.username" (click)="openResetLink(user)">
+                        <mat-icon>lock_reset</mat-icon>
+                      </button>
                       @if (!user.isAdmin) {
-                        <button mat-icon-button color="warn" [matTooltip]="'הסר משתמש'" [attr.aria-label]="'הסרת ' + user.username" (click)="removeUser(user)">
+                        <button mat-icon-button [matTooltip]="'הסר משתמש'" [attr.aria-label]="'הסרת ' + user.username" (click)="removeUser(user)">
                           <mat-icon>delete</mat-icon>
                         </button>
                       }
@@ -471,6 +472,15 @@ import { UsersService, User } from '../services/users.service';
       gap: 4px;
     }
 
+    .role-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 4px;
+      border: 1px solid var(--border-strong); background: #FFFFFF;
+      color: var(--navy-700); font-size: 12px; font-weight: 600; line-height: 1.6;
+    }
+    .role-badge mat-icon { font-size: 15px; width: 15px; height: 15px; }
+    .user-actions .mat-mdc-icon-button { color: var(--slate); }
+
     .danger {
       color: #1A1F2B;
     }
@@ -637,10 +647,30 @@ export class UsersComponent implements OnInit {
       .substring(0, 2);
   }
 
+  openResetLink(user: User): void {
+    this.dialog.open(ResetLinkDialogComponent, {
+      data: user,
+      width: '500px',
+      maxWidth: 'calc(100vw - 32px)',
+      direction: 'rtl'
+    });
+  }
+
   removeUser(user: User): void {
-    if (!confirm(`להסיר את ${user.username} (${user.email}) מהמשרד?`)) {
-      return;
-    }
+    const data: ConfirmDialogData = {
+      title: 'הסרת משתמש',
+      message: `להסיר את ${user.username} (${user.email}) מהמשרד? הוא ינותק מיד ולא יוכל להתחבר. התיקים והלקוחות של המשרד נשארים.`,
+      confirmText: 'הסרה',
+      icon: 'person_remove'
+    };
+    this.dialog.open(ConfirmDialogComponent, { data, width: '440px', maxWidth: 'calc(100vw - 32px)', direction: 'rtl' })
+      .afterClosed()
+      .subscribe((confirmed: boolean) => {
+        if (confirmed) this.deleteUser(user);
+      });
+  }
+
+  private deleteUser(user: User): void {
     this.usersService.deleteUser(user.userId).subscribe({
       next: () => {
         this.snackBar.open('המשתמש הוסר', 'סגור', { duration: 3000, panelClass: ['success-snackbar'] });

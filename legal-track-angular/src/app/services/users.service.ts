@@ -74,6 +74,11 @@ export class UsersService {
       );
   }
 
+  // A one-time password reset link for a user in the admin's office (the admin passes it on)
+  createPasswordResetLink(userId: number): Observable<{ resetLink: string }> {
+    return this.http.post<{ resetLink: string }>(`${this.API_URL}/password/admin-link/${userId}`, {});
+  }
+
   // Invite Management - Main function that connects to your endpoint
   inviteLawyer(inviteData: InviteRequest): Observable<InviteResponse> {
     return this.http.post<InviteResponse>(`${this.API_URL}/invite/invite-lawyer`, inviteData)
