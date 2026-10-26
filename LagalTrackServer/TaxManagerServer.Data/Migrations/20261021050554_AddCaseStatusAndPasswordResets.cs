@@ -19,7 +19,7 @@ namespace TaxManagerServer.Data.Migrations
             migrationBuilder.Sql(SchemaUpgrader.CreatePasswordResetsSql);
         }
 
-        private static void AddColumnIfMissing(MigrationBuilder migrationBuilder, string table, string column, string definition)
+        internal static void AddColumnIfMissing(MigrationBuilder migrationBuilder, string table, string column, string definition)
         {
             migrationBuilder.Sql("DROP PROCEDURE IF EXISTS `__AddColumnIfMissing`;");
             migrationBuilder.Sql($@"

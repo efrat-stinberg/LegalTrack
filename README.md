@@ -48,7 +48,7 @@ LegalTrack/
 - **Clients** – add, edit, delete and search clients (name, email, phone).
 - **Cases (folders)** – create cases linked to a client; each case has a status (open, in progress, waiting, closed) and an optional next deadline with a note. The cases list filters by client, status, documents and date, sorts by the soonest deadline, and changes status from the row menu.
 - **Documents** – upload files to S3, view, download and delete documents per case.
-- **AI legal chat** – ask questions about a case; answers are based on the text of that case's PDF, Word (.docx) and image files (JPG, PNG, WEBP, GIF; the text in images is read by the AI model). The extracted text is cached in `DocumentTexts`, so each file is downloaded and read once. Chat history is saved per case.
+- **AI legal chat** – ask questions about a case; answers are based on the text of that case's PDF, Word (.docx) and image files (JPG, PNG, WEBP, GIF; the text in images is read by the AI model). The extracted text is cached in `DocumentTexts`, so each file is downloaded and read once. A small case (up to 30,000 characters) is sent to the AI whole; a larger one is cut into passages with embeddings (`text-embedding-3-small`, stored in `DocumentChunks`) and only the 8 passages closest to the question are sent. Answers cite their passages as [n] with file and page, and the chat shows them as links that open the document at that page. The last 3 questions and answers are sent along, and a follow-up question is rewritten into a full search query first. Chat history and its sources are saved per case.
 - **Overview** – key numbers, upcoming and overdue deadlines, recent cases.
 - **Password reset** – "forgot password" emails a one-time link (valid for an hour).
 
@@ -112,8 +112,11 @@ Invite                                  PasswordReset
 ├── Id, Email, Token, GroupId,          ├── Id, UserId, TokenHash (SHA-256),
 └── IsUsed, CreatedAt                   └── CreatedAt, ExpiresAt, UsedAt
 
-DocumentText (cache of the text the AI reads)
-└── DocumentId, FilePath, Extractor (e.g. pdf-2), Text, ExtractedAt
+DocumentText (cache of the text the AI reads)    DocumentChunk (passages for large cases)
+└── DocumentId, FilePath, Extractor (e.g. pdf-3),  └── Id, DocumentId, ChunkIndex, Page, Text,
+    Text, ExtractedAt                                  Embedding, Version
+
+ChatMessage.Sources: JSON list of the passages an answer cites (number, document, page)
 ```
 
 `Users.Email` is unique (case-insensitive). Every id column has a foreign key: deleting a case removes its documents, cached text and chat; deleting an office's group removes its invites; deleting a user removes their reset links. `SchemaUpgrader` applies these at startup on databases that are not migrated with `dotnet ef`: it first removes rows that point at deleted records, and skips the unique email index (with a warning in the log) while two users share an email.
@@ -166,6 +169,7 @@ The server reads settings from `appsettings.json`, [user secrets](https://learn.
 | `JWT:TokenExpirationMinutes` | Token lifetime (default: 1440 = one day) |
 | `AWS:AccessKey`, `AWS:SecretKey`, `AWS:Region`, `AWS:BucketName` | S3 storage |
 | `ChatKey` | OpenAI API key |
+| `Chat:FullContextChars` / `Chat:Excerpts` | Cases up to this many characters are sent whole (default 30000); larger ones send this many passages (default 8) |
 | `Email:Provider` | `ses`, `mailjet`, `brevo` or `sendgrid`. Optional: without it the first configured one is used, in that order |
 | `Ses:SenderEmail`, `Ses:Region` | Emails through Amazon SES with the `AWS:*` keys (the AWS user needs `ses:SendEmail`). The sender must be a verified identity; in the SES sandbox recipients must be verified too. `Ses:Region` defaults to `AWS:Region` |
 | `Mailjet:ApiKey`, `Mailjet:SecretKey`, `Mailjet:SenderEmail` | Invitation and password-reset emails through Mailjet. The sender address must be verified in Mailjet. |
@@ -262,7 +266,7 @@ The AWS user needs `s3:PutObject`, `s3:GetObject`, `s3:DeleteObject` and `s3:Lis
 
 ## 🧪 Tests
 
-`LagalTrackServer/TaxManagerServer.Tests` holds 66 tests: end-to-end API tests plus unit tests for the PDF reader and the SES, Mailjet and Brevo email senders. They run the real API (controllers, JWT, EF Core migrations) against MySQL, with S3, email and OpenAI replaced by in-memory fakes. They cover registration and login, the invite flow (including a failed email), password reset (email and admin links, single use), admin vs. lawyer permissions, client/case/document CRUD, case status and deadlines, upload (through the API and directly to S3) and download, the AI chat (PDF, Word and image files, cached text), the login attempt limit, unique emails and foreign keys (including upgrading an old schema), office isolation and anonymous access.
+`LagalTrackServer/TaxManagerServer.Tests` holds 71 tests: end-to-end API tests plus unit tests for the PDF reader and the SES, Mailjet and Brevo email senders. They run the real API (controllers, JWT, EF Core migrations) against MySQL, with S3, email and OpenAI replaced by in-memory fakes. They cover registration and login, the invite flow (including a failed email), password reset (email and admin links, single use), admin vs. lawyer permissions, client/case/document CRUD, case status and deadlines, upload (through the API and directly to S3) and download, the AI chat (PDF, Word and image files, cached text, whole vs. passage context, cited sources, follow-up questions), the login attempt limit, unique emails and foreign keys (including upgrading an old schema), office isolation and anonymous access.
 
 ```bash
 # MySQL connection for the tests (the database is dropped and recreated)

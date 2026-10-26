@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using TaxManagerServer.Core.Services;
 
 namespace TaxManagerServer.Tests.Infrastructure
@@ -72,25 +73,63 @@ namespace TaxManagerServer.Tests.Infrastructure
         }
     }
 
-    // Answers OpenAI chat-completion calls and remembers what was sent
+    // Answers OpenAI calls and remembers what was sent.
+    // Chat completions answer Answer, or what Respond returns for the request.
+    // Embeddings are word counts hashed into a vector, so texts that share words come out similar.
     public class FakeOpenAiHandler : HttpMessageHandler
     {
+        public const int EmbeddingSize = 512;
+
         public ConcurrentQueue<string> RequestBodies { get; } = new();
+        public ConcurrentQueue<string> EmbeddingBodies { get; } = new();
         public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.OK;
         public string Answer { get; set; } = "The contract was signed on 5 May 2024.";
+        public Func<JsonElement, string?>? Respond { get; set; }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            RequestBodies.Enqueue(request.Content == null ? "" : await request.Content.ReadAsStringAsync(cancellationToken));
+            var requestBody = request.Content == null ? "" : await request.Content.ReadAsStringAsync(cancellationToken);
+            var isEmbeddings = request.RequestUri?.AbsolutePath.EndsWith("/embeddings") == true;
+            (isEmbeddings ? EmbeddingBodies : RequestBodies).Enqueue(requestBody);
 
             if (StatusCode != HttpStatusCode.OK)
                 return new HttpResponseMessage(StatusCode) { Content = new StringContent("{\"error\":{\"message\":\"fake failure\"}}") };
 
-            var body = JsonSerializer.Serialize(new
+            var json = JsonSerializer.Deserialize<JsonElement>(requestBody);
+            object body = isEmbeddings
+                ? new
+                {
+                    data = json.GetProperty("input").EnumerateArray()
+                        .Select((input, index) => new { index, embedding = Embed(input.GetString() ?? "") })
+                        .ToArray()
+                }
+                : new
+                {
+                    choices = new[] { new { message = new { role = "assistant", content = Respond?.Invoke(json) ?? Answer } } }
+                };
+            return new HttpResponseMessage(HttpStatusCode.OK)
             {
-                choices = new[] { new { message = new { role = "assistant", content = Answer } } }
-            });
-            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
+                Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json")
+            };
         }
+
+        public static float[] Embed(string text)
+        {
+            var vector = new float[EmbeddingSize];
+            foreach (var word in Regex.Split(text.ToLowerInvariant(), @"[^\p{L}\p{N}]+").Where(w => w.Length > 2))
+            {
+                // FNV-1a: the same word always lands in the same place
+                uint hash = 2166136261;
+                foreach (var c in word)
+                    hash = (hash ^ c) * 16777619;
+                vector[hash % EmbeddingSize] += 1;
+            }
+            var length = (float)Math.Sqrt(vector.Sum(v => v * v));
+            return length == 0 ? vector : vector.Select(v => v / length).ToArray();
+        }
+
+        // The text of the message at this position of a chat request
+        public static string MessageText(JsonElement request, int index) =>
+            request.GetProperty("messages")[index].GetProperty("content").GetString() ?? "";
     }
 }

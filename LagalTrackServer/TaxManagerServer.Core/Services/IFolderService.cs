@@ -20,7 +20,14 @@ namespace TaxManager.Core.Services
         Task AddDocumentAsync(int folderId, Document document); 
         Task RemoveDocumentAsync(int folderId, int documentId);
         Task<string> GetExtractedTextFromFolderAsync(int folderId);
+        // The text of each document of the case, from the cache or extracted now
+        Task<List<CaseDocumentText>> GetDocumentTextsAsync(int folderId);
+    }
 
-
+    // Text is null when the file could not be read, and Note says why. Extractor names the reader
+    // (e.g. "pdf-3"); PDF text separates its pages with PageBreak.
+    public record CaseDocumentText(Document Document, string? Extractor, string? Text, string? Note)
+    {
+        public const char PageBreak = '\f';
     }
 }

@@ -1,12 +1,22 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Button, CircularProgress, IconButton, InputBase, Tooltip, Typography } from "@mui/material";
-import { Copy, Send } from "lucide-react";
+import { Copy, FileText, Send } from "lucide-react";
 import axios from "axios";
 import { apiClient } from "../api/config";
+import { getDownloadUrl } from "../api/s3Api";
 import { tokens } from "../theme";
 
 // The AI answer can take a while; it gets longer than the default apiClient timeout
 const CHAT_TIMEOUT_MS = 120000;
+
+// A passage of a case file that the answer cites as [number]
+type ChatSource = {
+  number: number;
+  documentId: number;
+  documentName: string;
+  objectKey: string;
+  page?: number | null;
+};
 
 type ChatMessage = {
   id: number;
@@ -14,7 +24,10 @@ type ChatMessage = {
   question: string;
   answer: string;
   createdAt: string;
+  sources?: ChatSource[];
 };
+
+const sourceLabel = (s: ChatSource) => (s.page ? `${s.documentName} · עמ' ${s.page}` : s.documentName);
 
 type ChatProps = {
   folderId: number;
@@ -100,6 +113,66 @@ const Chat: React.FC<ChatProps> = ({ folderId }) => {
     }
   };
 
+  // Opens the cited document; a PDF opens at the cited page. The tab is opened before the
+  // presigned URL arrives, otherwise the browser treats it as a popup and blocks it.
+  const openSource = async (source: ChatSource) => {
+    const tab = window.open("", "_blank");
+    try {
+      const url = await getDownloadUrl(source.objectKey);
+      const target = source.page ? `${url}#page=${source.page}` : url;
+      if (tab) {
+        tab.opener = null;
+        tab.location.href = target;
+      } else {
+        window.open(target, "_blank", "noopener,noreferrer");
+      }
+    } catch {
+      tab?.close();
+      setError("לא ניתן לפתוח את המסמך");
+    }
+  };
+
+  // The answer text with each cited [n] as a small button that opens that passage's document
+  const renderAnswer = (m: ChatMessage) => {
+    const byNumber = new Map((m.sources ?? []).map((s) => [s.number, s]));
+    return m.answer.split(/(\[\d+\])/).map((part, i) => {
+      const source = byNumber.get(Number(part.match(/^\[(\d+)\]$/)?.[1]));
+      if (!source) return <React.Fragment key={i}>{part}</React.Fragment>;
+      return (
+        <Tooltip key={i} title={sourceLabel(source)}>
+          <Box
+            component="button"
+            type="button"
+            onClick={() => openSource(source)}
+            aria-label={`מקור ${source.number}: ${sourceLabel(source)}`}
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minWidth: 18,
+              height: 18,
+              px: 0.5,
+              mx: 0.25,
+              verticalAlign: "text-top",
+              fontSize: 11,
+              fontWeight: 600,
+              fontFamily: "inherit",
+              color: tokens.blue600,
+              background: tokens.hover,
+              border: `1px solid ${tokens.border}`,
+              borderRadius: "4px",
+              cursor: "pointer",
+              "&:hover": { borderColor: tokens.blue600 },
+              "&:focus-visible": { outline: `2px solid ${tokens.blue600}`, outlineOffset: 1 },
+            }}
+          >
+            {source.number}
+          </Box>
+        </Tooltip>
+      );
+    });
+  };
+
   const bubbleQuestion = {
     alignSelf: "flex-start",
     maxWidth: "80%",
@@ -146,7 +219,28 @@ const Chat: React.FC<ChatProps> = ({ folderId }) => {
                 whiteSpace: "pre-wrap",
               }}
             >
-              {m.answer}
+              {renderAnswer(m)}
+              {m.sources && m.sources.length > 0 && (
+                <Box sx={{ mt: 1.25, pt: 1, borderTop: `1px solid ${tokens.borderSoft}`, whiteSpace: "normal" }}>
+                  <Typography component="div" sx={{ fontSize: 12, fontWeight: 600, color: tokens.slate, mb: 0.5 }}>
+                    מקורות
+                  </Typography>
+                  <Box component="ul" sx={{ listStyle: "none", m: 0, p: 0, display: "flex", flexDirection: "column", gap: 0.25 }}>
+                    {m.sources.map((s) => (
+                      <li key={s.number}>
+                        <Button
+                          size="small"
+                          onClick={() => openSource(s)}
+                          startIcon={<FileText size={14} />}
+                          sx={{ minHeight: 28, px: 0.75, fontWeight: 400, fontSize: 13, color: tokens.blue600, justifyContent: "flex-start", textAlign: "start" }}
+                        >
+                          [{s.number}] {sourceLabel(s)}
+                        </Button>
+                      </li>
+                    ))}
+                  </Box>
+                </Box>
+              )}
               <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1, mt: 1, color: tokens.muted, fontSize: 12 }}>
                 <span>{formatTime(m.createdAt)}</span>
                 <Tooltip title={copiedId === m.id ? "הועתק" : "העתקת התשובה"}>

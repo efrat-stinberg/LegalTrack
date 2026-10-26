@@ -163,13 +163,30 @@ namespace TaxManager.Service
 
         public async Task<string> GetExtractedTextFromFolderAsync(int folderId)
         {
+            var sb = new System.Text.StringBuilder();
+            foreach (var doc in await GetDocumentTextsAsync(folderId))
+            {
+                if (doc.Text == null)
+                {
+                    sb.AppendLine(doc.Note);
+                    continue;
+                }
+                sb.AppendLine($"--- {doc.Document.DocumentName} ---");
+                sb.AppendLine(doc.Text.Replace(CaseDocumentText.PageBreak, '\n'));
+                sb.AppendLine();
+            }
+            return sb.ToString();
+        }
+
+        public async Task<List<CaseDocumentText>> GetDocumentTextsAsync(int folderId)
+        {
             var folder = await _folderRepository.GetByIdAsync(folderId);
             if (folder == null)
             {
                 throw new KeyNotFoundException("Folder not found.");
             }
 
-            var sb = new System.Text.StringBuilder();
+            var result = new List<CaseDocumentText>();
             var documentIds = folder.Documents.Select(d => d.DocumentId).ToList();
             var cachedTexts = (await _repositoryManager.DocumentTexts.FindAsync(t => documentIds.Contains(t.DocumentId)))
                 .ToDictionary(t => t.DocumentId);
@@ -180,7 +197,7 @@ namespace TaxManager.Service
                 var extractor = _textExtractor.GetExtractor(fileName);
                 if (extractor == null)
                 {
-                    sb.AppendLine($"[Unsupported file: {doc.DocumentName}]");
+                    result.Add(new CaseDocumentText(doc, null, null, $"[Unsupported file: {doc.DocumentName}]"));
                     continue;
                 }
 
@@ -200,18 +217,15 @@ namespace TaxManager.Service
                         await SaveExtractedTextAsync(cached, doc, extractor, content);
                     }
 
-                    sb.AppendLine($"--- {doc.DocumentName} ---");
-                    sb.AppendLine(content);
-                    sb.AppendLine();
+                    result.Add(new CaseDocumentText(doc, extractor, content, null));
                 }
                 catch (Exception ex)
                 {
-                    sb.AppendLine($"[Error processing {doc.DocumentName}: {ex.Message}]");
+                    result.Add(new CaseDocumentText(doc, extractor, null, $"[Error processing {doc.DocumentName}: {ex.Message}]"));
                 }
-
             }
 
-            return sb.ToString();
+            return result;
         }
 
         // The type comes from the stored key ("<guid>_<escaped original name>"), so renaming a document
@@ -233,6 +247,12 @@ namespace TaxManager.Service
             row.ExtractedAt = DateTime.UtcNow;
             if (cached == null)
                 await _repositoryManager.DocumentTexts.AddAsync(row);
+            else
+            {
+                // The passages cut from the old text no longer match it
+                foreach (var chunk in await _repositoryManager.DocumentChunks.FindAsync(c => c.DocumentId == doc.DocumentId))
+                    await _repositoryManager.DocumentChunks.DeleteAsync(chunk);
+            }
 
             try
             {

@@ -23,6 +23,7 @@ namespace TaxManager.Data
         public DbSet<Client> Clients { get; set; }
         public DbSet<PasswordReset> PasswordResets { get; set; }
         public DbSet<DocumentText> DocumentTexts { get; set; }
+        public DbSet<DocumentChunk> DocumentChunks { get; set; }
 
         public DataContext(DbContextOptions<DataContext> options) : base(options)
         {
@@ -89,6 +90,12 @@ namespace TaxManager.Data
                 .HasOne<Document>()
                 .WithOne()
                 .HasForeignKey<DocumentText>(t => t.DocumentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DocumentChunk>()
+                .HasOne<Document>()
+                .WithMany()
+                .HasForeignKey(c => c.DocumentId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
 

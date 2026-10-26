@@ -129,6 +129,20 @@ namespace TaxManagerServer.Tests.Infrastructure
             return ms.ToArray();
         }
 
+        // One PDF page per item, each line of it written below the one before
+        public static byte[] CreatePdfPages(IEnumerable<string[]> pages)
+        {
+            var builder = new PdfDocumentBuilder();
+            var font = builder.AddStandard14Font(Standard14Font.Helvetica);
+            foreach (var lines in pages)
+            {
+                var page = builder.AddPage(UglyToad.PdfPig.Content.PageSize.A4);
+                for (int i = 0; i < lines.Length; i++)
+                    page.AddText(lines[i], 9, new UglyToad.PdfPig.Core.PdfPoint(25, 800 - i * 18), font);
+            }
+            return builder.Build();
+        }
+
         public static byte[] CreatePdf(string text)
         {
             var builder = new PdfDocumentBuilder();

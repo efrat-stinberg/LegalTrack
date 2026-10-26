@@ -19,6 +19,7 @@ namespace TaxManagerServer.Core.Repository
         IInviteRepository Invite { get; }
         IClientRepository Client { get; }
         IRepository<DocumentText> DocumentTexts { get; }
+        IRepository<DocumentChunk> DocumentChunks { get; }
 
         Task SaveAsync();
     }

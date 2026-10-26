@@ -47,9 +47,7 @@ namespace TaxManagerServer.Tests.Infrastructure
             {
                 services.AddSingleton<IS3Service>(S3);
                 services.AddSingleton<IEmailService>(Email);
-                services.AddHttpClient<IChatService, ChatService>()
-                    .ConfigurePrimaryHttpMessageHandler(() => OpenAi);
-                services.AddHttpClient<IImageTextExtractor, ImageTextExtractor>()
+                services.AddHttpClient<OpenAiClient>()
                     .ConfigurePrimaryHttpMessageHandler(() => OpenAi);
             });
         }

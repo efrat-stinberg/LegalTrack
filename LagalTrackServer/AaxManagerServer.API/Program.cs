@@ -119,16 +119,17 @@ builder.Services.AddAWSService<IAmazonS3>();
 builder.Services.AddScoped<IS3Service, S3Service>();
 
 builder.Services.AddScoped<IPdfTextExtractor, PdfTextExtractor>();
-// Images are read by the OpenAI model, through its own pooled HttpClient
-builder.Services.AddHttpClient<IImageTextExtractor, ImageTextExtractor>(client => client.Timeout = TimeSpan.FromMinutes(2));
+// One pooled HttpClient for all OpenAI calls (chat, images, embeddings), replaceable in tests
+builder.Services.AddHttpClient<OpenAiClient>(client => client.Timeout = TimeSpan.FromMinutes(2));
+builder.Services.AddScoped<IImageTextExtractor, ImageTextExtractor>();
+builder.Services.AddScoped<CaseContextBuilder>();
 builder.Services.AddScoped<IDocumentTextExtractor, DocumentTextExtractor>();
 
 
 // Register application services
 builder.Services.AddScoped<IGroupRepository, GroupRepository>();
 builder.Services.AddScoped<IGroupService, GroupService>();
-// Typed HttpClient: one pooled client for the OpenAI calls, replaceable in tests
-builder.Services.AddHttpClient<IChatService, ChatService>(client => client.Timeout = TimeSpan.FromMinutes(2));
+builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IFolderService, FolderService>();

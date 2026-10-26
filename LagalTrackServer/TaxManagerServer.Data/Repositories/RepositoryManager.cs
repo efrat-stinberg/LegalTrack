@@ -15,6 +15,7 @@ public class RepositoryManager : IRepositoryManager
     public IInviteRepository Invite { get; }
     public IClientRepository Client { get; }
     public IRepository<DocumentText> DocumentTexts { get; }
+    public IRepository<DocumentChunk> DocumentChunks { get; }
 
 
 
@@ -27,7 +28,8 @@ public class RepositoryManager : IRepositoryManager
         IGroupRepository groupRepository,
         IInviteRepository inviteReository,
         IClientRepository client,
-        IRepository<DocumentText> documentTexts)
+        IRepository<DocumentText> documentTexts,
+        IRepository<DocumentChunk> documentChunks)
     {
         _context = context;
         Users = userRepository;
@@ -38,6 +40,7 @@ public class RepositoryManager : IRepositoryManager
         Invite = inviteReository;
         Client = client;
         DocumentTexts = documentTexts;
+        DocumentChunks = documentChunks;
     }
 
 

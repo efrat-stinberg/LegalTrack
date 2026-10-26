@@ -173,7 +173,7 @@ namespace TaxManagerServer.Tests
             {
                 var cached = await db.DocumentTexts.SingleAsync(t => t.DocumentId == documentId);
                 Assert.Equal(objectKey, cached.FilePath);
-                Assert.Equal("pdf-2", cached.Extractor);
+                Assert.Equal("pdf-3", cached.Extractor);
             }
 
             // With the file gone from S3 the answer still has the text, so it came from the cache
@@ -217,7 +217,7 @@ namespace TaxManagerServer.Tests
             // The JSON body escapes Hebrew, so read the context back out of it
             var sent = JsonDocument.Parse(await AskAndGetSentContextAsync(admin, folderId))
                 .RootElement.GetProperty("messages")[1].GetProperty("content").GetString()!;
-            Assert.Contains("--- הסכם.docx ---", sent);
+            Assert.Contains("[1] הסכם.docx", sent);
             Assert.Contains("הסכם שכירות", sent);
             Assert.Contains("דמי השכירות: 4,500 ש\"ח לחודש", sent);
             Assert.Contains("שוכר | דנה כהן", sent);

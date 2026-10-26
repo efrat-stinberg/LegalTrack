@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
+using TaxManager.Core.Services;
 using TaxManagerServer.Core.Services;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
@@ -23,8 +24,11 @@ namespace TaxManagerServer.Service
             var sb = new StringBuilder();
             using var document = PdfDocument.Open(memoryStream);
 
+            // Pages are separated so the chat can cite the page a passage comes from
             foreach (var page in document.GetPages())
             {
+                if (page.Number > 1)
+                    sb.Append(CaseDocumentText.PageBreak);
                 sb.Append(ExtractPage(page));
             }
 

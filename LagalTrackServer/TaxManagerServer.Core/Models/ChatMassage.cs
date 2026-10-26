@@ -13,6 +13,8 @@ namespace TaxManagerServer.Core.Models
         public string Question { get; set; }
         public string Answer { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        // JSON list of the passages the answer cites (ChatSourceDto); null for older answers
+        public string? Sources { get; set; }
     }
 
 

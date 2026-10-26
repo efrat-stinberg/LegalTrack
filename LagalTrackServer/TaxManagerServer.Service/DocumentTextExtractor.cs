@@ -8,7 +8,8 @@ namespace TaxManagerServer.Service
     public class DocumentTextExtractor : IDocumentTextExtractor
     {
         // Bump a version when its reader changes, so text cached by the old one is extracted again
-        public const string Pdf = "pdf-2";
+        // pdf-3: pages separated by CaseDocumentText.PageBreak
+        public const string Pdf = "pdf-3";
         public const string Word = "docx-1";
         public const string Image = "image-1";
 

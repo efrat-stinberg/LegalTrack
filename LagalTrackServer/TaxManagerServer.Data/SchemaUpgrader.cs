@@ -37,6 +37,21 @@ CREATE TABLE IF NOT EXISTS `DocumentTexts` (
     CONSTRAINT `FK_DocumentTexts_Documents_DocumentId` FOREIGN KEY (`DocumentId`) REFERENCES `Documents` (`DocumentId`) ON DELETE CASCADE
 ) CHARACTER SET=utf8mb4";
 
+        public const string ChatMessageSourcesColumn = "longtext CHARACTER SET utf8mb4 NULL";
+        public const string CreateDocumentChunksSql = @"
+CREATE TABLE IF NOT EXISTS `DocumentChunks` (
+    `Id` int NOT NULL AUTO_INCREMENT,
+    `DocumentId` int NOT NULL,
+    `ChunkIndex` int NOT NULL,
+    `Page` int NULL,
+    `Text` longtext CHARACTER SET utf8mb4 NOT NULL,
+    `Embedding` longblob NOT NULL,
+    `Version` varchar(80) CHARACTER SET utf8mb4 NOT NULL,
+    CONSTRAINT `PK_DocumentChunks` PRIMARY KEY (`Id`),
+    INDEX `IX_DocumentChunks_DocumentId` (`DocumentId`),
+    CONSTRAINT `FK_DocumentChunks_Documents_DocumentId` FOREIGN KEY (`DocumentId`) REFERENCES `Documents` (`DocumentId`) ON DELETE CASCADE
+) CHARACTER SET=utf8mb4";
+
         // A change that runs only while Condition (a SQL expression) is true. Shared with the
         // AddConstraintsAndDocumentTexts migration so both paths make exactly the same change.
         public record ConditionalStep(string Condition, string[] Statements);
@@ -92,6 +107,9 @@ CREATE TABLE IF NOT EXISTS `DocumentTexts` (
             await context.Database.ExecuteSqlRawAsync(CreatePasswordResetsSql);
             await context.Database.ExecuteSqlRawAsync(CreateDocumentTextsSql);
             await EnsureConstraintsAsync(context, logger);
+            // Passages for the chat, and the sources each answer cites
+            await context.Database.ExecuteSqlRawAsync(CreateDocumentChunksSql);
+            await AddColumnIfMissingAsync(context, "ChatMessages", "Sources", ChatMessageSourcesColumn);
         }
 
         private static async Task EnsureConstraintsAsync(DataContext context, ILogger? logger)

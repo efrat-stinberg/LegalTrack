@@ -22,10 +22,16 @@ namespace TaxManagerServer.Core
                 .ForMember(d => d.ClientName, o => o.MapFrom(f => f.Client != null ? f.Client.FullName : null))
                 .ReverseMap();
 
-            CreateMap<ChatMessage, ChatMessageResponseDto>().ReverseMap(); 
+            CreateMap<ChatMessage, ChatMessageResponseDto>()
+                .ForMember(d => d.Sources, o => o.MapFrom(m => ReadSources(m.Sources)));
 
             CreateMap<Group, GroupDto>().ReverseMap();
 
         }
+
+        private static List<ChatSourceDto> ReadSources(string? json) =>
+            string.IsNullOrEmpty(json)
+                ? new List<ChatSourceDto>()
+                : System.Text.Json.JsonSerializer.Deserialize<List<ChatSourceDto>>(json) ?? new List<ChatSourceDto>();
     }
 }

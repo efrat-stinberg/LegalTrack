@@ -13,6 +13,7 @@ namespace TaxManagerServer.Core.DTOs
         public string Question { get; set; }
         public string Answer { get; set; }
         public DateTime CreatedAt { get; set; }
+        public List<ChatSourceDto> Sources { get; set; } = new();
     }
 
 
