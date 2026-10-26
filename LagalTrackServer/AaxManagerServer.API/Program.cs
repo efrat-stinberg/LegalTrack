@@ -126,8 +126,10 @@ builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IInviteRepository, InviteRepository>();
 builder.Services.AddScoped<IInviteService, InviteService>();
 builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
-// Brevo when its key is set, otherwise SendGrid
-if (!string.IsNullOrWhiteSpace(builder.Configuration["Brevo:ApiKey"]))
+// The first provider whose key is set: Mailjet, Brevo, otherwise SendGrid
+if (!string.IsNullOrWhiteSpace(builder.Configuration["Mailjet:ApiKey"]))
+    builder.Services.AddHttpClient<IEmailService, MailjetEmailService>(client => client.Timeout = TimeSpan.FromSeconds(30));
+else if (!string.IsNullOrWhiteSpace(builder.Configuration["Brevo:ApiKey"]))
     builder.Services.AddHttpClient<IEmailService, BrevoEmailService>(client => client.Timeout = TimeSpan.FromSeconds(30));
 else
     builder.Services.AddScoped<IEmailService, SendGridEmailService>();
