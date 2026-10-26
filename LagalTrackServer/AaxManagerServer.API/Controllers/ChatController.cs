@@ -58,6 +58,14 @@ namespace TaxManagerServer.API.Controllers
                 Console.WriteLine($"Chat failed: {ex.Message}");
                 return StatusCode(StatusCodes.Status503ServiceUnavailable, ex.Message);
             }
+            catch (Exception ex)
+            {
+                // Returned from here, not left to crash: an unhandled 500 loses the CORS headers and the
+                // browser only reports "blocked by CORS". The inner exception holds the database's reason.
+                Console.WriteLine($"Chat failed: {ex}");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"Processing the answer failed: {ex.GetBaseException().Message}");
+            }
         }
     }
 }

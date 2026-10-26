@@ -75,6 +75,7 @@ const Chat: React.FC<ChatProps> = ({ folderId }) => {
       // The server explains 503s in technical English (e.g. missing ChatKey); lead with a Hebrew sentence
       if (status === 503) setError(`העוזר אינו זמין כרגע.${serverMessage ? ` פרטים: ${serverMessage}` : ""}`);
       else if (axios.isAxiosError(err) && !err.response) setError("אין חיבור לשרת או שהתשובה התעכבה. נסו שוב.");
+      else if (status && status >= 500) setError(`עיבוד התשובה נכשל בשרת.${serverMessage ? ` פרטים: ${serverMessage}` : ""}`);
       else setError(serverMessage || "שליחת השאלה נכשלה. נסו שוב.");
       setQuestion(text);
     } finally {
