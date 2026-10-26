@@ -5,7 +5,7 @@ import axios from "axios";
 import { apiClient } from "../api/config";
 import { tokens } from "../theme";
 
-// The AI answer can take a while; the default apiClient timeout (10s) is too short
+// The AI answer can take a while; it gets longer than the default apiClient timeout
 const CHAT_TIMEOUT_MS = 120000;
 
 type ChatMessage = {

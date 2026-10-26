@@ -94,7 +94,7 @@ export class AuthService {
     
     return this.http.post<AuthResponse>(`${this.API_URL}/login`, credentials)
       .pipe(
-        timeout(10000), // 10 second timeout
+        timeout(90000), // Render free tier: waking the server can take 50+ seconds
         retry(1), // Retry once on failure
         tap(response => {
           console.log('✅ Login successful:', response);
@@ -118,7 +118,7 @@ export class AuthService {
     
     return this.http.post<AuthResponse>(fullUrl, adminData)
       .pipe(
-        timeout(15000), // 15 second timeout for registration
+        timeout(90000), // Render free tier: waking the server can take 50+ seconds
         retry(1), // Retry once on failure
         tap(response => {
           console.log('✅ Registration successful:', response);

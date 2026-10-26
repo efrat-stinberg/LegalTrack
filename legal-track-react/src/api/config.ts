@@ -6,7 +6,8 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "https://legaltrack-server.
 // Create axios instance
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  // Render's free tier puts the server to sleep; the first request can take 50+ seconds to wake it
+  timeout: 90000,
   headers: {
     'Content-Type': 'application/json',
   },
