@@ -8,18 +8,23 @@ export type UploadProgress = AxiosProgressEvent & { percentCompleted?: number };
 
 // ===== S3 FILE API =====
 
-export const getFileUrl = async (objectKey: string, contentType: string): Promise<string> => {
-  try {
-    console.log('Getting presigned upload URL for:', objectKey);
-    const response = await apiClient.get('/s3/presigned-upload-url', {
-      params: { objectKey, contentType }
-    });
-    console.log('Presigned upload URL obtained');
-    return response.data;
-  } catch (error) {
-    console.error("Error getting presigned file URL:", error);
-    throw error;
-  }
+export interface PresignedUpload {
+  uploadUrl: string;
+  objectKey: string;
+  // The PUT must send exactly this Content-Type, it is part of the signature
+  contentType: string;
+}
+
+export const getFileUrl = async (folderId: number, file: File): Promise<PresignedUpload> => {
+  const response = await apiClient.get<PresignedUpload>('/s3/presigned-upload-url', {
+    params: {
+      folderId,
+      fileName: file.name,
+      contentType: file.type || 'application/octet-stream',
+      size: file.size,
+    },
+  });
+  return response.data;
 };
 
 export const getDownloadUrl = async (objectKey: string): Promise<string> => {
@@ -36,26 +41,70 @@ export const getDownloadUrl = async (objectKey: string): Promise<string> => {
   }
 };
 
+// Plain axios on purpose: the app's Authorization header would break the S3 signature
 export const uploadFileToS3 = async (
-  file: File, 
+  file: File,
   uploadUrl: string,
+  contentType: string,
   onProgress?: (progressEvent: UploadProgress) => void
 ): Promise<void> => {
+  await axios.put(uploadUrl, file, {
+    headers: { 'Content-Type': contentType },
+    timeout: 300000, // 5 דקות
+    onUploadProgress: (progressEvent) => {
+      if (onProgress && progressEvent.total) {
+        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        onProgress({ ...progressEvent, percentCompleted });
+      }
+    },
+  });
+};
+
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024; // 50MB, same limit as the server
+
+// Turns API errors (plain text or { error }) into a Hebrew message
+const apiErrorMessage = (error: unknown, fallback: string): string => {
+  if (!axios.isAxiosError(error)) return error instanceof Error && error.message ? error.message : fallback;
+  if (error.code === 'ECONNABORTED') return 'זמן ההעלאה פג. נסו קובץ קטן יותר או בדקו את החיבור.';
+  if (!error.response) return 'אין חיבור לשרת. בדקו את החיבור ונסו שוב.';
+  if (error.response.status === 413) return 'הקובץ גדול מ-50MB.';
+  const data = error.response.data;
+  const detail = typeof data === 'string' ? data : data?.error || data?.message || '';
+  return error.response.status >= 500
+    ? `${fallback}${detail ? ` פרטים: ${detail}` : ''}`
+    : detail || fallback;
+};
+
+// The file goes from the browser straight to S3; the server only signs the URL and saves the document
+export const uploadFileDirectToS3 = async (
+  file: File,
+  folderId: number,
+  onProgress?: (progressEvent: UploadProgress) => void
+) => {
+  if (file.size === 0) throw new Error('הקובץ ריק.');
+  if (file.size > MAX_UPLOAD_BYTES) throw new Error('הקובץ גדול מ-50MB.');
+
+  let presigned: PresignedUpload;
   try {
-    console.log(`Uploading file to S3: ${file.name} (${file.size} bytes)`);
-    
-    await axios.put(uploadUrl, file, {
-      headers: {
-        'Content-Type': file.type || 'application/octet-stream',
-      },
-      timeout: 300000, // 5 דקות
-      onUploadProgress: onProgress,
-    });
-    
-    console.log('File uploaded to S3 successfully');
+    presigned = await getFileUrl(folderId, file);
   } catch (error) {
-    console.error("Error uploading file to S3:", error);
-    throw error;
+    throw new Error(apiErrorMessage(error, 'הכנת ההעלאה נכשלה בשרת.'));
+  }
+
+  try {
+    await uploadFileToS3(file, presigned.uploadUrl, presigned.contentType, onProgress);
+  } catch (error) {
+    if (axios.isAxiosError(error) && !error.response && error.code !== 'ECONNABORTED') {
+      // The browser hides the reason; usually no connection or a missing CORS rule on the bucket
+      throw new Error('לא ניתן היה לשלוח את הקובץ לאחסון. בדקו את החיבור או את הגדרות ה-CORS של הבאקט.');
+    }
+    throw new Error(apiErrorMessage(error, 'שליחת הקובץ לאחסון נכשלה.'));
+  }
+
+  try {
+    return await notifyServerAboutUpload(folderId, presigned.objectKey, file.name);
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, 'הקובץ נשלח, אבל שמירתו בתיק נכשלה.'));
   }
 };
 
@@ -121,21 +170,12 @@ export const uploadFileToServer = async (
 
 export const notifyServerAboutUpload = async (
   folderId: number,
-  objectKey: string
-): Promise<void> => {
-  try {
-    console.log(`Notifying server about upload: ${objectKey} in folder ${folderId}`);
-    const notificationData: S3UploadNotification = {
-      folderId,
-      objectKey,
-    };
-    
-    await apiClient.post('/s3/notify-upload', notificationData);
-    console.log('Server notified about upload successfully');
-  } catch (error) {
-    console.error("Error notifying server about upload:", error);
-    throw error;
-  }
+  objectKey: string,
+  fileName?: string
+): Promise<{ documentId: number; documentName: string; objectKey: string }> => {
+  const notificationData: S3UploadNotification = { folderId, objectKey, fileName };
+  const response = await apiClient.post('/s3/notify-upload', notificationData);
+  return response.data;
 };
 
 // פונקציה עזר לבדיקת סוג קובץ

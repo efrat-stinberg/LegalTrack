@@ -10,6 +10,8 @@ namespace TaxManagerServer.Core.DTOs
     {
         public int FolderId { get; set; }
         public string ObjectKey { get; set; }
-        public string ContentType { get; set; }
+        public string? ContentType { get; set; }
+        // Original file name as the user picked it; when missing it is taken from the key
+        public string? FileName { get; set; }
     }
 }

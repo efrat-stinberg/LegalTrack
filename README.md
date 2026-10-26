@@ -221,11 +221,37 @@ The API URL is set in `src/environments/environment.ts` (`apiUrl`).
 - Passwords are hashed with ASP.NET Core Identity's `PasswordHasher`.
 - Files are stored privately in S3 and accessed through short-lived presigned URLs.
 
+### Direct upload to S3
+
+The React app uploads files straight from the browser to S3; the file never passes through the API:
+
+1. `GET /s3/presigned-upload-url?folderId=&fileName=&contentType=&size=` checks the case belongs to the caller's office and the 50MB limit, and returns a 15-minute PUT URL and the object key (`<guid>_<escaped name>`).
+2. The browser `PUT`s the file to that URL with the same `Content-Type` (no `Authorization` header).
+3. `POST /s3/notify-upload` `{ folderId, objectKey, fileName }` checks the object exists in S3 (over 50MB is deleted) and saves the document.
+
+`POST /s3/upload` (upload through the API) is still available.
+
+The bucket needs a CORS rule for the browser PUT, for example:
+
+```json
+[
+  {
+    "AllowedOrigins": ["https://legaltrack.onrender.com", "http://localhost:5173"],
+    "AllowedMethods": ["PUT", "GET"],
+    "AllowedHeaders": ["*"],
+    "ExposeHeaders": ["ETag"],
+    "MaxAgeSeconds": 3000
+  }
+]
+```
+
+The AWS user needs `s3:PutObject`, `s3:GetObject`, `s3:DeleteObject` and `s3:ListBucket` on the bucket.
+
 ---
 
 ## 🧪 Tests
 
-`LagalTrackServer/TaxManagerServer.Tests` holds 39 end-to-end API tests. They run the real API (controllers, JWT, EF Core migrations) against MySQL, with S3, SendGrid and OpenAI replaced by in-memory fakes. They cover registration and login, the invite flow (including a failed email), password reset (email and admin links, single use), admin vs. lawyer permissions, client/case/document CRUD, case status and deadlines, upload and download, the AI chat, office isolation and anonymous access.
+`LagalTrackServer/TaxManagerServer.Tests` holds 43 end-to-end API tests. They run the real API (controllers, JWT, EF Core migrations) against MySQL, with S3, SendGrid and OpenAI replaced by in-memory fakes. They cover registration and login, the invite flow (including a failed email), password reset (email and admin links, single use), admin vs. lawyer permissions, client/case/document CRUD, case status and deadlines, upload (through the API and directly to S3) and download, the AI chat, office isolation and anonymous access.
 
 ```bash
 # MySQL connection for the tests (the database is dropped and recreated)

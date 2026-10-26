@@ -36,7 +36,7 @@ import {
   FileX,
   Clock
 } from "lucide-react";
-import { uploadFileToServer } from "../api/api";
+import { uploadFileDirectToS3 } from "../api/api";
 
 interface FileUploadProps {
   folderId: number;
@@ -245,8 +245,8 @@ const FileUpload: React.FC<FileUploadProps> = ({ folderId, onClose, onUploadSucc
             : f
         ));
 
-        // העלה קובץ
-        await uploadFileToServer(
+        // העלאה ישירה מהדפדפן ל-S3
+        await uploadFileDirectToS3(
           fileItem.file, 
           folderId,
           (progressEvent) => {

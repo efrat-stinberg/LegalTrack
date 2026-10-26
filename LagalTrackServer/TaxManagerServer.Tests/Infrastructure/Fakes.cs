@@ -14,6 +14,12 @@ namespace TaxManagerServer.Tests.Infrastructure
         public string GeneratePreSignedURL(string objectKey, string contentType, TimeSpan expiryDuration) =>
             $"https://fake-s3.test/{objectKey}?expires={expiryDuration.TotalMinutes}";
 
+        public string GeneratePreSignedUploadURL(string objectKey, string contentType, TimeSpan expiryDuration) =>
+            $"https://fake-s3.test/{objectKey}?method=PUT&contentType={Uri.EscapeDataString(contentType)}";
+
+        public Task<long?> GetObjectSizeAsync(string objectKey) =>
+            Task.FromResult(Objects.TryGetValue(objectKey, out var obj) ? (long?)obj.Bytes.Length : null);
+
         public async Task<string> UploadFileToS3Async(Stream fileStream, string objectKey, string contentType)
         {
             using var ms = new MemoryStream();

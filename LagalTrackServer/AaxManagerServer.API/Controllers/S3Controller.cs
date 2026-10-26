@@ -78,19 +78,33 @@ namespace TaxManagerServer.API.Controllers
             }
         }
 
+        // Step 1 of a direct browser upload: a short-lived URL the browser PUTs the file to
         [HttpGet("presigned-upload-url")]
-        public IActionResult GetPreSignedUploadUrl([FromQuery] string fileName, [FromQuery] string? contentType)
+        public async Task<IActionResult> GetPreSignedUploadUrl([FromQuery] int folderId, [FromQuery] string fileName,
+            [FromQuery] string? contentType, [FromQuery] long? size)
         {
             if (string.IsNullOrWhiteSpace(fileName))
                 return BadRequest("Missing file name.");
+            if (size <= 0)
+                return BadRequest("No file uploaded.");
+            if (size > MaxUploadBytes)
+                return StatusCode(StatusCodes.Status413PayloadTooLarge, "File is larger than 50MB.");
+            if (!await IsOwnFolderAsync(folderId))
+                return BadRequest("Folder not found.");
 
             if (string.IsNullOrWhiteSpace(contentType))
                 contentType = "application/octet-stream";
 
             var objectKey = $"{Guid.NewGuid()}_{Uri.EscapeDataString(fileName)}";
-            var url = _s3Service.GeneratePreSignedURL(objectKey, contentType, TimeSpan.FromMinutes(10));
-
-            return Ok(new { uploadUrl = url, objectKey });
+            try
+            {
+                var url = _s3Service.GeneratePreSignedUploadURL(objectKey, contentType, TimeSpan.FromMinutes(15));
+                return Ok(new { uploadUrl = url, objectKey, contentType });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error preparing the S3 upload: {ex.Message}");
+            }
         }
 
         [HttpGet("presigned-download-url")]
@@ -132,25 +146,46 @@ namespace TaxManagerServer.API.Controllers
             }
         }
 
-        // Registers a file that the browser uploaded directly to S3 with a presigned URL
+        // Step 2 of a direct browser upload: saves the document once the file is in S3
         [HttpPost("notify-upload")]
         public async Task<IActionResult> NotifyUpload([FromBody] NotifyUploadDto dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.ObjectKey))
-                return BadRequest(new { error = "Missing object key" });
+            // Only keys this API hands out: "<guid>_<escaped name>", no folders
+            var parts = (dto.ObjectKey ?? "").Split('_', 2);
+            if (parts.Length != 2 || !Guid.TryParse(parts[0], out _) || parts[1].Length == 0 || parts[1].Contains('/'))
+                return BadRequest(new { error = "Invalid object key" });
             if (!await IsOwnFolderAsync(dto.FolderId))
                 return BadRequest(new { error = "Folder not found" });
+            if (await _documentService.GetByFilePathAsync(dto.ObjectKey!) != null)
+                return Conflict(new { error = "This file is already registered" });
+
+            long? size;
+            try
+            {
+                size = await _s3Service.GetObjectSizeAsync(dto.ObjectKey!);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Error checking the file in S3: {ex.Message}" });
+            }
+            if (size == null)
+                return BadRequest(new { error = "The file was not found in S3" });
+            if (size > MaxUploadBytes)
+            {
+                await _s3Service.DeleteFileAsync(dto.ObjectKey!);
+                return StatusCode(StatusCodes.Status413PayloadTooLarge, new { error = "File is larger than 50MB." });
+            }
 
             var document = new Document
             {
-                DocumentName = Uri.UnescapeDataString(Path.GetFileName(dto.ObjectKey)),
-                FilePath = dto.ObjectKey,
+                DocumentName = string.IsNullOrWhiteSpace(dto.FileName) ? Uri.UnescapeDataString(parts[1]) : dto.FileName.Trim(),
+                FilePath = dto.ObjectKey!,
                 FolderId = dto.FolderId,
                 UploadDate = DateTime.UtcNow
             };
 
             await _documentService.AddAsync(document);
-            return Ok(new { message = "Upload notification received and document saved.", document.DocumentId });
+            return Ok(new { document.DocumentId, document.DocumentName, ObjectKey = document.FilePath });
         }
 
         [HttpDelete("delete")]

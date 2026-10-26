@@ -42,6 +42,7 @@ export interface CreateFolderFormData {
   export interface S3UploadNotification {
     folderId: number;
     objectKey: string;
+    fileName?: string;
   }
   
   // API Response types

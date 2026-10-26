@@ -73,6 +73,68 @@ namespace TaxManagerServer.Tests
         }
 
         [Fact]
+        public async Task Browser_uploads_directly_to_s3_and_registers_the_document()
+        {
+            var admin = await ApiSession.RegisterOfficeAsync(_factory);
+            var folderId = await admin.CreateFolderAsync(await admin.CreateClientAsync());
+            var bytes = ApiSession.CreatePdf("Direct upload");
+
+            var presigned = await admin.GetJsonAsync(
+                $"/api/s3/presigned-upload-url?folderId={folderId}&fileName={Uri.EscapeDataString("כתב תביעה.pdf")}&contentType=application/pdf&size={bytes.Length}");
+            var objectKey = presigned.GetProperty("objectKey").GetString()!;
+            Assert.Contains("method=PUT", presigned.GetProperty("uploadUrl").GetString());
+
+            // Registering before the file reached S3 is refused
+            await ApiAssert.StatusAsync(HttpStatusCode.BadRequest,
+                await admin.Http.PostAsJsonAsync("/api/s3/notify-upload", new { folderId, objectKey, fileName = "כתב תביעה.pdf" }));
+
+            // What the browser's PUT to the presigned URL does
+            _factory.S3.Objects[objectKey] = (bytes, "application/pdf");
+
+            var registered = await admin.Http.PostAsJsonAsync("/api/s3/notify-upload", new { folderId, objectKey, fileName = "כתב תביעה.pdf" });
+            await ApiAssert.StatusAsync(HttpStatusCode.OK, registered);
+
+            var folder = await admin.GetJsonAsync($"/api/folders/{folderId}");
+            var doc = Assert.Single(folder.GetProperty("documents").EnumerateArray());
+            Assert.Equal("כתב תביעה.pdf", doc.GetProperty("documentName").GetString());
+
+            // The same key cannot be registered twice
+            await ApiAssert.StatusAsync(HttpStatusCode.Conflict,
+                await admin.Http.PostAsJsonAsync("/api/s3/notify-upload", new { folderId, objectKey }));
+
+            var file = await admin.Http.GetAsync($"/api/s3/download?objectKey={Uri.EscapeDataString(objectKey)}");
+            await ApiAssert.StatusAsync(HttpStatusCode.OK, file);
+        }
+
+        [Fact]
+        public async Task Direct_upload_rejects_large_files_foreign_folders_and_made_up_keys()
+        {
+            var officeA = await ApiSession.RegisterOfficeAsync(_factory);
+            var officeB = await ApiSession.RegisterOfficeAsync(_factory);
+            var folderB = await officeB.CreateFolderAsync(await officeB.CreateClientAsync());
+            var folderA = await officeA.CreateFolderAsync(await officeA.CreateClientAsync());
+
+            await ApiAssert.StatusAsync(HttpStatusCode.RequestEntityTooLarge,
+                await officeA.Http.GetAsync($"/api/s3/presigned-upload-url?folderId={folderA}&fileName=big.pdf&size={51L * 1024 * 1024}"));
+            await ApiAssert.StatusAsync(HttpStatusCode.BadRequest,
+                await officeA.Http.GetAsync($"/api/s3/presigned-upload-url?folderId={folderB}&fileName=x.pdf&size=10"));
+
+            var key = $"{Guid.NewGuid()}_x.pdf";
+            _factory.S3.Objects[key] = (ApiSession.CreatePdf("x"), "application/pdf");
+            await ApiAssert.StatusAsync(HttpStatusCode.BadRequest,
+                await officeA.Http.PostAsJsonAsync("/api/s3/notify-upload", new { folderId = folderB, objectKey = key }));
+            await ApiAssert.StatusAsync(HttpStatusCode.BadRequest,
+                await officeA.Http.PostAsJsonAsync("/api/s3/notify-upload", new { folderId = folderA, objectKey = "other/x.pdf" }));
+
+            // A file over 50MB that slipped past the browser is removed from S3
+            var bigKey = $"{Guid.NewGuid()}_big.pdf";
+            _factory.S3.Objects[bigKey] = (new byte[51 * 1024 * 1024], "application/pdf");
+            await ApiAssert.StatusAsync(HttpStatusCode.RequestEntityTooLarge,
+                await officeA.Http.PostAsJsonAsync("/api/s3/notify-upload", new { folderId = folderA, objectKey = bigKey }));
+            Assert.False(_factory.S3.Objects.ContainsKey(bigKey));
+        }
+
+        [Fact]
         public async Task Chat_answers_from_case_documents_and_keeps_history()
         {
             var admin = await ApiSession.RegisterOfficeAsync(_factory);

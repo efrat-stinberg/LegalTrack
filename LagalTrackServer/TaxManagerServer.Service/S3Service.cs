@@ -54,6 +54,33 @@ namespace TaxManager.Service
             return _s3Client.GetPreSignedURL(request);
         }
 
+        public string GeneratePreSignedUploadURL(string objectKey, string contentType, TimeSpan expiryDuration)
+        {
+            var request = new GetPreSignedUrlRequest
+            {
+                BucketName = _bucketName,
+                Key = objectKey,
+                Verb = HttpVerb.PUT,
+                Expires = DateTime.UtcNow.Add(expiryDuration),
+                ContentType = contentType
+            };
+
+            return _s3Client.GetPreSignedURL(request);
+        }
+
+        public async Task<long?> GetObjectSizeAsync(string objectKey)
+        {
+            try
+            {
+                var metadata = await _s3Client.GetObjectMetadataAsync(_bucketName, objectKey);
+                return metadata.ContentLength;
+            }
+            catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+        }
+
         //public async Task<string> UploadFileToS3Async(Stream fileStream, string objectKey, string contentType)
         //{
         //    var putRequest = new PutObjectRequest

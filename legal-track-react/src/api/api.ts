@@ -60,5 +60,6 @@ export {
   getDownloadUrl, 
   uploadFileToS3, 
   uploadFileToServer, 
+  uploadFileDirectToS3,
   notifyServerAboutUpload 
 } from './s3Api';

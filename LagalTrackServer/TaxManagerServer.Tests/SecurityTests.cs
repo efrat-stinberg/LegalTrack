@@ -31,6 +31,8 @@ namespace TaxManagerServer.Tests
         [InlineData("GET", "/api/s3/download?objectKey=x")]
         [InlineData("GET", "/api/s3/presigned-download-url?objectKey=x")]
         [InlineData("DELETE", "/api/s3/delete?fileKey=x")]
+        [InlineData("GET", "/api/s3/presigned-upload-url?folderId=1&fileName=x.pdf")]
+        [InlineData("POST", "/api/s3/notify-upload")]
         [InlineData("POST", "/api/invite/invite-lawyer")]
         public async Task Protected_endpoints_require_login(string method, string url)
         {
