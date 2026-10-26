@@ -126,13 +126,31 @@ builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IInviteRepository, InviteRepository>();
 builder.Services.AddScoped<IInviteService, InviteService>();
 builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
-// The first provider whose key is set: Mailjet, Brevo, otherwise SendGrid
-if (!string.IsNullOrWhiteSpace(builder.Configuration["Mailjet:ApiKey"]))
-    builder.Services.AddHttpClient<IEmailService, MailjetEmailService>(client => client.Timeout = TimeSpan.FromSeconds(30));
-else if (!string.IsNullOrWhiteSpace(builder.Configuration["Brevo:ApiKey"]))
-    builder.Services.AddHttpClient<IEmailService, BrevoEmailService>(client => client.Timeout = TimeSpan.FromSeconds(30));
-else
-    builder.Services.AddScoped<IEmailService, SendGridEmailService>();
+// Email:Provider (ses / mailjet / brevo / sendgrid) picks the provider;
+// without it, the first one configured: SES, Mailjet, Brevo, otherwise SendGrid
+var emailProvider = builder.Configuration["Email:Provider"]?.Trim().ToLowerInvariant();
+if (string.IsNullOrEmpty(emailProvider))
+    emailProvider = !string.IsNullOrWhiteSpace(builder.Configuration["Ses:SenderEmail"]) ? "ses"
+        : !string.IsNullOrWhiteSpace(builder.Configuration["Mailjet:ApiKey"]) ? "mailjet"
+        : !string.IsNullOrWhiteSpace(builder.Configuration["Brevo:ApiKey"]) ? "brevo"
+        : "sendgrid";
+switch (emailProvider)
+{
+    case "ses":
+        builder.Services.AddScoped<IEmailService, SesEmailService>();
+        break;
+    case "mailjet":
+        builder.Services.AddHttpClient<IEmailService, MailjetEmailService>(client => client.Timeout = TimeSpan.FromSeconds(30));
+        break;
+    case "brevo":
+        builder.Services.AddHttpClient<IEmailService, BrevoEmailService>(client => client.Timeout = TimeSpan.FromSeconds(30));
+        break;
+    case "sendgrid":
+        builder.Services.AddScoped<IEmailService, SendGridEmailService>();
+        break;
+    default:
+        throw new InvalidOperationException($"Unknown Email:Provider '{emailProvider}'. Use ses, mailjet, brevo or sendgrid.");
+}
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 

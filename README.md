@@ -19,7 +19,7 @@ A full-stack case and document management system for law firms, with an AI legal
 | File storage    | Amazon S3 (presigned upload/download URLs)                     |
 | PDF parsing     | PdfPig (text extraction for the AI chat)                       |
 | AI engine       | OpenAI Chat Completions (`gpt-4o-mini`)                        |
-| Email           | Mailjet HTTP API (or Brevo / SendGrid): invitations and password reset |
+| Email           | Amazon SES, Mailjet, Brevo or SendGrid: invitations and password reset |
 | Auth            | JWT Bearer tokens, Admin / Lawyer roles                        |
 | Deployment      | Docker, Render.com                                             |
 
@@ -55,7 +55,7 @@ LegalTrack/
 ### 🏢 Admin Application (Angular)
 
 - Register an office (group) with an admin account.
-- Invite lawyers by email (Mailjet, Brevo or SendGrid); invite links expire after a configurable time. If the email can't be sent, the invite link is shown for copying.
+- Invite lawyers by email (Amazon SES, Mailjet, Brevo or SendGrid); invite links expire after a configurable time. If the email can't be sent, the invite link is shown for copying.
 - View and remove users, export the list as CSV.
 - Create a password reset link for a user (valid for 24 hours) to pass on when the reset email doesn't arrive.
 - Dashboard with the office's user, case and client counts and recent cases.
@@ -141,7 +141,7 @@ All routes are prefixed with `/api`. Swagger UI is available at `/swagger`.
 - [.NET 9 SDK](https://dotnet.microsoft.com/download)
 - Node.js 18+ and npm
 - MySQL 8
-- An AWS S3 bucket, an OpenAI API key and a Mailjet (or Brevo / SendGrid) API key
+- An AWS S3 bucket, an OpenAI API key and an email provider (Amazon SES, Mailjet, Brevo or SendGrid)
 
 ### 1. Clone the repository
 
@@ -161,9 +161,11 @@ The server reads settings from `appsettings.json`, [user secrets](https://learn.
 | `JWT:TokenExpirationMinutes` | Token lifetime (default: 1440 = one day) |
 | `AWS:AccessKey`, `AWS:SecretKey`, `AWS:Region`, `AWS:BucketName` | S3 storage |
 | `ChatKey` | OpenAI API key |
-| `Mailjet:ApiKey`, `Mailjet:SecretKey`, `Mailjet:SenderEmail` | Invitation and password-reset emails through Mailjet. The sender address must be verified in Mailjet. Used first when `Mailjet:ApiKey` is set |
-| `Brevo:ApiKey`, `Brevo:SenderEmail` | Invitation and password-reset emails. The sender must be verified in Brevo (Senders, domains & dedicated IPs). Used when there is no Mailjet key |
-| `SendGrid:ApiKey`, `SendGrid:SenderEmail` | Same emails through SendGrid (used only without a Mailjet or Brevo key) |
+| `Email:Provider` | `ses`, `mailjet`, `brevo` or `sendgrid`. Optional: without it the first configured one is used, in that order |
+| `Ses:SenderEmail`, `Ses:Region` | Emails through Amazon SES with the `AWS:*` keys (the AWS user needs `ses:SendEmail`). The sender must be a verified identity; in the SES sandbox recipients must be verified too. `Ses:Region` defaults to `AWS:Region` |
+| `Mailjet:ApiKey`, `Mailjet:SecretKey`, `Mailjet:SenderEmail` | Invitation and password-reset emails through Mailjet. The sender address must be verified in Mailjet. |
+| `Brevo:ApiKey`, `Brevo:SenderEmail` | Invitation and password-reset emails. The sender must be verified in Brevo (Senders, domains & dedicated IPs). |
+| `SendGrid:ApiKey`, `SendGrid:SenderEmail` | Same emails through SendGrid |
 | `Invite:ExpirationMinutes` | Invite link lifetime (default: 10080 = 7 days) |
 | `PasswordReset:EmailLinkMinutes` / `PasswordReset:AdminLinkMinutes` | Reset link lifetime (defaults: 60 and 1440) |
 | `Frontend:BaseUrl` | URL of the React app, used in invite links (default: `https://legaltrack.onrender.com`) |
@@ -253,7 +255,7 @@ The AWS user needs `s3:PutObject`, `s3:GetObject`, `s3:DeleteObject` and `s3:Lis
 
 ## 🧪 Tests
 
-`LagalTrackServer/TaxManagerServer.Tests` holds 49 tests: 43 end-to-end API tests plus 6 for the Mailjet and Brevo email senders. They run the real API (controllers, JWT, EF Core migrations) against MySQL, with S3, email and OpenAI replaced by in-memory fakes. They cover registration and login, the invite flow (including a failed email), password reset (email and admin links, single use), admin vs. lawyer permissions, client/case/document CRUD, case status and deadlines, upload (through the API and directly to S3) and download, the AI chat, office isolation and anonymous access.
+`LagalTrackServer/TaxManagerServer.Tests` holds 52 tests: 43 end-to-end API tests plus 9 for the SES, Mailjet and Brevo email senders. They run the real API (controllers, JWT, EF Core migrations) against MySQL, with S3, email and OpenAI replaced by in-memory fakes. They cover registration and login, the invite flow (including a failed email), password reset (email and admin links, single use), admin vs. lawyer permissions, client/case/document CRUD, case status and deadlines, upload (through the API and directly to S3) and download, the AI chat, office isolation and anonymous access.
 
 ```bash
 # MySQL connection for the tests (the database is dropped and recreated)
