@@ -1,4 +1,4 @@
-using TaxManager.Core.Services;
+﻿using TaxManager.Core.Services;
 using TaxManager.Data;
 using TaxManager.Service;
 using TaxManagerServer.Core;
@@ -126,7 +126,11 @@ builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IInviteRepository, InviteRepository>();
 builder.Services.AddScoped<IInviteService, InviteService>();
 builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
-builder.Services.AddScoped<IEmailService, SendGridEmailService>();
+// Brevo when its key is set, otherwise SendGrid
+if (!string.IsNullOrWhiteSpace(builder.Configuration["Brevo:ApiKey"]))
+    builder.Services.AddHttpClient<IEmailService, BrevoEmailService>(client => client.Timeout = TimeSpan.FromSeconds(30));
+else
+    builder.Services.AddScoped<IEmailService, SendGridEmailService>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 

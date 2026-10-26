@@ -1,5 +1,4 @@
-﻿using System.Net;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using SendGrid;
 using SendGrid.Helpers.Mail;
@@ -7,10 +6,8 @@ using TaxManagerServer.Core.Services;
 
 namespace TaxManagerServer.Service
 {
-    public class SendGridEmailService : IEmailService
+    public class SendGridEmailService : EmailServiceBase
     {
-        private const string SenderName = "LegalTrack";
-
         private readonly string? _apiKey;
         private readonly string? _senderEmail;
         private readonly ILogger<SendGridEmailService> _logger;
@@ -22,39 +19,7 @@ namespace TaxManagerServer.Service
             _logger = logger;
         }
 
-        public Task SendInviteEmailAsync(string toEmail, string inviteLink)
-        {
-            var link = WebUtility.HtmlEncode(inviteLink);
-            return SendAsync(
-                toEmail,
-                "הוזמנת להצטרף ל-LegalTrack",
-                $@"
-<div dir='rtl' style='font-family:Arial,sans-serif'>
-  <p>שלום,</p>
-  <p>הוזמנת להצטרף למערכת LegalTrack.</p>
-  <p><a href='{link}'>לחצו כאן כדי להשלים את ההרשמה</a></p>
-  <p>הקישור אישי ואין להעביר אותו לאחרים.</p>
-</div>",
-                $"הוזמנת להצטרף למערכת LegalTrack. להשלמת ההרשמה: {inviteLink}");
-        }
-
-        public Task SendPasswordResetEmailAsync(string toEmail, string resetLink)
-        {
-            var link = WebUtility.HtmlEncode(resetLink);
-            return SendAsync(
-                toEmail,
-                "איפוס סיסמה ב-LegalTrack",
-                $@"
-<div dir='rtl' style='font-family:Arial,sans-serif'>
-  <p>שלום,</p>
-  <p>התקבלה בקשה לאיפוס הסיסמה שלך ב-LegalTrack.</p>
-  <p><a href='{link}'>לחצו כאן כדי לבחור סיסמה חדשה</a></p>
-  <p>הקישור תקף לזמן מוגבל ולשימוש אחד. אם לא ביקשת איפוס, אפשר להתעלם מהמייל.</p>
-</div>",
-                $"לאיפוס הסיסמה ב-LegalTrack: {resetLink} . אם לא ביקשת איפוס, אפשר להתעלם מהמייל.");
-        }
-
-        private async Task SendAsync(string toEmail, string subject, string htmlContent, string plainContent)
+        protected override async Task SendAsync(string toEmail, string subject, string htmlContent, string plainContent)
         {
             if (string.IsNullOrWhiteSpace(_apiKey))
                 throw new EmailSendException("SendGrid:ApiKey is not configured on the server.");

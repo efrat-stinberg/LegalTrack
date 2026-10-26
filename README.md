@@ -19,7 +19,7 @@ A full-stack case and document management system for law firms, with an AI legal
 | File storage    | Amazon S3 (presigned upload/download URLs)                     |
 | PDF parsing     | PdfPig (text extraction for the AI chat)                       |
 | AI engine       | OpenAI Chat Completions (`gpt-4o-mini`)                        |
-| Email           | SendGrid (lawyer invitations)                                  |
+| Email           | Brevo HTTP API (or SendGrid): invitations and password reset   |
 | Auth            | JWT Bearer tokens, Admin / Lawyer roles                        |
 | Deployment      | Docker, Render.com                                             |
 
@@ -55,7 +55,7 @@ LegalTrack/
 ### 🏢 Admin Application (Angular)
 
 - Register an office (group) with an admin account.
-- Invite lawyers by email (SendGrid); invite links expire after a configurable time. If the email can't be sent, the invite link is shown for copying.
+- Invite lawyers by email (Brevo or SendGrid); invite links expire after a configurable time. If the email can't be sent, the invite link is shown for copying.
 - View and remove users, export the list as CSV.
 - Create a password reset link for a user (valid for 24 hours) to pass on when the reset email doesn't arrive.
 - Dashboard with the office's user, case and client counts and recent cases.
@@ -141,7 +141,7 @@ All routes are prefixed with `/api`. Swagger UI is available at `/swagger`.
 - [.NET 9 SDK](https://dotnet.microsoft.com/download)
 - Node.js 18+ and npm
 - MySQL 8
-- An AWS S3 bucket, an OpenAI API key and a SendGrid API key
+- An AWS S3 bucket, an OpenAI API key and a Brevo (or SendGrid) API key
 
 ### 1. Clone the repository
 
@@ -161,7 +161,8 @@ The server reads settings from `appsettings.json`, [user secrets](https://learn.
 | `JWT:TokenExpirationMinutes` | Token lifetime (default: 1440 = one day) |
 | `AWS:AccessKey`, `AWS:SecretKey`, `AWS:Region`, `AWS:BucketName` | S3 storage |
 | `ChatKey` | OpenAI API key |
-| `SendGrid:ApiKey`, `SendGrid:SenderEmail` | Invitation emails |
+| `Brevo:ApiKey`, `Brevo:SenderEmail` | Invitation and password-reset emails. The sender must be verified in Brevo (Senders, domains & dedicated IPs). When `Brevo:ApiKey` is empty the server falls back to SendGrid |
+| `SendGrid:ApiKey`, `SendGrid:SenderEmail` | Same emails through SendGrid (used only without a Brevo key) |
 | `Invite:ExpirationMinutes` | Invite link lifetime (default: 10080 = 7 days) |
 | `PasswordReset:EmailLinkMinutes` / `PasswordReset:AdminLinkMinutes` | Reset link lifetime (defaults: 60 and 1440) |
 | `Frontend:BaseUrl` | URL of the React app, used in invite links (default: `https://legaltrack.onrender.com`) |
@@ -251,7 +252,7 @@ The AWS user needs `s3:PutObject`, `s3:GetObject`, `s3:DeleteObject` and `s3:Lis
 
 ## 🧪 Tests
 
-`LagalTrackServer/TaxManagerServer.Tests` holds 43 end-to-end API tests. They run the real API (controllers, JWT, EF Core migrations) against MySQL, with S3, SendGrid and OpenAI replaced by in-memory fakes. They cover registration and login, the invite flow (including a failed email), password reset (email and admin links, single use), admin vs. lawyer permissions, client/case/document CRUD, case status and deadlines, upload (through the API and directly to S3) and download, the AI chat, office isolation and anonymous access.
+`LagalTrackServer/TaxManagerServer.Tests` holds 46 tests: 43 end-to-end API tests plus 3 for the Brevo email sender. They run the real API (controllers, JWT, EF Core migrations) against MySQL, with S3, email and OpenAI replaced by in-memory fakes. They cover registration and login, the invite flow (including a failed email), password reset (email and admin links, single use), admin vs. lawyer permissions, client/case/document CRUD, case status and deadlines, upload (through the API and directly to S3) and download, the AI chat, office isolation and anonymous access.
 
 ```bash
 # MySQL connection for the tests (the database is dropped and recreated)
