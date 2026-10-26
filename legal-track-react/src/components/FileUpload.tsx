@@ -397,7 +397,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ folderId, onClose, onUploadSucc
           multiple
           onChange={handleFileSelect}
           style={{ display: 'none' }}
-          accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.zip,.rar"
+          accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.webp,.gif,.zip,.rar"
           disabled={isUploading}
         />
         
@@ -417,7 +417,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ folderId, onClose, onUploadSucc
         <Typography variant="body2" color="text.secondary" gutterBottom>
           {files.length > 0 
             ? 'לחץ "העלה הכל" כדי להתחיל, או הוסף עוד קבצים'
-            : 'אפשר לבחור כמה קבצים יחד. העוזר (AI) קורא קובצי PDF בלבד.'
+            : 'אפשר לבחור כמה קבצים יחד. העוזר (AI) קורא קובצי PDF, Word ‏(docx) ותמונות.'
           }
         </Typography>
         
@@ -599,7 +599,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ folderId, onClose, onUploadSucc
           • ניתן לבחור מספר קבצים בו-זמנית (Ctrl/Cmd + Click)<br/>
           • גרירה ושחרור של קבצים מרובים נתמכת<br/>
           • גודל מקסימלי לקובץ: 50MB<br/>
-          • נשמרים כל סוגי הקבצים; העוזר (AI) קורא רק קובצי PDF עם טקסט
+          • נשמרים כל סוגי הקבצים; העוזר (AI) קורא קובצי PDF עם טקסט, Word ‏(docx) ותמונות (JPG, PNG, WEBP, GIF עד 20MB)
         </Typography>
       </Box>
 

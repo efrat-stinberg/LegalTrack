@@ -216,7 +216,7 @@ const FolderDetailsPage: React.FC = () => {
           ) : (
             <Box sx={{ m: 2.5, p: 4, border: `1px dashed ${tokens.borderStrong}`, borderRadius: `${tokens.radiusLg}px`, textAlign: "center", display: "flex", flexDirection: "column", gap: 1.5, alignItems: "center" }}>
               <Typography sx={{ fontWeight: 600 }}>אין עדיין מסמכים בתיק</Typography>
-              <Typography sx={{ color: tokens.slate }}>העלו קובצי PDF כדי לשמור אותם בתיק ולשאול עליהם את העוזר.</Typography>
+              <Typography sx={{ color: tokens.slate }}>העלו קובצי PDF, Word או תמונות כדי לשמור אותם בתיק ולשאול עליהם את העוזר.</Typography>
               <Button variant="contained" startIcon={<Upload size={16} />} onClick={() => setUploadOpen(true)}>
                 העלאת מסמכים
               </Button>

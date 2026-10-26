@@ -14,19 +14,19 @@ namespace TaxManager.Service
         private readonly IFolderRepository _folderRepository;
         private readonly IRepositoryManager _repositoryManager;
         private readonly IS3Service _s3Service;
-        private readonly IPdfTextExtractor _pdfTextExtractor;
+        private readonly IDocumentTextExtractor _textExtractor;
 
         public FolderService(
     IFolderRepository folderRepository,
     IRepositoryManager repositoryManager,
     IS3Service s3Service,
-    IPdfTextExtractor pdfTextExtractor
+    IDocumentTextExtractor textExtractor
 )
         {
             _folderRepository = folderRepository;
             _repositoryManager = repositoryManager;
             _s3Service = s3Service;
-            _pdfTextExtractor = pdfTextExtractor;
+            _textExtractor = textExtractor;
         }
 
         public async Task AddAsync(Folder folder)
@@ -170,30 +170,39 @@ namespace TaxManager.Service
             }
 
             var sb = new System.Text.StringBuilder();
+            var documentIds = folder.Documents.Select(d => d.DocumentId).ToList();
+            var cachedTexts = (await _repositoryManager.DocumentTexts.FindAsync(t => documentIds.Contains(t.DocumentId)))
+                .ToDictionary(t => t.DocumentId);
 
             foreach (var doc in folder.Documents)
             {
+                var fileName = SourceFileName(doc);
+                var extractor = _textExtractor.GetExtractor(fileName);
+                if (extractor == null)
+                {
+                    sb.AppendLine($"[Unsupported file: {doc.DocumentName}]");
+                    continue;
+                }
+
                 try
                 {
-                    var (stream, contentType) = await _s3Service.DownloadFileAsync(doc.FilePath);
-                    using (stream)
+                    cachedTexts.TryGetValue(doc.DocumentId, out var cached);
+                    string content;
+                    if (cached != null && cached.FilePath == doc.FilePath && cached.Extractor == extractor)
                     {
-                        string extension = Path.GetExtension(doc.DocumentName).ToLowerInvariant();
-                        string content;
-
-                        if (extension == ".pdf")
-                        {
-                            content = await _pdfTextExtractor.ExtractTextAsync(stream);
-                        }
-                        else
-                        {
-                            content = $"[Unsupported file: {doc.DocumentName}]";
-                        }
-
-                        sb.AppendLine($"--- {doc.DocumentName} ---");
-                        sb.AppendLine(content);
-                        sb.AppendLine();
+                        content = cached.Text;
                     }
+                    else
+                    {
+                        var (stream, _) = await _s3Service.DownloadFileAsync(doc.FilePath);
+                        using (stream)
+                            content = await _textExtractor.ExtractTextAsync(stream, fileName);
+                        await SaveExtractedTextAsync(cached, doc, extractor, content);
+                    }
+
+                    sb.AppendLine($"--- {doc.DocumentName} ---");
+                    sb.AppendLine(content);
+                    sb.AppendLine();
                 }
                 catch (Exception ex)
                 {
@@ -203,6 +212,40 @@ namespace TaxManager.Service
             }
 
             return sb.ToString();
+        }
+
+        // The type comes from the stored key ("<guid>_<escaped original name>"), so renaming a document
+        // to a name without an extension doesn't stop it from being read
+        private static string SourceFileName(Document doc)
+        {
+            var parts = (doc.FilePath ?? "").Split('_', 2);
+            var stored = parts.Length == 2 ? Uri.UnescapeDataString(parts[1]) : doc.FilePath ?? "";
+            return Path.HasExtension(stored) ? stored : doc.DocumentName;
+        }
+
+        // Keeps the text for the next question. Failing to cache must not fail the question itself.
+        private async Task SaveExtractedTextAsync(DocumentText? cached, Document doc, string extractor, string text)
+        {
+            var row = cached ?? new DocumentText { DocumentId = doc.DocumentId };
+            row.FilePath = doc.FilePath;
+            row.Extractor = extractor;
+            row.Text = text;
+            row.ExtractedAt = DateTime.UtcNow;
+            if (cached == null)
+                await _repositoryManager.DocumentTexts.AddAsync(row);
+
+            try
+            {
+                await _repositoryManager.SaveAsync();
+            }
+            catch (Exception ex)
+            {
+                // e.g. another question cached the same document at the same moment.
+                // Stop tracking the row so the chat's own save is not retried with it.
+                Console.WriteLine($"Could not cache the text of document {doc.DocumentId}: {ex.Message}");
+                if (cached == null)
+                    await _repositoryManager.DocumentTexts.DeleteAsync(row);
+            }
         }
 
        

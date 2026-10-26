@@ -16,6 +16,8 @@ using Microsoft.AspNetCore.Hosting;
 using TaxManagerServer.Core.Services;
 using TaxManagerServer.Service;
 using TaxManagerServer.Data;
+using TaxManagerServer.API.Security;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddUserSecrets<Program>();
@@ -24,6 +26,17 @@ builder.Configuration.AddEnvironmentVariables();
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<LoginAttemptLimiter>();
+
+// Render (and most hosts) put the API behind a proxy; take the caller's IP from X-Forwarded-For
+// so the login limit counts each client separately instead of the proxy
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options =>
@@ -106,6 +119,9 @@ builder.Services.AddAWSService<IAmazonS3>();
 builder.Services.AddScoped<IS3Service, S3Service>();
 
 builder.Services.AddScoped<IPdfTextExtractor, PdfTextExtractor>();
+// Images are read by the OpenAI model, through its own pooled HttpClient
+builder.Services.AddHttpClient<IImageTextExtractor, ImageTextExtractor>(client => client.Timeout = TimeSpan.FromMinutes(2));
+builder.Services.AddScoped<IDocumentTextExtractor, DocumentTextExtractor>();
 
 
 // Register application services
@@ -165,7 +181,7 @@ using (var scope = app.Services.CreateScope())
 {
     try
     {
-        await SchemaUpgrader.UpgradeAsync(scope.ServiceProvider.GetRequiredService<DataContext>());
+        await SchemaUpgrader.UpgradeAsync(scope.ServiceProvider.GetRequiredService<DataContext>(), app.Logger);
     }
     catch (Exception ex)
     {
@@ -179,6 +195,8 @@ using (var scope = app.Services.CreateScope())
     app.UseSwagger();
     app.UseSwaggerUI();
 //}
+
+app.UseForwardedHeaders();
 
 app.UseHttpsRedirection();
 

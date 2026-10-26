@@ -61,7 +61,8 @@ namespace TaxManagerServer.Data.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
 
                     b.Property<int?>("GroupId")
                         .HasColumnType("int");
@@ -78,6 +79,9 @@ namespace TaxManagerServer.Data.Migrations
                         .HasColumnType("longtext");
 
                     b.HasKey("UserId");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.HasIndex("GroupId");
 
@@ -108,6 +112,8 @@ namespace TaxManagerServer.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("FolderId");
+
                     b.ToTable("ChatMessages");
                 });
 
@@ -136,7 +142,36 @@ namespace TaxManagerServer.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("GroupId");
+
                     b.ToTable("Clients");
+                });
+
+            modelBuilder.Entity("TaxManagerServer.Core.Models.DocumentText", b =>
+                {
+                    b.Property<int>("DocumentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ExtractedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Extractor")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("varchar(40)");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("varchar(1024)");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("DocumentId");
+
+                    b.ToTable("DocumentTexts");
                 });
 
             modelBuilder.Entity("TaxManagerServer.Core.Models.Folder", b =>
@@ -235,6 +270,8 @@ namespace TaxManagerServer.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("GroupId");
+
                     b.ToTable("Invites");
                 });
 
@@ -268,6 +305,8 @@ namespace TaxManagerServer.Data.Migrations
                     b.HasIndex("TokenHash")
                         .IsUnique();
 
+                    b.HasIndex("UserId");
+
                     b.ToTable("PasswordResets");
                 });
 
@@ -288,6 +327,32 @@ namespace TaxManagerServer.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Group");
+                });
+
+            modelBuilder.Entity("TaxManagerServer.Core.Models.ChatMessage", b =>
+                {
+                    b.HasOne("TaxManagerServer.Core.Models.Folder", null)
+                        .WithMany()
+                        .HasForeignKey("FolderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TaxManagerServer.Core.Models.Client", b =>
+                {
+                    b.HasOne("TaxManagerServer.Core.Models.Group", null)
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("TaxManagerServer.Core.Models.DocumentText", b =>
+                {
+                    b.HasOne("TaxManager.Core.Models.Document", null)
+                        .WithOne()
+                        .HasForeignKey("TaxManagerServer.Core.Models.DocumentText", "DocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("TaxManagerServer.Core.Models.Folder", b =>
@@ -322,6 +387,24 @@ namespace TaxManagerServer.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("CreatedByUser");
+                });
+
+            modelBuilder.Entity("TaxManagerServer.Core.Models.Invite", b =>
+                {
+                    b.HasOne("TaxManagerServer.Core.Models.Group", null)
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TaxManagerServer.Core.Models.PasswordReset", b =>
+                {
+                    b.HasOne("TaxManager.Core.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("TaxManager.Core.Models.User", b =>

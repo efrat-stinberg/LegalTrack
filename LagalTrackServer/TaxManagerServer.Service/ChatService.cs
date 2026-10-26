@@ -12,6 +12,7 @@ namespace TaxManagerServer.Service
     public class ChatService : IChatService
     {
         public const string OpenAiEndpoint = "https://api.openai.com/v1/chat/completions";
+        public const string Model = "gpt-4o-mini";
 
         // gpt-4o-mini accepts ~128k tokens; keep the case text well under that
         private const int MaxContextChars = 200_000;
@@ -49,7 +50,7 @@ namespace TaxManagerServer.Service
             // בניית הפורמט ל-OpenAI עם הקונטקסט של הטקסט מהתיקייה
             var prompt = new
             {
-                model = "gpt-4o-mini",
+                model = Model,
                 messages = new[]
                 {
                     new { role = "system", content = "You are a legal assistant helping with case files. Answer in the language of the question, based only on the case files below. If the files don't contain the answer, say so." },

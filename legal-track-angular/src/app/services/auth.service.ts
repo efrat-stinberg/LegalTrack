@@ -416,6 +416,12 @@ export class AuthService {
         case 409:
           errorMessage = 'משתמש עם אימייל זה כבר קיים במערכת';
           break;
+        case 429: {
+          // Too many failed logins; the server says how long the block lasts
+          const minutes = Math.max(1, Math.ceil((error.error?.retryAfterSeconds ?? 900) / 60));
+          errorMessage = `יותר מדי ניסיונות התחברות שגויים. נסו שוב בעוד ${minutes} דקות.`;
+          break;
+        }
         case 422:
           errorMessage = 'נתונים לא תקינים';
           break;

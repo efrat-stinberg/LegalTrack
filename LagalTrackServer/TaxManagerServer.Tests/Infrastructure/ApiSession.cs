@@ -87,11 +87,14 @@ namespace TaxManagerServer.Tests.Infrastructure
         }
 
         // Uploads a one-page PDF containing the given text; returns (documentId, objectKey)
-        public async Task<(int DocumentId, string ObjectKey)> UploadPdfAsync(int folderId, string text, string fileName = "contract.pdf")
+        public Task<(int DocumentId, string ObjectKey)> UploadPdfAsync(int folderId, string text, string fileName = "contract.pdf") =>
+            UploadFileAsync(folderId, CreatePdf(text), fileName, "application/pdf");
+
+        public async Task<(int DocumentId, string ObjectKey)> UploadFileAsync(int folderId, byte[] bytes, string fileName, string contentType)
         {
             using var form = new MultipartFormDataContent();
-            var file = new ByteArrayContent(CreatePdf(text));
-            file.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+            var file = new ByteArrayContent(bytes);
+            file.Headers.ContentType = new MediaTypeHeaderValue(contentType);
             form.Add(file, "file", fileName);
             form.Add(new StringContent(folderId.ToString()), "folderId");
 
@@ -99,6 +102,31 @@ namespace TaxManagerServer.Tests.Infrastructure
             await ApiAssert.StatusAsync(HttpStatusCode.OK, response);
             var json = await response.Content.ReadFromJsonAsync<JsonElement>();
             return (json.GetProperty("documentId").GetInt32(), json.GetProperty("objectKey").GetString()!);
+        }
+
+        // A minimal .docx: one paragraph per line, then a table with the given rows
+        public static byte[] CreateDocx(string[] paragraphs, string[][] tableRows)
+        {
+            const string w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+            static string Escape(string s) => System.Security.SecurityElement.Escape(s)!;
+            var body = string.Concat(paragraphs.Select(p => $"<w:p><w:r><w:t xml:space=\"preserve\">{Escape(p)}</w:t></w:r></w:p>"));
+            if (tableRows.Length > 0)
+                body += "<w:tbl>" + string.Concat(tableRows.Select(row =>
+                    "<w:tr>" + string.Concat(row.Select(cell => $"<w:tc><w:p><w:r><w:t>{Escape(cell)}</w:t></w:r></w:p></w:tc>")) + "</w:tr>")) + "</w:tbl>";
+
+            using var ms = new MemoryStream();
+            using (var zip = new System.IO.Compression.ZipArchive(ms, System.IO.Compression.ZipArchiveMode.Create, true))
+            {
+                void Add(string name, string content)
+                {
+                    using var writer = new StreamWriter(zip.CreateEntry(name).Open());
+                    writer.Write(content);
+                }
+                Add("[Content_Types].xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/word/document.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml\"/></Types>");
+                Add("_rels/.rels", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"word/document.xml\"/></Relationships>");
+                Add("word/document.xml", $"<?xml version=\"1.0\" encoding=\"UTF-8\"?><w:document xmlns:w=\"{w}\"><w:body>{body}</w:body></w:document>");
+            }
+            return ms.ToArray();
         }
 
         public static byte[] CreatePdf(string text)

@@ -126,7 +126,7 @@ const Chat: React.FC<ChatProps> = ({ folderId }) => {
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, py: 2 }}>
             <Typography sx={{ fontWeight: 600 }}>שאלו שאלה על מסמכי התיק</Typography>
             <Typography sx={{ color: tokens.slate }}>
-              העוזר קורא את קובצי ה-PDF שהועלו לתיק ועונה רק על סמך התוכן שלהם.
+              העוזר קורא את קובצי ה-PDF, ה-Word והתמונות שהועלו לתיק ועונה רק על סמך התוכן שלהם.
             </Typography>
           </Box>
         )}

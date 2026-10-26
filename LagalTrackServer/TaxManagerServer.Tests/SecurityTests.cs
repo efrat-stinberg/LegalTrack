@@ -99,7 +99,8 @@ namespace TaxManagerServer.Tests
             await using var db = _factory.CreateDbContext();
             var groupId = (await db.Clients.SingleAsync(c => c.Id == clientId)).GroupId;
 
-            // Simulate the deployed database before this change: no Clients.GroupId column
+            // Simulate the deployed database before this change: no Clients.GroupId column (nor its foreign key)
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE `Clients` DROP FOREIGN KEY `FK_Clients_Groups_GroupId`");
             await db.Database.ExecuteSqlRawAsync("ALTER TABLE `Clients` DROP COLUMN `GroupId`");
             try
             {

@@ -17,7 +17,7 @@ A full-stack case and document management system for law firms, with an AI legal
 | Admin client    | Angular 19, Angular Material, Chart.js (ng2-charts)            |
 | Database        | MySQL (Pomelo EF Core provider)                                |
 | File storage    | Amazon S3 (presigned upload/download URLs)                     |
-| PDF parsing     | PdfPig (text extraction for the AI chat)                       |
+| Text extraction | PdfPig for PDF, the .docx XML for Word, the OpenAI model for images (cached per document) |
 | AI engine       | OpenAI Chat Completions (`gpt-4o-mini`)                        |
 | Email           | Amazon SES, Mailjet, Brevo or SendGrid: invitations and password reset |
 | Auth            | JWT Bearer tokens, Admin / Lawyer roles                        |
@@ -47,8 +47,8 @@ LegalTrack/
 
 - **Clients** – add, edit, delete and search clients (name, email, phone).
 - **Cases (folders)** – create cases linked to a client; each case has a status (open, in progress, waiting, closed) and an optional next deadline with a note. The cases list filters by client, status, documents and date, sorts by the soonest deadline, and changes status from the row menu.
-- **Documents** – upload PDFs to S3, view, download and delete documents per case.
-- **AI legal chat** – ask questions about a case; answers are based on the text extracted from that case's documents. Chat history is saved per case.
+- **Documents** – upload files to S3, view, download and delete documents per case.
+- **AI legal chat** – ask questions about a case; answers are based on the text of that case's PDF, Word (.docx) and image files (JPG, PNG, WEBP, GIF; the text in images is read by the AI model). The extracted text is cached in `DocumentTexts`, so each file is downloaded and read once. Chat history is saved per case.
 - **Overview** – key numbers, upcoming and overdue deadlines, recent cases.
 - **Password reset** – "forgot password" emails a one-time link (valid for an hour).
 
@@ -111,7 +111,12 @@ Folder (case)             Document                  ChatMessage
 Invite                                  PasswordReset
 ├── Id, Email, Token, GroupId,          ├── Id, UserId, TokenHash (SHA-256),
 └── IsUsed, CreatedAt                   └── CreatedAt, ExpiresAt, UsedAt
+
+DocumentText (cache of the text the AI reads)
+└── DocumentId, FilePath, Extractor (e.g. pdf-2), Text, ExtractedAt
 ```
+
+`Users.Email` is unique (case-insensitive). Every id column has a foreign key: deleting a case removes its documents, cached text and chat; deleting an office's group removes its invites; deleting a user removes their reset links. `SchemaUpgrader` applies these at startup on databases that are not migrated with `dotnet ef`: it first removes rows that point at deleted records, and skips the unique email index (with a warning in the log) while two users share an email.
 
 ---
 
@@ -170,6 +175,7 @@ The server reads settings from `appsettings.json`, [user secrets](https://learn.
 | `PasswordReset:EmailLinkMinutes` / `PasswordReset:AdminLinkMinutes` | Reset link lifetime (defaults: 60 and 1440) |
 | `Frontend:BaseUrl` | URL of the React app, used in invite links (default: `https://legaltrack.onrender.com`) |
 | `Cors:AllowedOrigins` | Optional, comma separated. Sites allowed to call the API (default: any) |
+| `Login:MaxFailedAttemptsPerEmail` / `Login:MaxFailedAttemptsPerIp` / `Login:LockoutMinutes` | Login attempt limit (defaults: 5, 20, 15) |
 
 Example using user secrets:
 
@@ -223,6 +229,7 @@ The API URL is set in `src/environments/environment.ts` (`apiUrl`).
 - Each office (group) only sees its own users, clients, cases, documents, files and chat history.
 - Admin-only actions (inviting lawyers, listing and removing users) require the `Admin` role.
 - Passwords are hashed with ASP.NET Core Identity's `PasswordHasher`.
+- Failed logins are limited: after 5 failures for one email, or 20 from one IP address, login answers `429` with `Retry-After` (and `retryAfterSeconds` in the body) for 15 minutes, even with the right password. The counts are kept in memory, so a restart clears them. The IP is taken from `X-Forwarded-For`, which Render's proxy sets.
 - Files are stored privately in S3 and accessed through short-lived presigned URLs.
 
 ### Direct upload to S3
@@ -255,7 +262,7 @@ The AWS user needs `s3:PutObject`, `s3:GetObject`, `s3:DeleteObject` and `s3:Lis
 
 ## 🧪 Tests
 
-`LagalTrackServer/TaxManagerServer.Tests` holds 52 tests: 43 end-to-end API tests plus 9 for the SES, Mailjet and Brevo email senders. They run the real API (controllers, JWT, EF Core migrations) against MySQL, with S3, email and OpenAI replaced by in-memory fakes. They cover registration and login, the invite flow (including a failed email), password reset (email and admin links, single use), admin vs. lawyer permissions, client/case/document CRUD, case status and deadlines, upload (through the API and directly to S3) and download, the AI chat, office isolation and anonymous access.
+`LagalTrackServer/TaxManagerServer.Tests` holds 66 tests: end-to-end API tests plus unit tests for the PDF reader and the SES, Mailjet and Brevo email senders. They run the real API (controllers, JWT, EF Core migrations) against MySQL, with S3, email and OpenAI replaced by in-memory fakes. They cover registration and login, the invite flow (including a failed email), password reset (email and admin links, single use), admin vs. lawyer permissions, client/case/document CRUD, case status and deadlines, upload (through the API and directly to S3) and download, the AI chat (PDF, Word and image files, cached text), the login attempt limit, unique emails and foreign keys (including upgrading an old schema), office isolation and anonymous access.
 
 ```bash
 # MySQL connection for the tests (the database is dropped and recreated)

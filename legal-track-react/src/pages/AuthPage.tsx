@@ -46,6 +46,11 @@ const Login = () => {
     } catch (error: unknown) {
       localStorage.removeItem("token");
       if (axios.isAxiosError(error) && error.response?.status === 401) setErrorMessage("האימייל או הסיסמה שגויים.");
+      else if (axios.isAxiosError(error) && error.response?.status === 429) {
+        // Too many failed logins; the server says how long the block lasts
+        const minutes = Math.max(1, Math.ceil((error.response.data?.retryAfterSeconds ?? 900) / 60));
+        setErrorMessage(`יותר מדי ניסיונות התחברות שגויים. נסו שוב בעוד ${minutes} דקות.`);
+      }
       else if (axios.isAxiosError(error) && error.response) setErrorMessage("ההתחברות נכשלה. נסו שוב בעוד רגע.");
       else if (axios.isAxiosError(error) && error.request) setErrorMessage("אין חיבור לשרת. בדקו את החיבור לאינטרנט ונסו שוב.");
       else setErrorMessage("אירעה שגיאה לא צפויה. נסו שוב.");

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using TaxManager.Core.Models;
 using TaxManager.Core.Services;
 using TaxManagerServer.API.Models;
+using TaxManagerServer.API.Security;
 using TaxManagerServer.Core.Models;
 using TaxManagerServer.Core.Repository;
 using TaxManagerServer.Core.Services;
@@ -21,6 +22,7 @@ namespace TaxManagerServer.API.Controllers
         private readonly IUserService _userService;
         private readonly IAuthService _authService;
         private readonly IInviteService _inviteService;
+        private readonly LoginAttemptLimiter _loginLimiter;
 
         public AuthController(
             IConfiguration configuration,
@@ -28,7 +30,8 @@ namespace TaxManagerServer.API.Controllers
             IRepositoryManager repositoryManager,
             IUserService userService,
             IAuthService authService,
-            IInviteService inviteService)
+            IInviteService inviteService,
+            LoginAttemptLimiter loginLimiter)
         {
             _configuration = configuration;
             _userRepository = userRepository;
@@ -36,6 +39,7 @@ namespace TaxManagerServer.API.Controllers
             _userService = userService;
             _authService = authService;
             _inviteService = inviteService;
+            _loginLimiter = loginLimiter;
         }
 
         [HttpPost("login")]
@@ -48,9 +52,15 @@ namespace TaxManagerServer.API.Controllers
             if (string.IsNullOrEmpty(loginModel.Password))
                 return BadRequest("Password is required.");
 
+            // Checked before the password, so a blocked attacker learns nothing from further guesses
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var retryAfter = _loginLimiter.GetRetryAfter(loginModel.Email, ip);
+            if (retryAfter != null)
+                return TooManyAttempts(retryAfter.Value);
+
             var user = await _userRepository.GetByEmailAsync(loginModel.Email);
             if (user == null)
-                return Unauthorized("Invalid credentials.");
+                return FailedLogin(loginModel.Email, ip);
 
             var passwordHasher = new PasswordHasher<User>();
             PasswordVerificationResult result;
@@ -64,10 +74,30 @@ namespace TaxManagerServer.API.Controllers
                 result = PasswordVerificationResult.Failed;
             }
             if (result == PasswordVerificationResult.Failed)
-                return Unauthorized("Invalid credentials.");
+                return FailedLogin(loginModel.Email, ip);
 
+            _loginLimiter.RecordSuccess(loginModel.Email);
             var token = _authService.GenerateJwtToken(user);
             return Ok(new { Token = token });
+        }
+
+        private IActionResult FailedLogin(string email, string? ip)
+        {
+            _loginLimiter.RecordFailure(email, ip);
+            // The attempt that reaches the limit already gets 429, so the user learns about the lock right away
+            var retryAfter = _loginLimiter.GetRetryAfter(email, ip);
+            return retryAfter != null ? TooManyAttempts(retryAfter.Value) : Unauthorized("Invalid credentials.");
+        }
+
+        private IActionResult TooManyAttempts(TimeSpan retryAfter)
+        {
+            var seconds = (int)Math.Ceiling(retryAfter.TotalSeconds);
+            Response.Headers.RetryAfter = seconds.ToString();
+            return StatusCode(StatusCodes.Status429TooManyRequests, new
+            {
+                error = "Too many failed login attempts. Try again later.",
+                retryAfterSeconds = seconds
+            });
         }
 
         [HttpPost("register")]

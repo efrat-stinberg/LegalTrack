@@ -14,6 +14,7 @@ public class RepositoryManager : IRepositoryManager
     public IGroupRepository GroupRepository { get; }
     public IInviteRepository Invite { get; }
     public IClientRepository Client { get; }
+    public IRepository<DocumentText> DocumentTexts { get; }
 
 
 
@@ -25,7 +26,8 @@ public class RepositoryManager : IRepositoryManager
         IRepository<ChatMessage> chatMessageRepository,
         IGroupRepository groupRepository,
         IInviteRepository inviteReository,
-        IClientRepository client)
+        IClientRepository client,
+        IRepository<DocumentText> documentTexts)
     {
         _context = context;
         Users = userRepository;
@@ -35,6 +37,7 @@ public class RepositoryManager : IRepositoryManager
         GroupRepository = groupRepository;
         Invite = inviteReository;
         Client = client;
+        DocumentTexts = documentTexts;
     }
 
 
