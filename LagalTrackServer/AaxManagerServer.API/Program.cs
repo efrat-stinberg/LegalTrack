@@ -30,10 +30,11 @@ builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<LoginAttemptLimiter>();
 
 // Render (and most hosts) put the API behind a proxy; take the caller's IP from X-Forwarded-For
-// so the login limit counts each client separately instead of the proxy
+// so the login limit counts each client separately instead of the proxy.
+// X-Forwarded-Proto makes the API see https, so the signed file links it hands out are https too
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor;
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
     options.KnownNetworks.Clear();
     options.KnownProxies.Clear();
 });
