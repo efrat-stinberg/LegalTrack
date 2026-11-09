@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, IconButton, InputBase } from '@mui/material';
-import { Menu as MenuIcon, Plus, Search } from 'lucide-react';
+import { Box, IconButton, InputBase } from '@mui/material';
+import { Menu as MenuIcon, Search } from 'lucide-react';
 import UserAvatar from '../UserAvatar';
 import { tokens } from '../../theme';
 
@@ -9,7 +9,7 @@ interface TopBarProps {
   onOpenMenu: () => void;
 }
 
-// Search opens the cases list filtered by the query; "New case" opens the create form there.
+// Search opens the cases list filtered by the query.
 const TopBar: React.FC<TopBarProps> = ({ onOpenMenu }) => {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
@@ -75,14 +75,6 @@ const TopBar: React.FC<TopBarProps> = ({ onOpenMenu }) => {
 
       <Box sx={{ flex: 1 }} />
 
-      <Button
-        variant="contained"
-        startIcon={<Plus size={16} />}
-        onClick={() => navigate('/folders?new=1')}
-        sx={{ display: { xs: 'none', sm: 'inline-flex' }, flexShrink: 0, whiteSpace: 'nowrap' }}
-      >
-        תיק חדש
-      </Button>
       <UserAvatar />
     </Box>
   );
