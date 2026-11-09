@@ -115,8 +115,21 @@ builder.Services.AddDbContext<DataContext>(
     ));
 
 
-builder.Services.AddAWSService<IAmazonS3>();
-builder.Services.AddScoped<IS3Service, S3Service>();
+// File storage. By default files are saved in a folder on this computer (Storage:LocalPath, default
+// "LocalStorage" next to the app), so they survive restarts. Set Storage:Provider=S3 to use AWS S3 again.
+builder.Services.AddHttpContextAccessor();
+var localStorageRoot = Path.Combine(builder.Environment.ContentRootPath, "LocalStorage");
+builder.Services.AddScoped(sp => new LocalFileStorageService(
+    sp.GetRequiredService<IConfiguration>(), sp.GetRequiredService<IHttpContextAccessor>(), localStorageRoot));
+if (string.Equals(builder.Configuration["Storage:Provider"], "S3", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddAWSService<IAmazonS3>();
+    builder.Services.AddScoped<IS3Service, S3Service>();
+}
+else
+{
+    builder.Services.AddScoped<IS3Service>(sp => sp.GetRequiredService<LocalFileStorageService>());
+}
 
 builder.Services.AddScoped<IPdfTextExtractor, PdfTextExtractor>();
 // One pooled HttpClient for all OpenAI calls (chat, images, embeddings), replaceable in tests

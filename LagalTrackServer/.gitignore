@@ -415,3 +415,7 @@ secrets.json
 !*.sln
 !*.csproj
 !*.vbproj
+
+# Locally stored uploaded documents
+LocalStorage/
+**/LocalStorage/
