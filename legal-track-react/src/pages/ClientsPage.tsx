@@ -31,7 +31,7 @@ import PageTitle from '../components/layout/PageTitle';
 import { tokens } from '../theme';
 
 const emptyForm = { fullName: '', email: '', phone: '' };
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { LIMITS, validateEmail, validatePersonName, validatePhone } from '../utils/validation';
 
 const ClientsPage: React.FC = () => {
   const [clients, setClients] = useState<Client[]>([]);
@@ -82,12 +82,13 @@ const ClientsPage: React.FC = () => {
     setDialog({ mode: 'edit', client });
   };
 
-  const nameError = !form.fullName.trim() ? 'יש להזין את שם הלקוח' : '';
-  const emailError = form.email.trim() && !emailPattern.test(form.email.trim()) ? 'כתובת האימייל לא תקינה' : '';
+  const nameError = validatePersonName(form.fullName, 'שם הלקוח');
+  const emailError = validateEmail(form.email, false);
+  const phoneError = validatePhone(form.phone);
 
   const submit = async () => {
     setTouched(true);
-    if (nameError || emailError || !dialog) return;
+    if (nameError || emailError || phoneError || !dialog) return;
     setSaving(true);
     const data = { fullName: form.fullName.trim(), email: form.email.trim(), phone: form.phone.trim() };
     try {
@@ -143,7 +144,7 @@ const ClientsPage: React.FC = () => {
         <Box sx={{ px: 2, py: 1.75, borderBottom: `1px solid ${tokens.border}` }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: 40, px: 1.5, maxWidth: 420, border: `1px solid ${tokens.border}`, borderRadius: `${tokens.radius}px`, color: tokens.muted, '&:focus-within': { borderColor: tokens.blue600 } }}>
             <Search size={16} aria-hidden="true" />
-            <InputBase value={search} onChange={(e) => setSearch(e.target.value)} placeholder="חיפוש לפי שם, אימייל או טלפון" inputProps={{ 'aria-label': 'חיפוש לקוחות' }} sx={{ flex: 1, fontSize: 14 }} />
+            <InputBase value={search} onChange={(e) => setSearch(e.target.value)} placeholder="חיפוש לפי שם, אימייל או טלפון" inputProps={{ 'aria-label': 'חיפוש לקוחות', maxLength: LIMITS.search }} sx={{ flex: 1, fontSize: 14 }} />
           </Box>
         </Box>
 
@@ -272,6 +273,7 @@ const ClientsPage: React.FC = () => {
             onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))}
             error={touched && Boolean(nameError)}
             helperText={touched && nameError ? nameError : ' '}
+            inputProps={{ maxLength: LIMITS.personName }}
             sx={{ gridColumn: { sm: '1 / -1' } }}
           />
           <TextField
@@ -281,14 +283,15 @@ const ClientsPage: React.FC = () => {
             onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
             error={touched && Boolean(emailError)}
             helperText={touched && emailError ? emailError : ' '}
-            inputProps={{ dir: 'ltr', style: { textAlign: 'right' } }}
+            inputProps={{ dir: 'ltr', maxLength: LIMITS.email, style: { textAlign: 'right' } }}
           />
           <TextField
             label="טלפון (רשות)"
             value={form.phone}
             onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-            helperText=" "
-            inputProps={{ dir: 'ltr', style: { textAlign: 'right' } }}
+            error={touched && Boolean(phoneError)}
+            helperText={touched && phoneError ? phoneError : ' '}
+            inputProps={{ dir: 'ltr', inputMode: 'tel', maxLength: LIMITS.phone, style: { textAlign: 'right' } }}
           />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5 }}>

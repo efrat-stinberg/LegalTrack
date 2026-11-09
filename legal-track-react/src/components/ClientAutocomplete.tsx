@@ -74,6 +74,7 @@ const ClientAutocomplete: React.FC<ClientAutocompleteProps> = ({
       <input
         type="text"
         placeholder="חפש לקוח..."
+        maxLength={100}
         value={query}
         onChange={handleInputChange}
         onFocus={handleInputFocus}

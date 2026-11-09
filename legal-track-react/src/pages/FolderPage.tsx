@@ -29,6 +29,7 @@ import { DeadlineText, StatusChip } from '../components/caseStatus';
 import { CASE_STATUSES } from '../utils/caseStatus';
 import StatsSection from '../components/StatsSection';
 import { Client } from '../models/Client';
+import { LIMITS, validateFolderName } from '../utils/validation';
 import PageTitle from '../components/layout/PageTitle';
 import { tokens } from '../theme';
 
@@ -157,7 +158,7 @@ const FoldersPage: React.FC = () => {
 
   const submitCreate = async () => {
     setTouched(true);
-    if (!form.folderName.trim() || form.clientId === '') return;
+    if (validateFolderName(form.folderName) || form.clientId === '') return;
     setSaving(true);
     try {
       const created = await apiCreateFolder({ folderName: form.folderName.trim(), clientId: form.clientId });
@@ -172,7 +173,7 @@ const FoldersPage: React.FC = () => {
   };
 
   const submitRename = async () => {
-    if (!toRename || !toRename.name.trim()) return;
+    if (!toRename || validateFolderName(toRename.name)) return;
     setSaving(true);
     try {
       await updateFolder(toRename.folder.folderId, { folderName: toRename.name.trim(), clientId: toRename.folder.clientId, ...caseFieldsOf(toRename.folder) });
@@ -448,8 +449,9 @@ const FoldersPage: React.FC = () => {
             label="שם התיק"
             value={form.folderName}
             onChange={(e) => setForm((f) => ({ ...f, folderName: e.target.value }))}
-            error={touched && !form.folderName.trim()}
-            helperText={touched && !form.folderName.trim() ? 'יש להזין שם לתיק' : 'לדוגמה: תביעת שכירות – רחוב הרצל 10'}
+            error={touched && Boolean(validateFolderName(form.folderName))}
+            helperText={touched && validateFolderName(form.folderName) ? validateFolderName(form.folderName) : 'לדוגמה: תביעת שכירות – רחוב הרצל 10'}
+            inputProps={{ maxLength: LIMITS.folderName }}
           />
           <TextField
             select
@@ -502,6 +504,9 @@ const FoldersPage: React.FC = () => {
             value={toRename?.name ?? ''}
             onChange={(e) => setToRename((r) => (r ? { ...r, name: e.target.value } : r))}
             onKeyDown={(e) => e.key === 'Enter' && submitRename()}
+            error={Boolean(toRename?.name) && Boolean(validateFolderName(toRename?.name ?? ''))}
+            helperText={toRename?.name ? validateFolderName(toRename.name) || ' ' : ' '}
+            inputProps={{ maxLength: LIMITS.folderName }}
             sx={{ mt: 1 }}
           />
         </DialogContent>
@@ -509,7 +514,7 @@ const FoldersPage: React.FC = () => {
           <Button variant="outlined" onClick={() => setToRename(null)} disabled={saving}>
             ביטול
           </Button>
-          <Button variant="contained" onClick={submitRename} disabled={saving || !toRename?.name.trim()}>
+          <Button variant="contained" onClick={submitRename} disabled={saving || Boolean(validateFolderName(toRename?.name ?? ''))}>
             שמירה
           </Button>
         </DialogActions>

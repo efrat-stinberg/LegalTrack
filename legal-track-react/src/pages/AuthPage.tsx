@@ -13,7 +13,7 @@ import AuthShell from "../components/AuthShell";
 // The admin app, where an office registers and invites lawyers
 const ADMIN_APP_URL = import.meta.env.VITE_ADMIN_URL || "https://legal-track.onrender.com/#/register-admin";
 
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { LIMITS, validateEmail } from "../utils/validation";
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -26,7 +26,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const emailError = !email ? "יש להזין אימייל" : !emailPattern.test(email) ? "כתובת האימייל לא תקינה" : "";
+  const emailError = validateEmail(email);
   const passwordError = !password ? "יש להזין סיסמה" : "";
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,7 +84,7 @@ const Login = () => {
           onChange={(e) => setEmail(e.target.value)}
           error={touched && Boolean(emailError)}
           helperText={touched ? emailError || " " : " "}
-          inputProps={{ dir: "ltr", style: { textAlign: "right" } }}
+          inputProps={{ dir: "ltr", maxLength: LIMITS.email, style: { textAlign: "right" } }}
         />
         <TextField
           label="סיסמה"
@@ -95,6 +95,7 @@ const Login = () => {
           onChange={(e) => setPassword(e.target.value)}
           error={touched && Boolean(passwordError)}
           helperText={touched ? passwordError || " " : " "}
+          inputProps={{ maxLength: LIMITS.password }}
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">

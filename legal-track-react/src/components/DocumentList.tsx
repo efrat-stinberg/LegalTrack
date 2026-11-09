@@ -18,6 +18,7 @@ import {
   Typography,
 } from "@mui/material";
 import { ArrowDownUp, Copy, Download, Edit3, MoreVertical, Search, Trash2 } from "lucide-react";
+import { LIMITS, validateDocumentName } from "../utils/validation";
 import { deleteDocument, getDownloadUrl, updateDocument } from "../api/api";
 import MyDocument from "../models/Document";
 import { tokens } from "../theme";
@@ -110,7 +111,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, onDelete, onRena
   const confirmRename = async () => {
     if (!toRename) return;
     const name = toRename.name.trim();
-    if (!name) return;
+    if (validateDocumentName(name)) return;
     setBusy(true);
     try {
       await updateDocument(toRename.doc.documentId, {
@@ -339,6 +340,9 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, onDelete, onRena
             value={toRename?.name ?? ""}
             onChange={(e) => setToRename((r) => (r ? { ...r, name: e.target.value } : r))}
             onKeyDown={(e) => e.key === "Enter" && confirmRename()}
+            error={Boolean(toRename?.name) && Boolean(validateDocumentName(toRename?.name ?? ""))}
+            helperText={toRename?.name ? validateDocumentName(toRename.name) || " " : " "}
+            inputProps={{ maxLength: LIMITS.documentName }}
             sx={{ mt: 1 }}
           />
         </DialogContent>
@@ -346,7 +350,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, onDelete, onRena
           <Button variant="outlined" onClick={() => setToRename(null)} disabled={busy}>
             ביטול
           </Button>
-          <Button variant="contained" onClick={confirmRename} disabled={busy || !toRename?.name.trim()}>
+          <Button variant="contained" onClick={confirmRename} disabled={busy || Boolean(validateDocumentName(toRename?.name ?? ""))}>
             שמירה
           </Button>
         </DialogActions>
