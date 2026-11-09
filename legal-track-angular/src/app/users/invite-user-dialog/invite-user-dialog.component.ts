@@ -137,6 +137,19 @@ export class InviteUserDialogComponent {
     this.inviteForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]]
     });
+
+    // Pasted addresses often carry spaces or invisible direction marks that make the
+    // address look invalid; strip them as soon as they appear
+    this.inviteForm.get('email')!.valueChanges.subscribe((value: string | null) => {
+      const cleaned = InviteUserDialogComponent.cleanEmail(value);
+      if (value !== null && cleaned !== value) {
+        this.inviteForm.get('email')!.setValue(cleaned, { emitEvent: false });
+      }
+    });
+  }
+
+  private static cleanEmail(value: string | null): string {
+    return (value ?? '').replace(/[\s\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/g, '');
   }
 
   onSendInvite(): void {
@@ -144,7 +157,7 @@ export class InviteUserDialogComponent {
       this.loading = true;
       
       const inviteData = {
-        email: this.inviteForm.value.email
+        email: InviteUserDialogComponent.cleanEmail(this.inviteForm.value.email)
       };
       
       this.usersService.inviteLawyer(inviteData).subscribe({
