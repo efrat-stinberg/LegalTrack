@@ -30,6 +30,7 @@ import { DeadlineText, StatusChip } from "../components/caseStatus";
 import { CASE_STATUSES } from "../utils/caseStatus";
 import { Client } from "../models/Client";
 import { tokens } from "../theme";
+import { LIMITS, validateFolderName, validateNote, validateOptionalDate } from "../utils/validation";
 
 const panel = {
   background: tokens.white,
@@ -97,7 +98,7 @@ const FolderDetailsPage: React.FC = () => {
   };
 
   const saveEdit = async () => {
-    if (!folder || !form.folderName.trim()) return;
+    if (!folder || validateFolderName(form.folderName) || validateOptionalDate(form.nextDeadline) || validateNote(form.nextDeadlineNote)) return;
     setSaving(true);
     try {
       await updateFolder(folder.folderId, {
@@ -257,8 +258,9 @@ const FolderDetailsPage: React.FC = () => {
             required
             value={form.folderName}
             onChange={(e) => setForm((f) => ({ ...f, folderName: e.target.value }))}
-            error={!form.folderName.trim()}
-            helperText={!form.folderName.trim() ? "יש להזין שם לתיק" : " "}
+            error={Boolean(validateFolderName(form.folderName))}
+            helperText={validateFolderName(form.folderName) || " "}
+            inputProps={{ maxLength: LIMITS.folderName }}
           />
           <TextField
             select
@@ -290,7 +292,9 @@ const FolderDetailsPage: React.FC = () => {
               value={form.nextDeadline}
               onChange={(e) => setForm((f) => ({ ...f, nextDeadline: e.target.value }))}
               InputLabelProps={{ shrink: true }}
-              helperText="רשות – למשל דיון או הגשה"
+              error={Boolean(validateOptionalDate(form.nextDeadline))}
+              helperText={validateOptionalDate(form.nextDeadline) || "רשות – למשל דיון או הגשה"}
+              inputProps={{ min: "2000-01-01", max: "2100-12-31" }}
               sx={{ flex: 1 }}
             />
             {form.nextDeadline && (
@@ -304,7 +308,7 @@ const FolderDetailsPage: React.FC = () => {
               label="מה המועד"
               value={form.nextDeadlineNote}
               onChange={(e) => setForm((f) => ({ ...f, nextDeadlineNote: e.target.value }))}
-              inputProps={{ maxLength: 200 }}
+              inputProps={{ maxLength: LIMITS.note }}
               placeholder="לדוגמה: דיון בבית משפט השלום"
             />
           )}
@@ -313,7 +317,7 @@ const FolderDetailsPage: React.FC = () => {
           <Button variant="outlined" onClick={() => setEditOpen(false)} disabled={saving}>
             ביטול
           </Button>
-          <Button variant="contained" onClick={saveEdit} disabled={saving || !form.folderName.trim()}>
+          <Button variant="contained" onClick={saveEdit} disabled={saving || Boolean(validateFolderName(form.folderName)) || Boolean(validateOptionalDate(form.nextDeadline))}>
             שמירה
           </Button>
         </DialogActions>

@@ -8,7 +8,7 @@ import { requestPasswordReset } from "../api/passwordApi";
 import AuthShell from "../components/AuthShell";
 import { tokens } from "../theme";
 
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { LIMITS, validateEmail } from "../utils/validation";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
@@ -17,7 +17,7 @@ const ForgotPasswordPage = () => {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
 
-  const emailError = !email ? "יש להזין אימייל" : !emailPattern.test(email) ? "כתובת האימייל לא תקינה" : "";
+  const emailError = validateEmail(email);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,7 +88,7 @@ const ForgotPasswordPage = () => {
           onChange={(e) => setEmail(e.target.value)}
           error={touched && Boolean(emailError)}
           helperText={touched ? emailError || " " : " "}
-          inputProps={{ dir: "ltr", style: { textAlign: "right" } }}
+          inputProps={{ dir: "ltr", maxLength: LIMITS.email, style: { textAlign: "right" } }}
         />
 
         <Button type="submit" variant="contained" size="large" disabled={sending} sx={{ minHeight: 44 }}>

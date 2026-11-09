@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Alert, Avatar, Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, TextField, Typography } from "@mui/material";
 import { X } from "lucide-react";
 import { tokens } from "../theme";
+import { LIMITS, validateEmail, validatePersonName } from "../utils/validation";
 
 interface UserEditDialogProps {
   isOpen: boolean;
@@ -34,17 +35,11 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
   const validateForm = () => {
     const newErrors: {[key: string]: string} = {};
     
-    if (!name.trim()) {
-      newErrors.name = 'שם הוא שדה חובה';
-    } else if (name.trim().length < 2) {
-      newErrors.name = 'שם חייב להכיל לפחות 2 תווים';
-    }
-    
-    if (!email.trim()) {
-      newErrors.email = 'אימייל הוא שדה חובה';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      newErrors.email = 'אימייל לא תקין';
-    }
+    const nameError = validatePersonName(name, 'שם');
+    if (nameError) newErrors.name = nameError;
+
+    const emailError = validateEmail(email);
+    if (emailError) newErrors.email = emailError;
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -109,6 +104,7 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
             }}
             error={!!errors.name}
             helperText={errors.name || " "}
+            inputProps={{ maxLength: LIMITS.personName }}
             fullWidth
             disabled={isLoading}
           />
@@ -125,7 +121,7 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
             helperText={errors.email || " "}
             fullWidth
             disabled={isLoading}
-            inputProps={{ dir: "ltr", style: { textAlign: "right" } }}
+            inputProps={{ dir: "ltr", maxLength: LIMITS.email, style: { textAlign: "right" } }}
           />
         </Box>
       </DialogContent>

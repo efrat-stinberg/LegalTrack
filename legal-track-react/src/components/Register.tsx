@@ -9,6 +9,7 @@ import { getUserByEmail, apiClient } from "../api/api";
 import { login } from "../store/slices/userSlice";
 import { tokens } from "../theme";
 import AuthShell from "./AuthShell";
+import { LIMITS, validatePassword, validatePersonName } from "../utils/validation";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -58,8 +59,9 @@ const Register = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name.trim()) {
-      setErrorMessage("יש להזין שם מלא.");
+    const nameProblem = validatePersonName(name);
+    if (nameProblem) {
+      setErrorMessage(`${nameProblem}.`);
       return;
     }
     if (password !== confirmPassword) {
@@ -67,8 +69,9 @@ const Register = () => {
       return;
     }
     // Same rule as the server: at least 5 characters, with letters and digits
-    if (password.length < 5 || !/[a-zA-Zא-ת]/.test(password) || !/[0-9]/.test(password)) {
-      setErrorMessage("הסיסמה חייבת להכיל לפחות 5 תווים, כולל אותיות ומספרים.");
+    const passwordProblem = validatePassword(password);
+    if (passwordProblem) {
+      setErrorMessage(`${passwordProblem}.`);
       return;
     }
 
@@ -167,7 +170,7 @@ const Register = () => {
           </Alert>
         )}
 
-        <TextField label="שם מלא" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} required disabled={isLoading} />
+        <TextField label="שם מלא" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} required disabled={isLoading} inputProps={{ maxLength: LIMITS.personName }} />
         <TextField
           type={showPassword ? "text" : "password"}
           label="סיסמה"
@@ -177,6 +180,7 @@ const Register = () => {
           required
           disabled={isLoading}
           helperText="לפחות 5 תווים, אותיות ומספרים"
+          inputProps={{ maxLength: LIMITS.password }}
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
@@ -197,6 +201,7 @@ const Register = () => {
           disabled={isLoading}
           error={Boolean(confirmPassword) && confirmPassword !== password}
           helperText={confirmPassword && confirmPassword !== password ? "הסיסמאות אינן זהות" : " "}
+          inputProps={{ maxLength: LIMITS.password }}
         />
 
         <Button
